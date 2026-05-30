@@ -3,6 +3,8 @@ import type { TFile } from "obsidian";
 import {
   articleFromFile,
   dateBucket,
+  estimateReadingMinutes,
+  filterBySnoozedUntil,
   filterByStatus,
   groupArticles,
   randomArticle,
@@ -28,6 +30,7 @@ function mkArticle(overrides: Partial<QueueArticle> = {}): QueueArticle {
     savedAt: undefined,
     status: "unread",
     tags: [],
+    snoozedUntil: undefined,
     ...overrides,
   };
 }
@@ -288,6 +291,70 @@ describe("sortArticles", () => {
     }
     // df = (k-1)*(k-1) = 9. Critical value at p=0.001 is ~27.88.
     expect(chi2).toBeLessThan(27.88);
+  });
+});
+
+describe("articleFromFile — snoozedUntil", () => {
+  it("parses snoozedUntil from frontmatter", () => {
+    const a = articleFromFile(mkFile("x"), { snoozedUntil: "2026-12-01T00:00:00Z" });
+    expect(a.snoozedUntil?.toISOString()).toBe("2026-12-01T00:00:00.000Z");
+  });
+
+  it("returns undefined when snoozedUntil is missing", () => {
+    expect(articleFromFile(mkFile("x"), {}).snoozedUntil).toBeUndefined();
+  });
+
+  it("returns undefined when snoozedUntil is invalid", () => {
+    expect(
+      articleFromFile(mkFile("x"), { snoozedUntil: "not-a-date" }).snoozedUntil,
+    ).toBeUndefined();
+  });
+});
+
+describe("filterBySnoozedUntil", () => {
+  const now = new Date("2026-05-30T12:00:00Z");
+  const a = mkArticle({ title: "a", snoozedUntil: undefined });
+  const past = mkArticle({
+    title: "past",
+    snoozedUntil: new Date("2026-05-28T00:00:00Z"),
+  });
+  const future = mkArticle({
+    title: "future",
+    snoozedUntil: new Date("2026-06-05T00:00:00Z"),
+  });
+
+  it("keeps articles without snoozedUntil", () => {
+    expect(filterBySnoozedUntil([a], now)).toEqual([a]);
+  });
+
+  it("keeps articles whose snooze date has passed", () => {
+    expect(filterBySnoozedUntil([a, past], now)).toEqual([a, past]);
+  });
+
+  it("excludes articles snoozed into the future", () => {
+    const out = filterBySnoozedUntil([a, past, future], now);
+    expect(out).toEqual([a, past]);
+  });
+});
+
+describe("estimateReadingMinutes", () => {
+  it("returns 0 for empty body", () => {
+    expect(estimateReadingMinutes("")).toBe(0);
+    expect(estimateReadingMinutes("   ")).toBe(0);
+  });
+
+  it("clamps to minimum 1 for non-empty short text", () => {
+    expect(estimateReadingMinutes("hola")).toBe(1);
+  });
+
+  it("scales linearly with word count", () => {
+    const body = "word ".repeat(440);
+    expect(estimateReadingMinutes(body, 220)).toBe(2);
+  });
+
+  it("respects custom wpm", () => {
+    const body = "word ".repeat(600);
+    expect(estimateReadingMinutes(body, 300)).toBe(2);
   });
 });
 

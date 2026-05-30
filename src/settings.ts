@@ -15,6 +15,8 @@ export interface ReadQueueSettings {
   classifyOnIntake: boolean;
   classifyOnLoad: boolean;
   readTag: string;
+  collapsedGroupsByGroupBy: Record<string, string[]>;
+  enableReaderStyles: boolean;
 }
 
 export const DEFAULT_SETTINGS: ReadQueueSettings = {
@@ -29,6 +31,8 @@ export const DEFAULT_SETTINGS: ReadQueueSettings = {
   classifyOnIntake: true,
   classifyOnLoad: true,
   readTag: "leido",
+  collapsedGroupsByGroupBy: {},
+  enableReaderStyles: true,
 };
 
 export class ReadQueueSettingsTab extends PluginSettingTab {
@@ -188,21 +192,36 @@ export class ReadQueueSettingsTab extends PluginSettingTab {
           }),
       );
 
-    new Setting(containerEl)
+    const apiKeySetting = new Setting(containerEl)
       .setName("Anthropic API key")
       .setDesc(
         "El contenido del artículo se envía a Anthropic para clasificar. Dejá vacío para usar solo heurística.",
-      )
-      .addText((text) => {
-        text
-          .setPlaceholder("sk-ant-...")
-          .setValue(this.plugin.settings.anthropicApiKey)
-          .onChange(async (value) => {
-            this.plugin.settings.anthropicApiKey = value.trim();
-            await this.plugin.saveSettings();
-          });
-        text.inputEl.type = "password";
-      });
+      );
+    const apiKeyWarn = apiKeySetting.descEl.createEl("div", {
+      cls: "readqueue-settings__warn",
+    });
+    const refreshKeyWarn = (value: string): void => {
+      const v = value.trim();
+      if (v && !v.startsWith("sk-ant-")) {
+        apiKeyWarn.setText(
+          "⚠ Esta key parece no ser válida — una API key de Anthropic empieza con sk-ant-",
+        );
+      } else {
+        apiKeyWarn.setText("");
+      }
+    };
+    refreshKeyWarn(this.plugin.settings.anthropicApiKey);
+    apiKeySetting.addText((text) => {
+      text
+        .setPlaceholder("sk-ant-...")
+        .setValue(this.plugin.settings.anthropicApiKey)
+        .onChange(async (value) => {
+          this.plugin.settings.anthropicApiKey = value.trim();
+          refreshKeyWarn(value);
+          await this.plugin.saveSettings();
+        });
+      text.inputEl.type = "password";
+    });
 
     new Setting(containerEl)
       .setName("Modelo de clasificación")
@@ -214,6 +233,22 @@ export class ReadQueueSettingsTab extends PluginSettingTab {
           .onChange(async (value) => {
             const v = value.trim();
             this.plugin.settings.classifyModel = v || "claude-haiku-4-5";
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    containerEl.createEl("h3", { text: "Reading view" });
+
+    new Setting(containerEl)
+      .setName("Estilos premium en notas clipeadas")
+      .setDesc(
+        "Tipografía serif + max-width 720px + line-height 1.7 en notas con source web-clipper / intake-* / matter-legacy. Desactivar si tenés tu propio CSS.",
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.enableReaderStyles)
+          .onChange(async (value) => {
+            this.plugin.settings.enableReaderStyles = value;
             await this.plugin.saveSettings();
           }),
       );

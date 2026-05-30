@@ -92,3 +92,33 @@ export async function ensureReadingView(
     state: { ...(state.state ?? {}), mode: "preview" },
   });
 }
+
+export async function snoozeArticle(
+  app: App,
+  file: TFile,
+  until: Date,
+): Promise<void> {
+  const iso = until.toISOString();
+  await app.fileManager.processFrontMatter(file, (fm) => {
+    (fm as Record<string, unknown>)["snoozedUntil"] = iso;
+  });
+}
+
+export async function unsnoozeArticle(app: App, file: TFile): Promise<void> {
+  await app.fileManager.processFrontMatter(file, (fm) => {
+    delete (fm as Record<string, unknown>)["snoozedUntil"];
+  });
+}
+
+export async function postponeArticle(app: App, file: TFile): Promise<void> {
+  const now = new Date().toISOString();
+  await app.fileManager.processFrontMatter(file, (fm) => {
+    (fm as Record<string, unknown>)["savedAt"] = now;
+  });
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+export function snoozeDate(days: number, now: Date = new Date()): Date {
+  return new Date(now.getTime() + days * DAY_MS);
+}

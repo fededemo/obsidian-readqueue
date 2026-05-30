@@ -7,7 +7,11 @@ import {
   markAsRead,
   markAsReadMutation,
   openInReadingView,
+  postponeArticle,
   shouldForcePreview,
+  snoozeArticle,
+  snoozeDate,
+  unsnoozeArticle,
 } from "../src/read-action";
 
 const file = { basename: "test", path: "Inbox/Web/test.md" } as unknown as TFile;
@@ -202,5 +206,62 @@ describe("ensureReadingView", () => {
     expect(call.state.scroll).toBe(42);
     expect(call.state.source).toBe(false);
     expect(call.state.mode).toBe("preview");
+  });
+});
+
+describe("snoozeDate", () => {
+  it("adds the given number of days to now", () => {
+    const now = new Date("2026-05-30T12:00:00Z");
+    expect(snoozeDate(7, now).toISOString()).toBe("2026-06-06T12:00:00.000Z");
+  });
+
+  it("accepts zero", () => {
+    const now = new Date("2026-05-30T12:00:00Z");
+    expect(snoozeDate(0, now).toISOString()).toBe(now.toISOString());
+  });
+});
+
+describe("snoozeArticle / unsnoozeArticle / postponeArticle", () => {
+  it("snoozeArticle writes snoozedUntil as ISO string", async () => {
+    const processFrontMatter = vi.fn(
+      async (_f: TFile, fn: (fm: Record<string, unknown>) => void) => {
+        const fm: Record<string, unknown> = {};
+        fn(fm);
+        expect(fm.snoozedUntil).toBe("2026-06-06T00:00:00.000Z");
+      },
+    );
+    const app = { fileManager: { processFrontMatter } } as unknown as App;
+    await snoozeArticle(app, file, new Date("2026-06-06T00:00:00Z"));
+    expect(processFrontMatter).toHaveBeenCalledTimes(1);
+  });
+
+  it("unsnoozeArticle deletes the snoozedUntil key", async () => {
+    const processFrontMatter = vi.fn(
+      async (_f: TFile, fn: (fm: Record<string, unknown>) => void) => {
+        const fm: Record<string, unknown> = { snoozedUntil: "2030-01-01T00:00:00Z" };
+        fn(fm);
+        expect("snoozedUntil" in fm).toBe(false);
+      },
+    );
+    const app = { fileManager: { processFrontMatter } } as unknown as App;
+    await unsnoozeArticle(app, file);
+  });
+
+  it("postponeArticle updates savedAt to current time", async () => {
+    const before = Date.now();
+    let captured = "";
+    const processFrontMatter = vi.fn(
+      async (_f: TFile, fn: (fm: Record<string, unknown>) => void) => {
+        const fm: Record<string, unknown> = { savedAt: "2024-01-01T00:00:00Z" };
+        fn(fm);
+        captured = fm.savedAt as string;
+      },
+    );
+    const app = { fileManager: { processFrontMatter } } as unknown as App;
+    await postponeArticle(app, file);
+    const after = Date.now();
+    const ts = new Date(captured).getTime();
+    expect(ts).toBeGreaterThanOrEqual(before);
+    expect(ts).toBeLessThanOrEqual(after);
   });
 });

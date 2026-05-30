@@ -1,7 +1,9 @@
 import { ItemView, type WorkspaceLeaf } from "obsidian";
 
 import {
+  estimateReadingMinutesFromSize,
   filterByStatus,
+  filterBySnoozedUntil,
   groupArticles,
   sortArticles,
   type ArticleGroup,
@@ -9,7 +11,13 @@ import {
   type QueueArticle,
   type SortKey,
 } from "./queue-data";
-import { markAsRead, openInReadingView } from "./read-action";
+import {
+  markAsRead,
+  openInReadingView,
+  postponeArticle,
+  snoozeArticle,
+  snoozeDate,
+} from "./read-action";
 
 import type ReadQueuePlugin from "./main";
 
@@ -32,11 +40,26 @@ export class QueueView extends ItemView {
   plugin: ReadQueuePlugin;
   groupBy: GroupKey = "topic";
   sortBy: SortKey = "newest";
-  private collapsedGroups = new Set<string>();
+  private visibleArticles: QueueArticle[] = [];
+  private selectedIndex = 0;
 
   constructor(leaf: WorkspaceLeaf, plugin: ReadQueuePlugin) {
     super(leaf);
     this.plugin = plugin;
+  }
+
+  private get collapsedGroups(): Set<string> {
+    const stored = this.plugin.settings.collapsedGroupsByGroupBy[this.groupBy] ?? [];
+    return new Set(stored);
+  }
+
+  private async setGroupCollapsed(label: string, collapsed: boolean): Promise<void> {
+    const map = this.plugin.settings.collapsedGroupsByGroupBy;
+    const current = new Set(map[this.groupBy] ?? []);
+    if (collapsed) current.add(label);
+    else current.delete(label);
+    map[this.groupBy] = [...current];
+    await this.plugin.saveSettings();
   }
 
   getViewType(): string {
@@ -52,6 +75,7 @@ export class QueueView extends ItemView {
   }
 
   async onOpen(): Promise<void> {
+    this.registerKeyboardShortcuts();
     await this.render();
   }
 
@@ -104,28 +128,17 @@ export class QueueView extends ItemView {
 
     const articles = this.plugin.loadQueueArticles();
     const unread = filterByStatus(articles, "unread");
-    const sorted = sortArticles(unread, this.sortBy);
+    const active = filterBySnoozedUntil(unread);
+    const sorted = sortArticles(active, this.sortBy);
     const groups = groupArticles(sorted, this.groupBy);
     const visibleGroups = groups.filter((g) => g.articles.length > 0);
-
-    if (this.groupBy !== "none" && visibleGroups.length > 1) {
-      const collapseAll = toolbar.createEl("button", {
-        text: "Colapsar todos",
-        cls: "readqueue-view__toolbar-btn",
-      });
-      collapseAll.onclick = () => {
-        for (const g of visibleGroups) this.collapsedGroups.add(g.label);
-        void this.render();
-      };
-
-      const expandAll = toolbar.createEl("button", {
-        text: "Expandir todos",
-        cls: "readqueue-view__toolbar-btn",
-      });
-      expandAll.onclick = () => {
-        this.collapsedGroups.clear();
-        void this.render();
-      };
+    this.visibleArticles = visibleGroups.flatMap((g) =>
+      this.collapsedGroups.has(g.label) && this.groupBy !== "none"
+        ? []
+        : g.articles,
+    );
+    if (this.selectedIndex >= this.visibleArticles.length) {
+      this.selectedIndex = Math.max(0, this.visibleArticles.length - 1);
     }
 
     const list = root.createDiv({ cls: "readqueue-view__list" });
@@ -175,17 +188,20 @@ export class QueueView extends ItemView {
       text: ` (${group.articles.length})`,
     });
     header.onclick = () => {
-      if (this.collapsedGroups.has(group.label)) {
-        this.collapsedGroups.delete(group.label);
-      } else {
-        this.collapsedGroups.add(group.label);
-      }
-      void this.render();
+      const isCollapsed = this.collapsedGroups.has(group.label);
+      void this.setGroupCollapsed(group.label, !isCollapsed).then(() =>
+        this.render(),
+      );
     };
   }
 
   private renderCard(parent: HTMLElement, article: QueueArticle): void {
-    const card = parent.createDiv({ cls: "readqueue-view__card" });
+    const isSelected = this.visibleArticles[this.selectedIndex] === article;
+    const card = parent.createDiv({
+      cls: isSelected
+        ? "readqueue-view__card readqueue-view__card--selected"
+        : "readqueue-view__card",
+    });
     card.createEl("div", {
       cls: "readqueue-view__card-title",
       text: article.title,
@@ -198,21 +214,129 @@ export class QueueView extends ItemView {
       meta.createEl("span", { text: article.savedAt.toLocaleDateString() });
     }
     if (article.topic) meta.createEl("span", { text: article.topic });
+    const size = article.file.stat?.size ?? 0;
+    if (size > 0) {
+      const minutes = estimateReadingMinutesFromSize(size);
+      meta.createEl("span", { text: `${minutes} min` });
+    }
 
     card.onclick = (ev) => {
       ev.preventDefault();
+      const idx = this.visibleArticles.indexOf(article);
+      if (idx >= 0) this.selectedIndex = idx;
       void openInReadingView(this.plugin.app, article.file);
     };
 
-    const markBtn = card.createEl("button", {
+    const actions = card.createDiv({ cls: "readqueue-view__card-actions" });
+
+    const markBtn = actions.createEl("button", {
       cls: "readqueue-view__card-mark",
       text: "✓ Leído",
     });
     markBtn.onclick = async (ev) => {
       ev.stopPropagation();
-      await markAsRead(this.plugin.app, article.file);
+      await markAsRead(this.plugin.app, article.file, this.plugin.settings.readTag);
       await this.render();
     };
+
+    const snoozeBtn = actions.createEl("button", {
+      cls: "readqueue-view__card-snooze",
+      text: "💤 1 sem",
+      attr: { title: "Snooze 1 semana" },
+    });
+    snoozeBtn.onclick = async (ev) => {
+      ev.stopPropagation();
+      await snoozeArticle(this.plugin.app, article.file, snoozeDate(7));
+      await this.render();
+    };
+
+    const postponeBtn = actions.createEl("button", {
+      cls: "readqueue-view__card-postpone",
+      text: "↓ Después",
+      attr: { title: "Postponer al final de la cola" },
+    });
+    postponeBtn.onclick = async (ev) => {
+      ev.stopPropagation();
+      await postponeArticle(this.plugin.app, article.file);
+      await this.render();
+    };
+  }
+
+  private moveSelection(delta: number): void {
+    if (this.visibleArticles.length === 0) return;
+    const max = this.visibleArticles.length;
+    this.selectedIndex = (this.selectedIndex + delta + max) % max;
+    void this.render();
+    requestAnimationFrame(() => {
+      const cards = this.containerEl.querySelectorAll<HTMLElement>(
+        ".readqueue-view__card",
+      );
+      const target = cards.item(this.selectedIndex);
+      if (target) target.scrollIntoView({ block: "nearest" });
+    });
+  }
+
+  private getSelectedArticle(): QueueArticle | undefined {
+    return this.visibleArticles[this.selectedIndex];
+  }
+
+  private async snoozeSelected(days: number): Promise<void> {
+    const a = this.getSelectedArticle();
+    if (!a) return;
+    await snoozeArticle(this.plugin.app, a.file, snoozeDate(days));
+    await this.render();
+  }
+
+  private async markSelected(): Promise<void> {
+    const a = this.getSelectedArticle();
+    if (!a) return;
+    await markAsRead(this.plugin.app, a.file, this.plugin.settings.readTag);
+    await this.render();
+  }
+
+  private async openSelected(): Promise<void> {
+    const a = this.getSelectedArticle();
+    if (!a) return;
+    await openInReadingView(this.plugin.app, a.file);
+  }
+
+  private registerKeyboardShortcuts(): void {
+    this.containerEl.tabIndex = 0;
+    this.containerEl.addEventListener("keydown", (ev) => {
+      if (
+        ev.target instanceof HTMLInputElement ||
+        ev.target instanceof HTMLTextAreaElement ||
+        ev.target instanceof HTMLSelectElement
+      ) {
+        return;
+      }
+      switch (ev.key) {
+        case "j":
+        case "J":
+          this.moveSelection(1);
+          ev.preventDefault();
+          break;
+        case "k":
+        case "K":
+          this.moveSelection(-1);
+          ev.preventDefault();
+          break;
+        case "Enter":
+          void this.openSelected();
+          ev.preventDefault();
+          break;
+        case "r":
+        case "R":
+          void this.markSelected();
+          ev.preventDefault();
+          break;
+        case "s":
+        case "S":
+          void this.snoozeSelected(1);
+          ev.preventDefault();
+          break;
+      }
+    });
   }
 }
 

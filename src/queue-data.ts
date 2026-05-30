@@ -10,6 +10,7 @@ export interface ReadFrontmatter {
   savedAt?: string;
   status?: string;
   tags?: string[] | string;
+  snoozedUntil?: string;
 }
 
 export interface QueueArticle {
@@ -23,6 +24,7 @@ export interface QueueArticle {
   savedAt: Date | undefined;
   status: string;
   tags: string[];
+  snoozedUntil: Date | undefined;
 }
 
 const isString = (x: unknown): x is string => typeof x === "string";
@@ -55,7 +57,38 @@ export function articleFromFile(
     savedAt: parseDate(fm.savedAt),
     status: isString(fm.status) ? fm.status : "unread",
     tags: normalizeTags(fm.tags),
+    snoozedUntil: parseDate(fm.snoozedUntil),
   };
+}
+
+export function filterBySnoozedUntil(
+  articles: readonly QueueArticle[],
+  now: Date = new Date(),
+): QueueArticle[] {
+  return articles.filter(
+    (a) => !a.snoozedUntil || a.snoozedUntil.getTime() <= now.getTime(),
+  );
+}
+
+export function estimateReadingMinutes(
+  bodyText: string,
+  wordsPerMinute = 220,
+): number {
+  if (!bodyText) return 0;
+  const words = bodyText.trim().split(/\s+/).filter((w) => w.length > 0).length;
+  if (words === 0) return 0;
+  return Math.max(1, Math.ceil(words / wordsPerMinute));
+}
+
+export function estimateReadingMinutesFromSize(
+  sizeBytes: number,
+  charsPerWord = 5.5,
+  wordsPerMinute = 220,
+): number {
+  if (sizeBytes <= 0) return 0;
+  const words = sizeBytes / charsPerWord;
+  if (words < 1) return 1;
+  return Math.max(1, Math.ceil(words / wordsPerMinute));
 }
 
 export type StatusFilter = "unread" | "read" | "all";

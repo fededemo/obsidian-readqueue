@@ -18,7 +18,10 @@ import {
   ensureReadingView,
   markAsRead,
   openInReadingView,
+  postponeArticle,
   shouldForcePreview,
+  snoozeArticle,
+  snoozeDate,
 } from "./read-action";
 import {
   scanPendingFolder,
@@ -105,16 +108,52 @@ export default class ReadQueuePlugin extends Plugin {
       },
     });
 
+    for (const days of [1, 7, 30]) {
+      const label =
+        days === 1 ? "1 day" : days === 7 ? "1 week" : "1 month";
+      this.addCommand({
+        id: `snooze-current-${days}d`,
+        name: `Snooze current note ${label}`,
+        checkCallback: (checking) => {
+          const file = this.app.workspace.getActiveFile();
+          if (!file) return false;
+          if (!checking) {
+            void snoozeArticle(this.app, file, snoozeDate(days)).then(() =>
+              this.refreshQueueView(),
+            );
+          }
+          return true;
+        },
+      });
+    }
+
+    this.addCommand({
+      id: "postpone-current",
+      name: "Postpone current note to end of queue",
+      checkCallback: (checking) => {
+        const file = this.app.workspace.getActiveFile();
+        if (!file) return false;
+        if (!checking) {
+          void postponeArticle(this.app, file).then(() => this.refreshQueueView());
+        }
+        return true;
+      },
+    });
+
     this.registerObsidianProtocolHandler("readqueue-random", async () => {
       await this.readRandom();
     });
 
     this.registerEvent(
       this.app.workspace.on("file-open", (file) => {
-        if (!file) return;
+        if (!file) {
+          this.applyReaderBodyClass(undefined);
+          return;
+        }
         const fm = this.app.metadataCache.getFileCache(file)?.frontmatter as
           | ReadFrontmatter
           | undefined;
+        this.applyReaderBodyClass(fm);
         if (!shouldForcePreview(fm)) return;
         const leaf = this.app.workspace.getMostRecentLeaf();
         if (!leaf) return;
@@ -216,6 +255,7 @@ export default class ReadQueuePlugin extends Plugin {
   }
 
   async classifyArticle(article: ParsedArticle): Promise<string> {
+    await this.loadSettings();
     const input: ClassifyInput = {
       title: article.title,
       excerpt: article.bodyMarkdown ?? article.contentHtml,
@@ -271,6 +311,13 @@ export default class ReadQueuePlugin extends Plugin {
       new Notice(`❌ Claude API request failed: ${msg}`, 10000);
       console.error("ReadQueue test Claude API threw", err);
     }
+  }
+
+  private applyReaderBodyClass(fm: ReadFrontmatter | undefined): void {
+    const body = document.body;
+    const shouldApply =
+      this.settings.enableReaderStyles && shouldForcePreview(fm);
+    body.classList.toggle("readqueue-reader-active", shouldApply);
   }
 
   private classifyDeps(): ClassifyDeps {
