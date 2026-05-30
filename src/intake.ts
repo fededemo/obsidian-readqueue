@@ -20,6 +20,7 @@ export interface ParsedArticle {
   source?: string;
   bodyMarkdown?: string;
   tags?: string[];
+  topic?: string;
 }
 
 export interface ArticleNote {
@@ -42,6 +43,7 @@ export interface IntakeDeps {
   parseDom?: (html: string) => Document;
   fetchUrl?: (url: string) => Promise<{ status: number; text: string }>;
   now?: () => Date;
+  classify?: (article: ParsedArticle) => Promise<string | undefined>;
 }
 
 const defaultParseDom = (html: string): Document => {
@@ -225,6 +227,7 @@ export function articleToMarkdown(
   };
   if (article.author) frontmatter.author = article.author;
   if (article.published) frontmatter.published = article.published;
+  if (article.topic) frontmatter.topic = article.topic;
   const markdown = article.bodyMarkdown ?? htmlToMarkdown(article.contentHtml);
   const body = `# ${article.title}\n\n[Original ↗](${article.url})\n\n${markdown}`;
   return { frontmatter, body };
@@ -301,6 +304,15 @@ export async function processPending(
         return await markIntakeError(app, file, `http-${res.status}`, now);
       }
       parsed = parseHtmlToArticle(res.text, url, parseDom);
+    }
+
+    if (!parsed.topic && deps.classify) {
+      try {
+        const topic = await deps.classify(parsed);
+        if (topic) parsed.topic = topic;
+      } catch {
+        // classifier failure should never abort intake
+      }
     }
 
     const note = articleToMarkdown(parsed, now(), htmlToMarkdown);

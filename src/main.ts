@@ -18,7 +18,12 @@ import {
   openInReadingView,
   shouldForcePreview,
 } from "./read-action";
-import { scanPendingFolder, type IntakeDeps } from "./intake";
+import {
+  scanPendingFolder,
+  type IntakeDeps,
+  type ParsedArticle,
+} from "./intake";
+import { classifyTopic, type ClassifyInput } from "./topics";
 import {
   DEFAULT_SETTINGS,
   ReadQueueSettingsTab,
@@ -62,6 +67,19 @@ export default class ReadQueuePlugin extends Plugin {
         if (!file) return false;
         if (!checking) {
           void markAsRead(this.app, file).then(() => this.refreshQueueView());
+        }
+        return true;
+      },
+    });
+
+    this.addCommand({
+      id: "reclassify-topic",
+      name: "Re-classify topic for current note",
+      checkCallback: (checking) => {
+        const file = this.app.workspace.getActiveFile();
+        if (!file) return false;
+        if (!checking) {
+          void this.reclassifyCurrentTopic(file);
         }
         return true;
       },
@@ -159,6 +177,9 @@ export default class ReadQueuePlugin extends Plugin {
       pendingFolder: this.settings.pendingFolder,
       webFolder: this.settings.webFolder,
     };
+    if (this.settings.classifyOnIntake) {
+      deps.classify = (article: ParsedArticle) => this.classifyArticle(article);
+    }
     const lister = async (): Promise<TFile[]> => {
       return this.app.vault
         .getMarkdownFiles()
@@ -167,6 +188,40 @@ export default class ReadQueuePlugin extends Plugin {
     const outcomes = await scanPendingFolder(deps, lister);
     const ok = outcomes.filter((o) => o.ok).length;
     if (ok > 0) await this.refreshQueueView();
+  }
+
+  async classifyArticle(article: ParsedArticle): Promise<string> {
+    const input: ClassifyInput = {
+      title: article.title,
+      excerpt: article.bodyMarkdown ?? article.contentHtml,
+      domain: article.domain,
+      source: article.source,
+    };
+    return classifyTopic(input, this.settings);
+  }
+
+  private async reclassifyCurrentTopic(file: TFile): Promise<void> {
+    const fm = this.app.metadataCache.getFileCache(file)?.frontmatter as
+      | ReadFrontmatter
+      | undefined;
+    const content = await this.app.vault.cachedRead(file);
+    const bodyStart = content.indexOf("\n---", 3);
+    const body = bodyStart >= 0 ? content.slice(bodyStart + 4) : content;
+    const article: ParsedArticle = {
+      title: fm?.title ?? file.basename,
+      url: fm?.url ?? "",
+      author: fm?.author,
+      published: fm?.published,
+      domain: hostnameFromFrontmatter(fm),
+      contentHtml: "",
+      bodyMarkdown: body.slice(0, 2000),
+      source: fm?.source,
+    };
+    const topic = await this.classifyArticle(article);
+    await this.app.fileManager.processFrontMatter(file, (raw) => {
+      (raw as Record<string, unknown>)["topic"] = topic;
+    });
+    await this.refreshQueueView();
   }
 
   private async refreshQueueView(): Promise<void> {
@@ -180,4 +235,14 @@ export default class ReadQueuePlugin extends Plugin {
 
 function stripTrailingSlash(path: string): string {
   return path.replace(/\/+$/, "");
+}
+
+function hostnameFromFrontmatter(fm: ReadFrontmatter | undefined): string {
+  const url = fm?.url;
+  if (!url) return "";
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
 }
