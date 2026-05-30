@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>ReadQueue Kindle Sync</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      width: 320px;
+      margin: 0;
+      padding: 16px;
+      font-size: 13px;
+      color: #1f1f1f;
+    }
+    h1 {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 0 0 12px;
+    }
+    button {
+      width: 100%;
+      padding: 8px 12px;
+      margin-bottom: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    button:hover { background: #f5f5f5; }
+    button.primary {
+      background: #2563eb;
+      color: #fff;
+      border-color: #2563eb;
+    }
+    button.primary:hover { background: #1d4ed8; }
+    button.danger {
+      color: #b91c1c;
+    }
+    #folder-status, #state {
+      margin-bottom: 12px;
+      color: #555;
+    }
+    #error {
+      display: none;
+      margin: 8px 0;
+      padding: 6px 8px;
+      background: #fef3c7;
+      border-radius: 4px;
+      color: #92400e;
+    }
+    .row {
+      display: flex;
+      gap: 8px;
+    }
+    .row > button {
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+  <h1>ReadQueue Kindle Sync</h1>
+  <div id="folder-status">Cargando…</div>
+  <button id="choose-folder">Elegir carpeta de la vault</button>
+  <div id="state"></div>
+  <div id="error"></div>
+  <button id="sync-now" class="primary">Sincronizar ahora</button>
+  <div class="row">
+    <button id="reset-known">Reset libros</button>
+    <button id="clear-folder" class="danger">Olvidar carpeta</button>
+  </div>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

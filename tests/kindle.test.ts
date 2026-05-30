@@ -5,13 +5,11 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   buildBookMarkdown,
-  parseArgs,
   parseBookHighlights,
   parseLibrary,
-  run,
   type KindleBook,
-  type RunDeps,
-} from "../scripts/sync-kindle";
+} from "../src/kindle";
+import { parseArgs, run, type RunDeps } from "../scripts/sync-kindle";
 
 const fixture = (name: string): string =>
   readFileSync(join(__dirname, `fixtures/${name}`), "utf-8");

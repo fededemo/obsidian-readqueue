@@ -62,10 +62,24 @@ This plugin is currently private. Mobile distribution is via [BRAT](https://gith
 
 ## Kindle highlights sync
 
-Standalone CLI that scrapes your Kindle library + highlights from
-`read.amazon.com/notebook` and writes one `.md` per book to
-`Inbox/Kindle/` with `source: kindle-scrape` frontmatter (highlights as
-blockquotes, optional Claude topic classification).
+### Recommended: Chrome extension (auto-poll daily, zero touch)
+
+The `extension/` folder is a Chrome Manifest V3 extension that uses
+your active browser session at `read.amazon.com/notebook` and writes
+new books directly to a folder you choose in your vault, every 24
+hours. Cero cookies to copy, cero scripts to run, cero visible UI.
+
+```bash
+npm run build:extension
+# Then in Chrome: chrome://extensions → Developer mode → Load unpacked → pick extension/
+```
+
+See `extension/README.md` for setup walk-through.
+
+### Fallback: standalone CLI
+
+If Chrome isn't available or you prefer a one-shot pull, the CLI
+scrapes the same data using a manually-exported cookie.
 
 ```bash
 npm run sync-kindle -- \

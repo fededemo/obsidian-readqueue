@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit --skipLibCheck",
     "version": "node version-bump.mjs && git add manifest.json versions.json",
     "import-matter": "tsx scripts/import-matter.ts",
-    "sync-kindle": "tsx scripts/sync-kindle.ts"
+    "sync-kindle": "tsx scripts/sync-kindle.ts",
+    "build:extension": "cd extension && node esbuild.config.mjs production"
   },
   "keywords": [
     "obsidian",

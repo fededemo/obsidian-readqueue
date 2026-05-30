@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "ReadQueue Kindle Sync",
+  "version": "0.1.0",
+  "description": "Sync your Kindle highlights into an Obsidian vault folder, automatically, in the background.",
+  "permissions": ["storage", "alarms", "notifications", "offscreen"],
+  "host_permissions": ["https://read.amazon.com/*"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "ReadQueue Kindle Sync"
+  },
+  "icons": {
+    "128": "icon-128.png"
+  }
+}
