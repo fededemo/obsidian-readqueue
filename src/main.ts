@@ -2,14 +2,18 @@ import {
   MarkdownView,
   Notice,
   Plugin,
+  TFile,
+  TFolder,
   requestUrl,
-  type TFile,
   type WorkspaceLeaf,
 } from "obsidian";
 
 import {
   articleFromFile,
+  estimateReadingMinutesFromSize,
   filterByStatus,
+  filterBySnoozedUntil,
+  pickForToday,
   randomArticle,
   type QueueArticle,
   type ReadFrontmatter,
@@ -144,6 +148,22 @@ export default class ReadQueuePlugin extends Plugin {
       await this.readRandom();
     });
 
+    this.addCommand({
+      id: "pick-today-reading",
+      name: "Pick today's reading (5 articles)",
+      callback: () => {
+        void this.pickTodayReading();
+      },
+    });
+
+    this.addCommand({
+      id: "create-daily-digest",
+      name: "Create today's reading digest note",
+      callback: () => {
+        void this.createDailyDigest();
+      },
+    });
+
     this.registerEvent(
       this.app.workspace.on("file-open", (file) => {
         if (!file) {
@@ -235,6 +255,66 @@ export default class ReadQueuePlugin extends Plugin {
     const pick = randomArticle(unread);
     if (!pick) return;
     await openInReadingView(this.app, pick.file);
+  }
+
+  async pickTodayReading(): Promise<QueueArticle[]> {
+    const all = this.loadQueueArticles();
+    const unread = filterByStatus(all, "unread");
+    const active = filterBySnoozedUntil(unread);
+    const picks = pickForToday(active, {
+      count: 5,
+      estimateMinutes: (a) =>
+        estimateReadingMinutesFromSize(a.file.stat?.size ?? 0),
+    });
+    const paths = new Set(picks.map((p) => p.file.path));
+    for (const leaf of this.app.workspace.getLeavesOfType(QUEUE_VIEW_TYPE)) {
+      const view = leaf.view;
+      if (view instanceof QueueView) {
+        view.todayPicks = paths;
+        await view.refresh();
+      }
+    }
+    new Notice(
+      picks.length === 0
+        ? "ReadQueue: no hay artículos en la cola."
+        : `ReadQueue: ${picks.length} artículos sugeridos para hoy.`,
+    );
+    return picks;
+  }
+
+  async createDailyDigest(): Promise<void> {
+    const picks = await this.pickTodayReading();
+    if (picks.length === 0) return;
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+    const dd = String(now.getDate()).padStart(2, "0");
+    const slug = `${yyyy}-${mm}-${dd}`;
+    const dest = `Diario/${slug} lectura.md`;
+    const existing = this.app.vault.getAbstractFileByPath(dest);
+    if (existing) {
+      new Notice(`ReadQueue: ya existe ${dest}, no se sobrescribe.`);
+      return;
+    }
+    const lines: string[] = [
+      `# Lectura del ${slug}`,
+      "",
+      `> ${picks.length} artículos sugeridos por ReadQueue.`,
+      "",
+    ];
+    for (const a of picks) {
+      const minutes = estimateReadingMinutesFromSize(a.file.stat?.size ?? 0);
+      const topic = a.topic ? ` · ${a.topic}` : "";
+      const min = minutes > 0 ? ` · ${minutes} min` : "";
+      lines.push(`- [[${a.file.basename}]]${topic}${min}`);
+    }
+    await ensureFolder(this.app, "Diario");
+    await this.app.vault.create(dest, lines.join("\n") + "\n");
+    new Notice(`ReadQueue: creado ${dest}`);
+    const file = this.app.vault.getAbstractFileByPath(dest);
+    if (file instanceof TFile) {
+      await this.app.workspace.getLeaf(false).openFile(file);
+    }
   }
 
   async runIntakeOnce(): Promise<void> {
@@ -449,5 +529,19 @@ function hostnameFromFrontmatter(fm: ReadFrontmatter | undefined): string {
     return new URL(url).hostname.replace(/^www\./, "");
   } catch {
     return "";
+  }
+}
+
+async function ensureFolder(
+  app: { vault: { getAbstractFileByPath: (p: string) => unknown; createFolder: (p: string) => Promise<unknown> } },
+  folder: string,
+): Promise<void> {
+  const existing = app.vault.getAbstractFileByPath(folder);
+  if (existing instanceof TFolder) return;
+  if (existing) return;
+  try {
+    await app.vault.createFolder(folder);
+  } catch {
+    // already exists or race — ignore
   }
 }

@@ -4,10 +4,12 @@ import {
   articleFromFile,
   dateBucket,
   estimateReadingMinutes,
+  computeStats,
   filterByQuery,
   filterBySnoozedUntil,
   filterByStatus,
   filterByTopic,
+  pickForToday,
   groupArticles,
   randomArticle,
   sortArticles,
@@ -34,6 +36,7 @@ function mkArticle(overrides: Partial<QueueArticle> = {}): QueueArticle {
     status: "unread",
     tags: [],
     snoozedUntil: undefined,
+    readAt: undefined,
     ...overrides,
   };
 }
@@ -457,5 +460,91 @@ describe("filterByTopic", () => {
 
   it("excludes articles without topic", () => {
     expect(filterByTopic([a, b, c], "tech")).not.toContain(c);
+  });
+});
+
+describe("computeStats", () => {
+  const now = new Date("2026-05-30T12:00:00Z");
+  const week = (days: number) => new Date(now.getTime() - days * 24 * 3600 * 1000);
+
+  it("counts unread + snoozed correctly", () => {
+    const items = [
+      mkArticle({ status: "unread" }),
+      mkArticle({ status: "unread" }),
+      mkArticle({ status: "unread", snoozedUntil: week(-3) }),
+      mkArticle({ status: "read" }),
+    ];
+    const s = computeStats(items, now);
+    expect(s.unread).toBe(2);
+    expect(s.snoozed).toBe(1);
+  });
+
+  it("treats expired snoozes as unread", () => {
+    const items = [mkArticle({ status: "unread", snoozedUntil: week(2) })];
+    const s = computeStats(items, now);
+    expect(s.unread).toBe(1);
+    expect(s.snoozed).toBe(0);
+  });
+
+  it("counts readThisWeek using readAt", () => {
+    const items = [
+      mkArticle({ status: "read", readAt: week(2) }),
+      mkArticle({ status: "read", readAt: week(5) }),
+      mkArticle({ status: "read", readAt: week(10) }),
+      mkArticle({ status: "read" }),
+    ];
+    const s = computeStats(items, now);
+    expect(s.readThisWeek).toBe(2);
+  });
+
+  it("finds top topic of the last month", () => {
+    const items = [
+      mkArticle({ status: "read", readAt: week(5), topic: "tech" }),
+      mkArticle({ status: "read", readAt: week(10), topic: "tech" }),
+      mkArticle({ status: "read", readAt: week(12), topic: "macro" }),
+      mkArticle({ status: "read", readAt: week(40), topic: "personal" }),
+    ];
+    const s = computeStats(items, now);
+    expect(s.topTopicThisMonth).toBe("tech");
+  });
+
+  it("topTopic undefined when no reads in month", () => {
+    expect(computeStats([], now).topTopicThisMonth).toBeUndefined();
+  });
+});
+
+describe("pickForToday", () => {
+  const a = mkArticle({ title: "a" });
+  const b = mkArticle({ title: "b" });
+  const c = mkArticle({ title: "c" });
+  const d = mkArticle({ title: "d" });
+  const e = mkArticle({ title: "e" });
+  const f = mkArticle({ title: "f" });
+  const all = [a, b, c, d, e, f];
+
+  it("returns empty when no articles", () => {
+    expect(pickForToday([])).toEqual([]);
+  });
+
+  it("returns all when articles <= count", () => {
+    expect(pickForToday([a, b, c], { count: 5 })).toEqual([a, b, c]);
+  });
+
+  it("picks shortest + longest when estimator provided", () => {
+    const minutesMap = new Map([[a, 1], [b, 5], [c, 3], [d, 7], [e, 12], [f, 25]]);
+    const picks = pickForToday(all, {
+      count: 5,
+      estimateMinutes: (x) => minutesMap.get(x) ?? 0,
+      rng: () => 0,
+    });
+    expect(picks).toContain(a);
+    expect(picks).toContain(f);
+    expect(picks.length).toBe(5);
+  });
+
+  it("uses RNG to fill remaining slots", () => {
+    const picks1 = pickForToday(all, { count: 3, rng: mulberry32(1) });
+    const picks2 = pickForToday(all, { count: 3, rng: mulberry32(1) });
+    expect(picks1).toEqual(picks2);
   });
 });

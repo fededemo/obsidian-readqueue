@@ -1,6 +1,7 @@
 import { ItemView, type WorkspaceLeaf } from "obsidian";
 
 import {
+  computeStats,
   estimateReadingMinutesFromSize,
   filterByQuery,
   filterByStatus,
@@ -49,6 +50,7 @@ export class QueueView extends ItemView {
   private activeTopicFilter: string | undefined = undefined;
   private unreadCount = 0;
   private searchInputEl: HTMLInputElement | undefined;
+  todayPicks = new Set<string>();
 
   constructor(leaf: WorkspaceLeaf, plugin: ReadQueuePlugin) {
     super(leaf);
@@ -101,6 +103,19 @@ export class QueueView extends ItemView {
     if (!(root instanceof HTMLElement)) return;
     root.empty();
     root.addClass("readqueue-view");
+
+    const allArticles = this.plugin.loadQueueArticles();
+    const stats = computeStats(allArticles);
+    const statsBar = root.createDiv({ cls: "readqueue-view__stats" });
+    const statsBits: string[] = [`${stats.unread} unread`];
+    if (stats.snoozed > 0) statsBits.push(`${stats.snoozed} 💤`);
+    if (stats.readThisWeek > 0) {
+      statsBits.push(`${stats.readThisWeek} leídos esta semana`);
+    }
+    if (stats.topTopicThisMonth) {
+      statsBits.push(`top mes: ${stats.topTopicThisMonth}`);
+    }
+    statsBar.setText(statsBits.join(" · "));
 
     const toolbar = root.createDiv({ cls: "readqueue-view__toolbar" });
 
@@ -160,8 +175,7 @@ export class QueueView extends ItemView {
       };
     }
 
-    const articles = this.plugin.loadQueueArticles();
-    const unread = filterByStatus(articles, "unread");
+    const unread = filterByStatus(allArticles, "unread");
     const active = filterBySnoozedUntil(unread);
     this.unreadCount = active.length;
     const byQuery = filterByQuery(active, this.searchQuery);
@@ -235,11 +249,17 @@ export class QueueView extends ItemView {
 
   private renderCard(parent: HTMLElement, article: QueueArticle): void {
     const isSelected = this.visibleArticles[this.selectedIndex] === article;
-    const card = parent.createDiv({
-      cls: isSelected
-        ? "readqueue-view__card readqueue-view__card--selected"
-        : "readqueue-view__card",
-    });
+    const isToday = this.todayPicks.has(article.file.path);
+    const classes = ["readqueue-view__card"];
+    if (isSelected) classes.push("readqueue-view__card--selected");
+    if (isToday) classes.push("readqueue-view__card--today");
+    const card = parent.createDiv({ cls: classes.join(" ") });
+    if (isToday) {
+      card.createSpan({
+        cls: "readqueue-view__today-badge",
+        text: "★ Hoy",
+      });
+    }
     card.createEl("div", {
       cls: "readqueue-view__card-title",
       text: article.title,

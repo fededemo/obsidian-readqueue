@@ -11,6 +11,7 @@ export interface ReadFrontmatter {
   status?: string;
   tags?: string[] | string;
   snoozedUntil?: string;
+  readAt?: string;
 }
 
 export interface QueueArticle {
@@ -25,6 +26,7 @@ export interface QueueArticle {
   status: string;
   tags: string[];
   snoozedUntil: Date | undefined;
+  readAt: Date | undefined;
 }
 
 const isString = (x: unknown): x is string => typeof x === "string";
@@ -58,6 +60,7 @@ export function articleFromFile(
     status: isString(fm.status) ? fm.status : "unread",
     tags: normalizeTags(fm.tags),
     snoozedUntil: parseDate(fm.snoozedUntil),
+    readAt: parseDate(fm.readAt),
   };
 }
 
@@ -89,6 +92,87 @@ export function estimateReadingMinutesFromSize(
   const words = sizeBytes / charsPerWord;
   if (words < 1) return 1;
   return Math.max(1, Math.ceil(words / wordsPerMinute));
+}
+
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+const MONTH_MS = 30 * 24 * 60 * 60 * 1000;
+
+export interface QueueStats {
+  unread: number;
+  snoozed: number;
+  readThisWeek: number;
+  topTopicThisMonth: string | undefined;
+}
+
+export function computeStats(
+  articles: readonly QueueArticle[],
+  now: Date = new Date(),
+): QueueStats {
+  const nowMs = now.getTime();
+  let unread = 0;
+  let snoozed = 0;
+  let readThisWeek = 0;
+  const topicCountsMonth = new Map<string, number>();
+  for (const a of articles) {
+    if (a.status === "unread") {
+      if (a.snoozedUntil && a.snoozedUntil.getTime() > nowMs) {
+        snoozed++;
+      } else {
+        unread++;
+      }
+    }
+    if (a.status === "read" && a.readAt) {
+      if (nowMs - a.readAt.getTime() <= WEEK_MS) readThisWeek++;
+      if (a.topic && nowMs - a.readAt.getTime() <= MONTH_MS) {
+        topicCountsMonth.set(a.topic, (topicCountsMonth.get(a.topic) ?? 0) + 1);
+      }
+    }
+  }
+  let topTopic: string | undefined;
+  let topCount = 0;
+  for (const [topic, count] of topicCountsMonth) {
+    if (count > topCount) {
+      topCount = count;
+      topTopic = topic;
+    }
+  }
+  return { unread, snoozed, readThisWeek, topTopicThisMonth: topTopic };
+}
+
+export interface PickForTodayOptions {
+  count?: number;
+  rng?: () => number;
+  estimateMinutes?: (article: QueueArticle) => number;
+}
+
+export function pickForToday(
+  articles: readonly QueueArticle[],
+  options: PickForTodayOptions = {},
+): QueueArticle[] {
+  const { count = 5, rng = Math.random, estimateMinutes } = options;
+  if (articles.length === 0) return [];
+  if (articles.length <= count) return [...articles];
+
+  const arr = [...articles];
+  const picks: QueueArticle[] = [];
+
+  if (estimateMinutes) {
+    const sorted = [...arr].sort(
+      (a, b) => estimateMinutes(a) - estimateMinutes(b),
+    );
+    const shortest = sorted[0];
+    const longest = sorted[sorted.length - 1];
+    if (shortest) picks.push(shortest);
+    if (longest && longest !== shortest) picks.push(longest);
+  }
+
+  const remaining = arr.filter((a) => !picks.includes(a));
+  while (picks.length < count && remaining.length > 0) {
+    const idx = Math.floor(rng() * remaining.length);
+    const pick = remaining.splice(idx, 1)[0];
+    if (pick) picks.push(pick);
+  }
+  return picks;
 }
 
 const KNOWN_TOPIC_SLUGS: ReadonlyArray<string> = [

@@ -102,6 +102,29 @@
   padding: var(--size-2-1) var(--size-2-3);
 }
 
+.readqueue-view__stats {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+  padding: var(--size-2-2) 0;
+  border-bottom: 1px solid var(--background-modifier-border);
+  margin-bottom: var(--size-4-2);
+}
+
+.readqueue-view__today-badge {
+  display: inline-block;
+  font-size: var(--font-ui-smaller);
+  font-weight: var(--font-semibold);
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  padding: 0 var(--size-2-2);
+  border-radius: var(--radius-s);
+  margin-bottom: var(--size-2-1);
+}
+
+.readqueue-view__card--today {
+  border-color: var(--interactive-accent);
+}
+
 .readqueue-view__search {
   width: 100%;
   margin-bottom: var(--size-4-2);
