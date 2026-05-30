@@ -54,7 +54,7 @@ Bitácora cronológica de releases del plugin (más reciente primero). Cada entr
 
 ---
 
-## Phase F1 — Plugin MVP (IN PROGRESS)
+## Phase F1 — Plugin MVP (CODE-COMPLETE, awaiting F1.6 user testing)
 
 > Implementación del plugin. Esta fase tiene un único deliverable: plugin instalable vía BRAT en Mac + iPhone, funcional al 100% del MVP definido en el plan.
 
@@ -64,56 +64,61 @@ Bitácora cronológica de releases del plugin (más reciente primero). Cada entr
 - ✅ Governance docs (CLAUDE.md, FOR_FEDE.md, README.md, este ROADMAP).
 - ✅ Agentes pigmi inicializados en `.claude/agents/`.
 - ✅ Skills del Core Management Bundle symlinkeadas.
-- ⏳ git init + repo privado en GitHub `fededemo/obsidian-readqueue`.
+- ✅ git init + repo privado en GitHub `fededemo/obsidian-readqueue` (commit `35f4d4b`).
 
-### F1.1 — queue-data.ts (PLANNED)
+### F1.1 — queue-data.ts (DONE, 2026-05-30, commit `5865d3b`)
 
-**Acceptance criteria:**
-- Lee `Inbox/Web/*.md` de la vault.
-- Filtra por frontmatter (`status: unread` por default, configurable).
-- Agrupa por `topic` / `source domain` / `savedAt` bucket (esta semana / antes).
-- Ordena por nuevo / viejo / shuffle (Fisher-Yates).
-- Tests unit con vault mockeada — happy path + empty vault + frontmatter inválido + 100+ archivos.
+- ✅ `articleFromFile` mapea TFile + frontmatter a `QueueArticle` con fallbacks (title→basename, status→unread, savedAt inválido→undefined, tags string→array).
+- ✅ `filterByStatus` con default "unread" + "read" + "all".
+- ✅ `groupArticles` por `topic` / `source` (hostname sin www) / `date` (Hoy / Esta semana / Este mes / Antes) / `none`.
+- ✅ `sortArticles` newest/oldest (undefined dates last) + shuffle Fisher-Yates con RNG inyectable.
+- ✅ `randomArticle` con RNG inyectable.
+- ✅ Tests: 34, incluyendo chi-square sobre 2000 trials para shuffle uniformity (df=9, chi2 < 27.88).
 
-### F1.2 — queue-view.ts (PLANNED)
+### F1.3 — read-action.ts (DONE, 2026-05-30, commit `7704edc`)
 
-**Acceptance criteria:**
-- ItemView registrado, abrible desde ribbon icon + comando.
-- Renderiza cards (título + source domain + savedAt + topic) en grupos colapsables.
-- Dropdown "Group by" funcional, dropdown "Sort" funcional.
-- Funciona en mobile (touch targets ≥44px, sin hover-only).
+- ✅ `shouldForcePreview` reconoce `source: web-clipper` y `source: intake-defuddle`.
+- ✅ `markAsReadMutation` + `applyMarkAsRead` (idempotentes, timestamp ISO).
+- ✅ `openInReadingView` usa `leaf.openFile(file, { state: { mode: "preview" } })`.
+- ✅ `markAsRead` via `fileManager.processFrontMatter` (YAML-safe).
+- ✅ `ensureReadingView` no-op si ya en preview, preserva otras state keys al cambiar.
+- ✅ Tests: 15, todas las funciones pure cubiertas, side-effectful smoke-testeadas con vi.fn.
 
-### F1.3 — read-action.ts (PLANNED)
+### F1.4 — intake.ts (DONE, 2026-05-30, commit `756608e`)
 
-**Acceptance criteria:**
-- Botón "Leer" abre `TFile` en main pane con `state: { mode: 'preview' }`.
-- Hook `workspace.on('file-open')` cambia a preview si frontmatter tiene `source: web-clipper` y modo actual es 'source'.
-- Botón "Mark as read" updatea frontmatter (`status: read`, `readAt: <now>`) via `app.fileManager.processFrontMatter`.
+- ✅ `parseHtmlToArticle` con `defuddle` corriendo sobre `Document` (DOMParser inyectable).
+- ✅ `articleToMarkdown` genera `{frontmatter, body}` con `source: intake-defuddle`.
+- ✅ `bundleNote` con YAML frontmatter + cuerpo.
+- ✅ `slugifyForFilename` con NFD + accents strip + cap a 80 chars.
+- ✅ `extractUrlFromPending` prioriza frontmatter `url:`, fallback a primer URL del body, strip de markdown-link punct.
+- ✅ `processPending` end-to-end con manejo de errores: no-URL / HTTP ≥400 / fetch throw → mark `intake-error` + KEEP pending.
+- ✅ `scanPendingFolder` itera con lister inyectable.
+- ✅ Tests: 21, con happy-dom + fixture HTML real + mocks de Vault/FileManager.
+- ✅ Infrastructure: `tests/setup/obsidian-mock.ts` con alias en `vitest.config.ts`.
 
-### F1.4 — intake.ts (PLANNED) — la pieza más arriesgada
+### F1.2 + F1.5 — queue-view + settings + main wire-up (DONE, 2026-05-30, commit `55a392b`)
 
-**Acceptance criteria:**
-- Scanea `Inbox/Pending/` al startup + cada N min (configurable).
-- Para cada `.md` con URL: `requestUrl({url})` → `defuddle.parse(html)` → escribe `.md` en `Inbox/Web/{slug}.md` con frontmatter completo (`source: intake-defuddle`, etc).
-- Borra el pending después de éxito.
-- En error: guarda `intake-error: <reason>` en frontmatter del pending y NO borra. User puede ver y reintentar.
-- Tests con HTML fixtures de Twitter, Reddit, artículo blog estándar, artículo con paywall.
+- ✅ `QueueView` (ItemView) con toolbar (group / sort / refresh), cards con título + meta + botón "✓ Leído", empty state.
+- ✅ `ReadQueueSettingsTab` con webFolder, pendingFolder, intakeIntervalMin (clamp ≥0), topics CSV.
+- ✅ `main.ts`: registerView, ribbon icon, comandos paleta (open/random/mark), URI handler `obsidian://readqueue-random`, file-open hook con `shouldForcePreview`, `onLayoutReady → runIntakeOnce`, `setInterval` opcional.
+- ✅ Build de producción: `main.js` 467KB, sin errores.
+- ✅ Tests acumulados: 70 (3 suites), TypeScript estricto pasa.
 
-### F1.5 — URI handler + settings + commands (PLANNED)
-
-**Acceptance criteria:**
-- `obsidian://readqueue-random` registrado, abre artículo random unread en preview.
-- Comando paleta "Read random article".
-- Comando paleta "Open Reading Queue".
-- Comando paleta "Mark current note as read".
-- Settings tab: source folder, pending folder, intake interval, topic list.
-
-### F1.6 — Distribution vía BRAT + 2 semanas de uso (PLANNED)
+### F1.6 — Distribution vía BRAT + 2 semanas de uso (PENDING — trabajo del user)
 
 **Acceptance criteria:**
 - Plugin instalable via BRAT en Mac + iPhone.
 - 2 semanas de uso real sin volver a Matter, sin bugs P0/P1 abiertos.
 - Métrica: cola activa de 10+ artículos, ≥5 leídos via "Read random" desde mobile.
+
+**Pasos para el user (en orden):**
+
+1. **Build local**: `cd ~/codes/obsidian-readqueue && npm run build` → genera `main.js` en la raíz.
+2. **Install en la vault Mac** (path symlink): `ln -s ~/codes/obsidian-readqueue "/Users/federico/Library/Mobile Documents/iCloud~md~obsidian/Documents/fedenotes/.obsidian/plugins/readqueue"`.
+3. **Activar en Obsidian Mac**: Settings → Community plugins → Installed → toggle ReadQueue.
+4. **Instalar BRAT en Obsidian Mobile (iPhone)** desde Community plugins.
+5. **Agregar este repo a BRAT**: Settings → BRAT → "Add Beta Plugin" → `fededemo/obsidian-readqueue` (BRAT requiere el repo público o un token; si privado, el camino alterno es copia manual de `main.js` + `manifest.json` + `styles.css` vía Files app).
+6. **Verificación end-to-end del plan** (ver `/Users/federico/.claude/plans/imperative-sparking-dusk.md` sección "Verificación end-to-end").
 
 ---
 
@@ -138,4 +143,4 @@ Solo si F1 deja fricciones reales después de 2 semanas:
 
 ## Última actualización
 
-2026-05-30 — Bootstrap del repo.
+2026-05-30 — F1.0–F1.5 mergeados a main. 70 tests verdes, TypeScript estricto pasa, build de prod 467KB. Pendiente: F1.6 (BRAT install + 2 semanas de uso).

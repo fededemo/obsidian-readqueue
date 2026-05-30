@@ -14,12 +14,7 @@
 
 | ID | Descripción | Status | Agent | Dependencies | Acceptance |
 |----|-------------|--------|-------|--------------|------------|
-| B-001 | Implementar `queue-data.ts` con tests | TODO | obsidian-readqueue-builder | — | F1.1 del ROADMAP |
-| B-002 | Implementar `queue-view.ts` (UI side panel) | TODO | obsidian-readqueue-builder | B-001 | F1.2 del ROADMAP |
-| B-003 | Implementar `read-action.ts` (open + force preview + mark as read) | TODO | obsidian-readqueue-builder | B-001 | F1.3 del ROADMAP |
-| B-004 | Implementar `intake.ts` con defuddle + tests con fixtures | TODO | obsidian-readqueue-builder | — | F1.4 del ROADMAP |
-| B-005 | URI handler + settings tab + comandos paleta | TODO | obsidian-readqueue-builder | B-002, B-003 | F1.5 del ROADMAP |
-| B-006 | Setup BRAT en Mac + iPhone, distribuir plugin | TODO | obsidian-readqueue-builder | B-001..B-005 | F1.6 del ROADMAP |
+| B-006 | Setup BRAT en Mac + iPhone, distribuir plugin | TODO | user (manual) | B-001..B-005 (todos DONE) | F1.6 del ROADMAP |
 
 ## P1 — Important, no bloqueantes
 
@@ -45,8 +40,13 @@
 
 ## Archivo
 
-*(vacío — no hay items completados aún)*
+| ID | Descripción | Closed | Commit |
+|----|-------------|--------|--------|
+| B-001 | `queue-data.ts` con tests | 2026-05-30 | `5865d3b` |
+| B-002 + B-005 | `queue-view.ts` + URI handler + settings tab + comandos paleta (mergeados en un solo wire-up) | 2026-05-30 | `55a392b` |
+| B-003 | `read-action.ts` (open + force preview + mark as read) | 2026-05-30 | `7704edc` |
+| B-004 | `intake.ts` con defuddle + tests con fixtures | 2026-05-30 | `756608e` |
 
 ---
 
-**Última actualización**: 2026-05-30
+**Última actualización**: 2026-05-30 — F1.0–F1.5 code-complete (5 commits feat en main). Solo queda B-006 (BRAT install + 2 semanas de uso real).
