@@ -97,6 +97,14 @@ export default class ReadQueuePlugin extends Plugin {
       },
     });
 
+    this.addCommand({
+      id: "test-claude-api",
+      name: "Test Claude API connection",
+      callback: () => {
+        void this.testClaudeApi();
+      },
+    });
+
     this.registerObsidianProtocolHandler("readqueue-random", async () => {
       await this.readRandom();
     });
@@ -215,6 +223,54 @@ export default class ReadQueuePlugin extends Plugin {
       source: article.source,
     };
     return classifyTopic(input, this.settings, this.classifyDeps());
+  }
+
+  async testClaudeApi(): Promise<void> {
+    const key = this.settings.anthropicApiKey?.trim();
+    if (!key) {
+      new Notice("❌ ReadQueue: no Anthropic API key configured in settings.");
+      return;
+    }
+    new Notice("ReadQueue: probando Claude API…");
+    const body = JSON.stringify({
+      model: this.settings.classifyModel || "claude-haiku-4-5",
+      max_tokens: 10,
+      messages: [{ role: "user", content: "Reply with the word 'ok'." }],
+    });
+    try {
+      const res = await requestUrl({
+        url: "https://api.anthropic.com/v1/messages",
+        method: "POST",
+        headers: {
+          "x-api-key": key,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true",
+          "content-type": "application/json",
+        },
+        body,
+        throw: false,
+      });
+      if (res.status === 200) {
+        let reply = "";
+        try {
+          const data = JSON.parse(res.text) as {
+            content?: Array<{ text?: string }>;
+          };
+          reply = data.content?.[0]?.text?.trim() ?? "";
+        } catch {
+          reply = res.text.slice(0, 60);
+        }
+        new Notice(`✅ Claude responded (${this.settings.classifyModel}): ${reply}`);
+        return;
+      }
+      const errSnippet = res.text.slice(0, 240).replace(/\n/g, " ");
+      new Notice(`❌ Claude API ${res.status}: ${errSnippet}`, 10000);
+      console.error("ReadQueue test Claude API", res.status, res.text);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      new Notice(`❌ Claude API request failed: ${msg}`, 10000);
+      console.error("ReadQueue test Claude API threw", err);
+    }
   }
 
   private classifyDeps(): ClassifyDeps {
