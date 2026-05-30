@@ -9,6 +9,9 @@ import {
 import Defuddle from "defuddle";
 
 import type { ReadFrontmatter } from "./queue-data";
+import { slugifyForFilename } from "./slugify";
+
+export { slugifyForFilename };
 
 export interface ParsedArticle {
   title: string;
@@ -242,16 +245,6 @@ export function bundleNote(
   return `---\n${trimmed}---\n\n${note.body}\n`;
 }
 
-export function slugifyForFilename(title: string): string {
-  const slug = title
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-+|-+$)/g, "")
-    .slice(0, 80);
-  return slug || "untitled";
-}
 
 const FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---/;
 const URL_LINE_RE = /^url:\s*(.+)$/m;

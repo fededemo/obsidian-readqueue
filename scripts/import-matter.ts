@@ -8,7 +8,7 @@ import {
   classifyTopic,
   type ClassifySettings,
 } from "../src/topics";
-import { slugifyForFilename } from "../src/intake";
+import { slugifyForFilename } from "../src/slugify";
 
 export interface MatterMetadata {
   url: string | undefined;
