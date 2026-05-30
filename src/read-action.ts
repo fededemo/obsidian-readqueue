@@ -19,13 +19,27 @@ export function shouldForcePreview(
 export interface MarkAsReadMutation {
   status: string;
   readAt: string;
+  readTag?: string;
 }
 
-export function markAsReadMutation(now: Date = new Date()): MarkAsReadMutation {
-  return {
+export function markAsReadMutation(
+  now: Date = new Date(),
+  readTag?: string,
+): MarkAsReadMutation {
+  const mutation: MarkAsReadMutation = {
     status: "read",
     readAt: now.toISOString(),
   };
+  if (readTag && readTag.trim()) mutation.readTag = readTag.trim();
+  return mutation;
+}
+
+function asStringArray(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.filter((v): v is string => typeof v === "string");
+  }
+  if (typeof value === "string" && value) return [value];
+  return [];
 }
 
 export function applyMarkAsRead(
@@ -34,6 +48,13 @@ export function applyMarkAsRead(
 ): void {
   fm["status"] = mutation.status;
   fm["readAt"] = mutation.readAt;
+  if (mutation.readTag) {
+    const tags = asStringArray(fm["tags"]);
+    if (!tags.includes(mutation.readTag)) {
+      tags.push(mutation.readTag);
+    }
+    fm["tags"] = tags;
+  }
 }
 
 export async function openInReadingView(
@@ -44,8 +65,12 @@ export async function openInReadingView(
   await leaf.openFile(file, { state: { mode: "preview" } });
 }
 
-export async function markAsRead(app: App, file: TFile): Promise<void> {
-  const mutation = markAsReadMutation();
+export async function markAsRead(
+  app: App,
+  file: TFile,
+  readTag?: string,
+): Promise<void> {
+  const mutation = markAsReadMutation(undefined, readTag);
   await app.fileManager.processFrontMatter(file, (fm) => {
     applyMarkAsRead(fm as Record<string, unknown>, mutation);
   });

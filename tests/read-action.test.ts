@@ -44,6 +44,7 @@ describe("markAsReadMutation", () => {
     const mutation = markAsReadMutation(now);
     expect(mutation.status).toBe("read");
     expect(mutation.readAt).toBe("2026-05-30T14:30:00.000Z");
+    expect(mutation.readTag).toBeUndefined();
   });
 
   it("uses current time by default", () => {
@@ -53,6 +54,19 @@ describe("markAsReadMutation", () => {
     const ts = new Date(mutation.readAt).getTime();
     expect(ts).toBeGreaterThanOrEqual(before);
     expect(ts).toBeLessThanOrEqual(after);
+  });
+
+  it("attaches readTag when supplied non-empty", () => {
+    const mutation = markAsReadMutation(new Date("2026-01-01Z"), "leido");
+    expect(mutation.readTag).toBe("leido");
+  });
+
+  it("trims and ignores empty/whitespace readTag", () => {
+    expect(markAsReadMutation(new Date("2026-01-01Z"), "").readTag).toBeUndefined();
+    expect(markAsReadMutation(new Date("2026-01-01Z"), "   ").readTag).toBeUndefined();
+    expect(markAsReadMutation(new Date("2026-01-01Z"), "  leido  ").readTag).toBe(
+      "leido",
+    );
   });
 });
 
@@ -72,6 +86,46 @@ describe("applyMarkAsRead", () => {
     const first = { ...fm };
     applyMarkAsRead(fm, m);
     expect(fm).toEqual(first);
+  });
+
+  it("adds readTag to the tags array when supplied and missing", () => {
+    const fm: Record<string, unknown> = { tags: ["reader"] };
+    applyMarkAsRead(fm, {
+      status: "read",
+      readAt: "2026-05-30T00:00:00Z",
+      readTag: "leido",
+    });
+    expect(fm.tags).toEqual(["reader", "leido"]);
+  });
+
+  it("does not duplicate the readTag when already present", () => {
+    const fm: Record<string, unknown> = { tags: ["reader", "leido"] };
+    applyMarkAsRead(fm, {
+      status: "read",
+      readAt: "2026-05-30T00:00:00Z",
+      readTag: "leido",
+    });
+    expect(fm.tags).toEqual(["reader", "leido"]);
+  });
+
+  it("creates the tags array when missing", () => {
+    const fm: Record<string, unknown> = {};
+    applyMarkAsRead(fm, {
+      status: "read",
+      readAt: "2026-05-30T00:00:00Z",
+      readTag: "leido",
+    });
+    expect(fm.tags).toEqual(["leido"]);
+  });
+
+  it("normalizes a string tags value into an array before appending", () => {
+    const fm: Record<string, unknown> = { tags: "reader" };
+    applyMarkAsRead(fm, {
+      status: "read",
+      readAt: "2026-05-30T00:00:00Z",
+      readTag: "leido",
+    });
+    expect(fm.tags).toEqual(["reader", "leido"]);
   });
 });
 

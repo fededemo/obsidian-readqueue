@@ -66,7 +66,9 @@ export default class ReadQueuePlugin extends Plugin {
         const file = this.app.workspace.getActiveFile();
         if (!file) return false;
         if (!checking) {
-          void markAsRead(this.app, file).then(() => this.refreshQueueView());
+          void markAsRead(this.app, file, this.settings.readTag).then(() =>
+            this.refreshQueueView(),
+          );
         }
         return true;
       },

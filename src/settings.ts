@@ -13,6 +13,7 @@ export interface ReadQueueSettings {
   classifyModel: string;
   useClaudeForClassification: boolean;
   classifyOnIntake: boolean;
+  readTag: string;
 }
 
 export const DEFAULT_SETTINGS: ReadQueueSettings = {
@@ -25,6 +26,7 @@ export const DEFAULT_SETTINGS: ReadQueueSettings = {
   classifyModel: "claude-haiku-4-5",
   useClaudeForClassification: true,
   classifyOnIntake: true,
+  readTag: "leido",
 };
 
 export class ReadQueueSettingsTab extends PluginSettingTab {
@@ -84,6 +86,21 @@ export class ReadQueueSettingsTab extends PluginSettingTab {
             const n = Number.parseInt(value, 10);
             this.plugin.settings.intakeIntervalMin =
               Number.isFinite(n) && n >= 0 ? n : 0;
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName('Tag "leído"')
+      .setDesc(
+        'Tag que se agrega al frontmatter cuando marcás un artículo como leído. Dejar vacío para no agregar tag (solo cambia el status).',
+      )
+      .addText((text) =>
+        text
+          .setPlaceholder("leido")
+          .setValue(this.plugin.settings.readTag)
+          .onChange(async (value) => {
+            this.plugin.settings.readTag = value.trim();
             await this.plugin.saveSettings();
           }),
       );
