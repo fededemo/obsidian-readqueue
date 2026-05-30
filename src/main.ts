@@ -2,6 +2,7 @@ import {
   MarkdownView,
   Notice,
   Plugin,
+  requestUrl,
   type TFile,
   type WorkspaceLeaf,
 } from "obsidian";
@@ -24,7 +25,7 @@ import {
   type IntakeDeps,
   type ParsedArticle,
 } from "./intake";
-import { classifyTopic, type ClassifyInput } from "./topics";
+import { classifyTopic, type ClassifyDeps, type ClassifyInput } from "./topics";
 import {
   DEFAULT_SETTINGS,
   ReadQueueSettingsTab,
@@ -213,7 +214,39 @@ export default class ReadQueuePlugin extends Plugin {
       domain: article.domain,
       source: article.source,
     };
-    return classifyTopic(input, this.settings);
+    return classifyTopic(input, this.settings, this.classifyDeps());
+  }
+
+  private classifyDeps(): ClassifyDeps {
+    return {
+      fetchJson: async (url, init) => {
+        try {
+          const res = await requestUrl({
+            url,
+            method: init.method,
+            headers: init.headers,
+            body: init.body,
+            throw: false,
+          });
+          let json: unknown;
+          try {
+            json = JSON.parse(res.text);
+          } catch {
+            json = undefined;
+          }
+          if (res.status >= 400) {
+            console.warn(
+              `ReadQueue Claude API ${res.status}:`,
+              res.text.slice(0, 500),
+            );
+          }
+          return { status: res.status, json };
+        } catch (err) {
+          console.error("ReadQueue Claude API request failed", err);
+          throw err;
+        }
+      },
+    };
   }
 
   private async reclassifyCurrentTopic(file: TFile): Promise<void> {

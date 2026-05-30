@@ -127,6 +127,7 @@ describe("classifyWithClaude", () => {
     expect(init.method).toBe("POST");
     expect(init.headers["x-api-key"]).toBe("sk-ant-test");
     expect(init.headers["anthropic-version"]).toBe("2023-06-01");
+    expect(init.headers["anthropic-dangerous-direct-browser-access"]).toBe("true");
     expect(init.headers["content-type"]).toBe("application/json");
     const parsed = JSON.parse(init.body) as { model: string };
     expect(parsed.model).toBe("model-x");
