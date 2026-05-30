@@ -1,0 +1,17 @@
+{
+  "code": 200,
+  "message": "OK",
+  "tweet": {
+    "id": "20",
+    "url": "https://twitter.com/jack/status/20",
+    "text": "just setting up my twttr",
+    "created_at": "Tue Mar 21 20:50:14 +0000 2006",
+    "created_timestamp": 1142974214,
+    "lang": "en",
+    "author": {
+      "name": "jack",
+      "screen_name": "jack",
+      "avatar_url": "https://pbs.twimg.com/profile_images/jack.jpg"
+    }
+  }
+}

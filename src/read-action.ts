@@ -2,7 +2,11 @@ import type { App, MarkdownView, TFile, WorkspaceLeaf } from "obsidian";
 
 import type { ReadFrontmatter } from "./queue-data";
 
-const FORCE_PREVIEW_SOURCES = new Set(["web-clipper", "intake-defuddle"]);
+const FORCE_PREVIEW_SOURCES = new Set([
+  "web-clipper",
+  "intake-defuddle",
+  "intake-fxtwitter",
+]);
 
 export function shouldForcePreview(
   frontmatter: ReadFrontmatter | undefined,

@@ -1,0 +1,32 @@
+{
+  "code": 200,
+  "message": "OK",
+  "tweet": {
+    "id": "999",
+    "url": "https://twitter.com/sample/status/999",
+    "text": "Multi-line tweet with media\n\nSecond paragraph here.\n\nAnd a third one.",
+    "created_at": "Fri May 30 12:00:00 +0000 2026",
+    "created_timestamp": 1748606400,
+    "lang": "en",
+    "author": {
+      "name": "Sample Author",
+      "screen_name": "sample"
+    },
+    "media": {
+      "photos": [
+        {
+          "url": "https://pbs.twimg.com/media/photo1.jpg"
+        },
+        {
+          "url": "https://pbs.twimg.com/media/photo2.jpg"
+        }
+      ],
+      "videos": [
+        {
+          "url": "https://video.twimg.com/v/vid.mp4",
+          "thumbnail_url": "https://pbs.twimg.com/media/thumb.jpg"
+        }
+      ]
+    }
+  }
+}

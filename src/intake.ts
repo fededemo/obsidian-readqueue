@@ -17,6 +17,9 @@ export interface ParsedArticle {
   published: string | undefined;
   domain: string;
   contentHtml: string;
+  source?: string;
+  bodyMarkdown?: string;
+  tags?: string[];
 }
 
 export interface ArticleNote {
@@ -61,6 +64,133 @@ function hostnameFromUrl(url: string): string {
   }
 }
 
+const TWITTER_HOST_RE =
+  /^(?:www\.)?(twitter\.com|x\.com|fxtwitter\.com|fixupx\.com|vxtwitter\.com)$/;
+const TWEET_PATH_RE = /^\/([^/]+)\/status\/(\d+)/;
+
+export interface FxTwitterAuthor {
+  name: string;
+  screen_name: string;
+  avatar_url?: string;
+}
+
+export interface FxTwitterMediaPhoto {
+  url: string;
+}
+
+export interface FxTwitterMediaVideo {
+  url: string;
+  thumbnail_url?: string;
+}
+
+export interface FxTwitterTweet {
+  id: string;
+  url: string;
+  text: string;
+  created_at?: string;
+  created_timestamp?: number;
+  author: FxTwitterAuthor;
+  media?: {
+    photos?: FxTwitterMediaPhoto[];
+    videos?: FxTwitterMediaVideo[];
+  };
+}
+
+export interface FxTwitterResponse {
+  code: number;
+  message: string;
+  tweet?: FxTwitterTweet;
+}
+
+export function isTwitterUrl(url: string): boolean {
+  try {
+    return TWITTER_HOST_RE.test(new URL(url).hostname);
+  } catch {
+    return false;
+  }
+}
+
+export function extractTweetIdentifiers(
+  url: string,
+): { user: string; id: string } | undefined {
+  try {
+    const m = TWEET_PATH_RE.exec(new URL(url).pathname);
+    if (!m || !m[1] || !m[2]) return undefined;
+    return { user: m[1], id: m[2] };
+  } catch {
+    return undefined;
+  }
+}
+
+export async function fetchTweet(
+  url: string,
+  fetchUrl: (url: string) => Promise<{ status: number; text: string }>,
+): Promise<FxTwitterResponse | undefined> {
+  const ids = extractTweetIdentifiers(url);
+  if (!ids) return undefined;
+  const apiUrl = `https://api.fxtwitter.com/${ids.user}/status/${ids.id}`;
+  let res: { status: number; text: string };
+  try {
+    res = await fetchUrl(apiUrl);
+  } catch {
+    return undefined;
+  }
+  if (res.status !== 200) return undefined;
+  try {
+    return JSON.parse(res.text) as FxTwitterResponse;
+  } catch {
+    return undefined;
+  }
+}
+
+export function tweetToArticle(
+  response: FxTwitterResponse,
+  originalUrl: string,
+): ParsedArticle | undefined {
+  if (response.code !== 200 || !response.tweet) return undefined;
+  const t = response.tweet;
+  const screen = t.author.screen_name;
+  const name = t.author.name;
+  const text = (t.text ?? "").trim();
+  const firstLine = text.split("\n")[0] ?? text;
+  const snippet = firstLine.slice(0, 80);
+  const title = `@${screen}: ${snippet}${firstLine.length > 80 ? "…" : ""}`;
+  const published = t.created_at ? parseTwitterDate(t.created_at) : undefined;
+
+  const quoted = text
+    .split("\n")
+    .map((line) => (line.trim() ? `> ${line}` : ">"))
+    .join("\n");
+
+  const mediaBlocks: string[] = [];
+  for (const photo of t.media?.photos ?? []) {
+    mediaBlocks.push(`![](${photo.url})`);
+  }
+  for (const video of t.media?.videos ?? []) {
+    const thumb = video.thumbnail_url ?? video.url;
+    mediaBlocks.push(`[Video ↗](${video.url})\n\n![](${thumb})`);
+  }
+
+  const bodyMarkdown = [quoted, ...mediaBlocks].filter(Boolean).join("\n\n");
+
+  return {
+    title,
+    url: originalUrl,
+    author: `${name} (@${screen})`,
+    published,
+    domain: hostnameFromUrl(originalUrl),
+    contentHtml: "",
+    source: "intake-fxtwitter",
+    bodyMarkdown,
+    tags: ["reader", "tweet"],
+  };
+}
+
+function parseTwitterDate(raw: string): string | undefined {
+  const d = new Date(raw);
+  return Number.isNaN(d.getTime()) ? undefined : d.toISOString();
+}
+
 export function parseHtmlToArticle(
   html: string,
   url: string,
@@ -83,18 +213,20 @@ export function articleToMarkdown(
   now: Date = new Date(),
   htmlToMarkdown: (html: string) => string = obsidianHtmlToMarkdown,
 ): ArticleNote {
+  const sourceTag = article.source ?? "intake-defuddle";
+  const tags = article.tags ?? ["reader"];
   const frontmatter: ReadFrontmatter = {
-    source: "intake-defuddle",
+    source: sourceTag,
     title: article.title,
     url: article.url,
     status: "unread",
     savedAt: now.toISOString(),
-    tags: ["reader"],
+    tags,
   };
   if (article.author) frontmatter.author = article.author;
   if (article.published) frontmatter.published = article.published;
-  const markdown = htmlToMarkdown(article.contentHtml);
-  const body = `# ${article.title}\n\n[Original](${article.url})\n\n${markdown}`;
+  const markdown = article.bodyMarkdown ?? htmlToMarkdown(article.contentHtml);
+  const body = `# ${article.title}\n\n[Original ↗](${article.url})\n\n${markdown}`;
   return { frontmatter, body };
 }
 
@@ -156,11 +288,21 @@ export async function processPending(
   }
 
   try {
-    const res = await fetchUrl(url);
-    if (res.status >= 400) {
-      return await markIntakeError(app, file, `http-${res.status}`, now);
+    let parsed: ParsedArticle | undefined;
+
+    if (isTwitterUrl(url)) {
+      const tweetData = await fetchTweet(url, fetchUrl);
+      if (tweetData) parsed = tweetToArticle(tweetData, url);
     }
-    const parsed = parseHtmlToArticle(res.text, url, parseDom);
+
+    if (!parsed) {
+      const res = await fetchUrl(url);
+      if (res.status >= 400) {
+        return await markIntakeError(app, file, `http-${res.status}`, now);
+      }
+      parsed = parseHtmlToArticle(res.text, url, parseDom);
+    }
+
     const note = articleToMarkdown(parsed, now(), htmlToMarkdown);
     const noteFile = bundleNote(note, yamlStringify);
     const slug = slugifyForFilename(parsed.title);
