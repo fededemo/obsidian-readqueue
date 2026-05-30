@@ -40,3 +40,41 @@
   display: flex;
   gap: var(--size-4-2);
 }
+
+.readqueue-view__group-header {
+  cursor: pointer;
+  user-select: none;
+  margin-top: var(--size-4-3);
+  margin-bottom: var(--size-2-2);
+  display: flex;
+  align-items: baseline;
+  gap: var(--size-2-1);
+}
+
+.readqueue-view__group-header:hover .readqueue-view__group-label,
+.readqueue-view__group-header:hover .readqueue-view__group-toggle {
+  color: var(--text-accent);
+}
+
+.readqueue-view__group-toggle {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+  width: 1em;
+  display: inline-block;
+  text-align: center;
+}
+
+.readqueue-view__group-count {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+  font-weight: normal;
+}
+
+.readqueue-view__group-header--collapsed {
+  opacity: 0.7;
+}
+
+.readqueue-view__toolbar-btn {
+  font-size: var(--font-ui-smaller);
+  padding: var(--size-2-1) var(--size-2-3);
+}

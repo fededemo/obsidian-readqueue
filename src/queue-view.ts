@@ -4,6 +4,7 @@ import {
   filterByStatus,
   groupArticles,
   sortArticles,
+  type ArticleGroup,
   type GroupKey,
   type QueueArticle,
   type SortKey,
@@ -31,6 +32,7 @@ export class QueueView extends ItemView {
   plugin: ReadQueuePlugin;
   groupBy: GroupKey = "topic";
   sortBy: SortKey = "newest";
+  private collapsedGroups = new Set<string>();
 
   constructor(leaf: WorkspaceLeaf, plugin: ReadQueuePlugin) {
     super(leaf);
@@ -104,25 +106,82 @@ export class QueueView extends ItemView {
     const unread = filterByStatus(articles, "unread");
     const sorted = sortArticles(unread, this.sortBy);
     const groups = groupArticles(sorted, this.groupBy);
+    const visibleGroups = groups.filter((g) => g.articles.length > 0);
+
+    if (this.groupBy !== "none" && visibleGroups.length > 1) {
+      const collapseAll = toolbar.createEl("button", {
+        text: "Colapsar todos",
+        cls: "readqueue-view__toolbar-btn",
+      });
+      collapseAll.onclick = () => {
+        for (const g of visibleGroups) this.collapsedGroups.add(g.label);
+        void this.render();
+      };
+
+      const expandAll = toolbar.createEl("button", {
+        text: "Expandir todos",
+        cls: "readqueue-view__toolbar-btn",
+      });
+      expandAll.onclick = () => {
+        this.collapsedGroups.clear();
+        void this.render();
+      };
+    }
 
     const list = root.createDiv({ cls: "readqueue-view__list" });
 
-    if (groups.length === 0 || groups.every((g) => g.articles.length === 0)) {
+    if (visibleGroups.length === 0) {
       list.createEl("p", { text: "No hay nada en la cola." });
       return;
     }
 
-    for (const group of groups) {
-      if (group.articles.length === 0) continue;
-      if (this.groupBy !== "none") {
-        list.createEl("h3", {
-          text: `${group.label} (${group.articles.length})`,
-        });
+    for (const group of visibleGroups) {
+      if (this.groupBy === "none") {
+        for (const article of group.articles) {
+          this.renderCard(list, article);
+        }
+        continue;
       }
-      for (const article of group.articles) {
-        this.renderCard(list, article);
+      const collapsed = this.collapsedGroups.has(group.label);
+      this.renderGroupHeader(list, group, collapsed);
+      if (!collapsed) {
+        for (const article of group.articles) {
+          this.renderCard(list, article);
+        }
       }
     }
+  }
+
+  private renderGroupHeader(
+    parent: HTMLElement,
+    group: ArticleGroup,
+    collapsed: boolean,
+  ): void {
+    const header = parent.createEl("h3", {
+      cls: collapsed
+        ? "readqueue-view__group-header readqueue-view__group-header--collapsed"
+        : "readqueue-view__group-header",
+    });
+    header.createSpan({
+      cls: "readqueue-view__group-toggle",
+      text: collapsed ? "▶" : "▼",
+    });
+    header.createSpan({
+      cls: "readqueue-view__group-label",
+      text: ` ${group.label}`,
+    });
+    header.createSpan({
+      cls: "readqueue-view__group-count",
+      text: ` (${group.articles.length})`,
+    });
+    header.onclick = () => {
+      if (this.collapsedGroups.has(group.label)) {
+        this.collapsedGroups.delete(group.label);
+      } else {
+        this.collapsedGroups.add(group.label);
+      }
+      void this.render();
+    };
   }
 
   private renderCard(parent: HTMLElement, article: QueueArticle): void {
