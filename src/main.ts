@@ -32,7 +32,12 @@ import {
   type IntakeDeps,
   type ParsedArticle,
 } from "./intake";
-import { classifyTopic, type ClassifyDeps, type ClassifyInput } from "./topics";
+import {
+  classifyTopic,
+  type ClassifyDeps,
+  type ClassifyInput,
+  type ClassifyResult,
+} from "./topics";
 import {
   DEFAULT_SETTINGS,
   ReadQueueSettingsTab,
@@ -337,7 +342,7 @@ export default class ReadQueuePlugin extends Plugin {
     if (ok > 0) await this.refreshQueueView();
   }
 
-  async classifyArticle(article: ParsedArticle): Promise<string> {
+  async classifyArticle(article: ParsedArticle): Promise<ClassifyResult> {
     await this.loadSettings();
     const input: ClassifyInput = {
       title: article.title,
@@ -457,11 +462,17 @@ export default class ReadQueuePlugin extends Plugin {
       bodyMarkdown: body.slice(0, 2000),
       source: fm?.source,
     };
-    const topic = await this.classifyArticle(article);
+    const result = await this.classifyArticle(article);
     await this.app.fileManager.processFrontMatter(file, (raw) => {
-      (raw as Record<string, unknown>)["topic"] = topic;
+      const obj = raw as Record<string, unknown>;
+      obj["topic"] = result.topic;
+      if (result.tags.length > 0) {
+        const existing = obj["tags"];
+        const merged = mergeTagsForFrontmatter(existing, result.tags);
+        obj["tags"] = merged;
+      }
     });
-    return topic;
+    return result.topic;
   }
 
   async classifyAllWithoutTopic(opts: { silent?: boolean } = {}): Promise<void> {
@@ -520,6 +531,26 @@ export default class ReadQueuePlugin extends Plugin {
 
 function stripTrailingSlash(path: string): string {
   return path.replace(/\/+$/, "");
+}
+
+function mergeTagsForFrontmatter(
+  existing: unknown,
+  extra: readonly string[],
+): string[] {
+  const base = Array.isArray(existing)
+    ? existing.filter((x): x is string => typeof x === "string")
+    : typeof existing === "string" && existing
+      ? [existing]
+      : [];
+  const seen = new Set(base);
+  const out = [...base];
+  for (const t of extra) {
+    if (!seen.has(t)) {
+      seen.add(t);
+      out.push(t);
+    }
+  }
+  return out;
 }
 
 function hostnameFromFrontmatter(fm: ReadFrontmatter | undefined): string {

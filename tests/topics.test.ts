@@ -140,7 +140,8 @@ describe("classifyWithClaude", () => {
       makeSettings({ anthropicApiKey: "sk" }),
       { fetchJson },
     );
-    expect(result).toBe("tech");
+    expect(result?.topic).toBe("tech");
+    expect(result?.tags).toEqual([]);
   });
 
   it("matches when the API returns the topic embedded in a longer answer", async () => {
@@ -153,7 +154,48 @@ describe("classifyWithClaude", () => {
       makeSettings({ anthropicApiKey: "sk" }),
       { fetchJson },
     );
-    expect(result).toBe("producto");
+    expect(result?.topic).toBe("producto");
+  });
+
+  it("parses JSON reply with topic + tags", async () => {
+    const fetchJson: ClassifyDeps["fetchJson"] = async () => ({
+      status: 200,
+      json: apiResponse('{"topic":"tech","tags":["ai","#anthropic","claude"]}'),
+    });
+    const result = await classifyWithClaude(
+      makeInput(),
+      makeSettings({ anthropicApiKey: "sk" }),
+      { fetchJson },
+    );
+    expect(result?.topic).toBe("tech");
+    expect(result?.tags).toEqual(["ai", "anthropic", "claude"]);
+  });
+
+  it("sanitizes tags (strips #, lowercases, dedupes)", async () => {
+    const fetchJson: ClassifyDeps["fetchJson"] = async () => ({
+      status: 200,
+      json: apiResponse('{"topic":"tech","tags":["AI","ai","Claude API","x@y"]}'),
+    });
+    const result = await classifyWithClaude(
+      makeInput(),
+      makeSettings({ anthropicApiKey: "sk" }),
+      { fetchJson },
+    );
+    expect(result?.tags).toEqual(["ai", "claude-api", "xy"]);
+  });
+
+  it("ignores tags too long or non-string", async () => {
+    const long = "x".repeat(40);
+    const fetchJson: ClassifyDeps["fetchJson"] = async () => ({
+      status: 200,
+      json: apiResponse(`{"topic":"tech","tags":["${long}",123,"ok"]}`),
+    });
+    const result = await classifyWithClaude(
+      makeInput(),
+      makeSettings({ anthropicApiKey: "sk" }),
+      { fetchJson },
+    );
+    expect(result?.tags).toEqual(["ok"]);
   });
 
   it("returns undefined when the API returns non-200", async () => {
@@ -203,7 +245,7 @@ describe("classifyTopic orchestrator", () => {
       makeSettings({ anthropicApiKey: "sk", useClaudeForClassification: true }),
       { fetchJson },
     );
-    expect(result).toBe("tweet");
+    expect(result.topic).toBe("tweet");
     expect(fetchJson).not.toHaveBeenCalled();
   });
 
@@ -220,7 +262,8 @@ describe("classifyTopic orchestrator", () => {
       }),
       { fetchJson },
     );
-    expect(result).toBe("tech");
+    expect(result.topic).toBe("tech");
+    expect(result.tags).toEqual([]);
   });
 
   it("returns Claude result when API succeeds", async () => {
@@ -236,7 +279,7 @@ describe("classifyTopic orchestrator", () => {
       }),
       { fetchJson },
     );
-    expect(result).toBe("macro");
+    expect(result.topic).toBe("macro");
   });
 
   it("uses heuristic when Claude toggle off but publisher is known", async () => {
@@ -249,7 +292,7 @@ describe("classifyTopic orchestrator", () => {
       }),
       { fetchJson },
     );
-    expect(result).toBe("macro");
+    expect(result.topic).toBe("macro");
     expect(fetchJson).not.toHaveBeenCalled();
   });
 
@@ -258,6 +301,6 @@ describe("classifyTopic orchestrator", () => {
       makeInput({ domain: "unknown.example" }),
       makeSettings({ anthropicApiKey: undefined }),
     );
-    expect(result).toBe("otros");
+    expect(result.topic).toBe("otros");
   });
 });

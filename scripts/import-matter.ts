@@ -320,7 +320,12 @@ export async function run(args: CliArgs, deps: RunDeps = {}): Promise<RunSummary
       const doc = parseMatterDocument(content);
       const title = normalizeTitle(filename);
 
-      const classifyFn = deps.classify ?? (async (input) => classifyTopic(input, settings));
+      const classifyFn =
+        deps.classify ??
+        (async (input) => {
+          const r = await classifyTopic(input, settings);
+          return r.topic;
+        });
       const topic = await classifyFn({
         title,
         excerpt: doc.highlights.slice(0, 4).join("\n"),

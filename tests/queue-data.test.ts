@@ -2,15 +2,16 @@ import { describe, expect, it } from "vitest";
 import type { TFile } from "obsidian";
 import {
   articleFromFile,
+  cleanTitle,
+  computeStats,
   dateBucket,
   estimateReadingMinutes,
-  computeStats,
   filterByQuery,
   filterBySnoozedUntil,
   filterByStatus,
   filterByTopic,
-  pickForToday,
   groupArticles,
+  pickForToday,
   randomArticle,
   sortArticles,
   sourceLabel,
@@ -546,5 +547,51 @@ describe("pickForToday", () => {
     const picks1 = pickForToday(all, { count: 3, rng: mulberry32(1) });
     const picks2 = pickForToday(all, { count: 3, rng: mulberry32(1) });
     expect(picks1).toEqual(picks2);
+  });
+});
+
+describe("cleanTitle", () => {
+  it("strips ' | Publisher' suffix", () => {
+    expect(cleanTitle("AI in production | Stratechery")).toBe(
+      "AI in production",
+    );
+  });
+
+  it("strips ' — Publisher' suffix", () => {
+    expect(cleanTitle("Hyping Fisher — Data Colada")).toBe("Hyping Fisher");
+  });
+
+  it("strips ' · Publisher' suffix", () => {
+    expect(cleanTitle("Some article · The Atlantic")).toBe("Some article");
+  });
+
+  it("returns unchanged when tail is too long", () => {
+    const raw = "Title — Really long subtitle here that goes on and on and on";
+    expect(cleanTitle(raw)).toBe(raw);
+  });
+
+  it("returns unchanged when head is too short", () => {
+    expect(cleanTitle("x | y")).toBe("x | y");
+    expect(cleanTitle("Short | OK")).toBe("Short | OK");
+  });
+
+  it("returns unchanged when tail ends with sentence punctuation", () => {
+    expect(cleanTitle("How to write — Quickly?")).toBe(
+      "How to write — Quickly?",
+    );
+  });
+
+  it("returns unchanged when no separator present", () => {
+    expect(cleanTitle("Just a normal title")).toBe("Just a normal title");
+  });
+
+  it("trims whitespace", () => {
+    expect(cleanTitle("  AI in production | Stratechery  ")).toBe(
+      "AI in production",
+    );
+  });
+
+  it("handles empty input", () => {
+    expect(cleanTitle("")).toBe("");
   });
 });

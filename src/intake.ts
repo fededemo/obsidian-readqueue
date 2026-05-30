@@ -8,7 +8,7 @@ import {
 } from "obsidian";
 import Defuddle from "defuddle";
 
-import type { ReadFrontmatter } from "./queue-data";
+import { cleanTitle, type ReadFrontmatter } from "./queue-data";
 import { slugifyForFilename } from "./slugify";
 
 export { slugifyForFilename };
@@ -46,7 +46,9 @@ export interface IntakeDeps {
   parseDom?: (html: string) => Document;
   fetchUrl?: (url: string) => Promise<{ status: number; text: string }>;
   now?: () => Date;
-  classify?: (article: ParsedArticle) => Promise<string | undefined>;
+  classify?: (
+    article: ParsedArticle,
+  ) => Promise<{ topic: string; tags: string[] } | undefined>;
 }
 
 const defaultParseDom = (html: string): Document => {
@@ -67,6 +69,18 @@ function hostnameFromUrl(url: string): string {
   } catch {
     return "unknown";
   }
+}
+
+function mergeTags(existing: readonly string[], extra: readonly string[]): string[] {
+  const seen = new Set(existing);
+  const out = [...existing];
+  for (const t of extra) {
+    if (!seen.has(t)) {
+      seen.add(t);
+      out.push(t);
+    }
+  }
+  return out;
 }
 
 const TWITTER_HOST_RE =
@@ -204,7 +218,7 @@ export function parseHtmlToArticle(
   const doc = parseDom(html);
   const result = new Defuddle(doc, { url }).parse();
   return {
-    title: result.title && result.title.trim() ? result.title : hostnameFromUrl(url),
+    title: result.title && result.title.trim() ? cleanTitle(result.title) : hostnameFromUrl(url),
     url,
     author: result.author && result.author.trim() ? result.author : undefined,
     published: result.published && result.published.trim() ? result.published : undefined,
@@ -301,8 +315,12 @@ export async function processPending(
 
     if (!parsed.topic && deps.classify) {
       try {
-        const topic = await deps.classify(parsed);
-        if (topic) parsed.topic = topic;
+        const result = await deps.classify(parsed);
+        if (result?.topic) parsed.topic = result.topic;
+        if (result?.tags && result.tags.length > 0) {
+          const existing = parsed.tags ?? ["reader"];
+          parsed.tags = mergeTags(existing, result.tags);
+        }
       } catch {
         // classifier failure should never abort intake
       }

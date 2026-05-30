@@ -223,6 +223,19 @@ export function filterByTopic(
   return articles.filter((a) => (a.topic ?? "").toLowerCase() === t);
 }
 
+export function cleanTitle(rawTitle: string): string {
+  const trimmed = (rawTitle ?? "").trim();
+  if (!trimmed) return trimmed;
+  const match = /^(.+?)\s*[|\-—·]\s*([^|\-—·]+)$/.exec(trimmed);
+  if (!match) return trimmed;
+  const head = (match[1] ?? "").trim();
+  const tail = (match[2] ?? "").trim();
+  if (head.length < 8) return trimmed;
+  if (tail.length === 0 || tail.length > 30) return trimmed;
+  if (/[.?!]$/.test(tail)) return trimmed;
+  return head;
+}
+
 export type StatusFilter = "unread" | "read" | "all";
 
 export function filterByStatus(

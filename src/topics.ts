@@ -104,7 +104,7 @@ export function buildClassifyPrompt(
     .map((t) => `- ${t}: ${descriptions[t] ?? "specific topic"}`)
     .join("\n");
   return [
-    "Classify the following article into ONE topic from this closed list.",
+    "Classify the following article. Pick ONE topic from this closed list and 2-3 short lowercase tags that describe the article more specifically.",
     "",
     list,
     "",
@@ -113,8 +113,63 @@ export function buildClassifyPrompt(
     `First 600 characters of the content:`,
     excerpt.slice(0, 600),
     "",
-    "Reply with ONLY the topic name (lowercase, one word, from the list above).",
+    'Reply with ONLY a JSON object on a single line: {"topic":"<one>","tags":["t1","t2"]}. Lowercase, no spaces in tags, no leading #. Use the closed topic list above.',
   ].join("\n");
+}
+
+export interface ClassifyResult {
+  topic: string;
+  tags: string[];
+}
+
+function sanitizeTag(raw: unknown): string | undefined {
+  if (typeof raw !== "string") return undefined;
+  const cleaned = raw
+    .toLowerCase()
+    .trim()
+    .replace(/^#+/, "")
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");
+  if (!cleaned || cleaned.length > 32) return undefined;
+  return cleaned;
+}
+
+function parseClassifyReply(
+  text: string,
+  topics: readonly string[],
+): ClassifyResult | undefined {
+  const lower = text.trim();
+  if (!lower) return undefined;
+  let parsed: { topic?: unknown; tags?: unknown } | undefined;
+  const jsonMatch = lower.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    try {
+      parsed = JSON.parse(jsonMatch[0]) as { topic?: unknown; tags?: unknown };
+    } catch {
+      parsed = undefined;
+    }
+  }
+
+  let topic: string | undefined;
+  if (parsed && typeof parsed.topic === "string") {
+    const t = parsed.topic.toLowerCase().trim();
+    topic = topics.find((x) => x.toLowerCase() === t);
+  }
+  if (!topic) {
+    const lowerText = lower.toLowerCase();
+    topic = topics.find((x) => lowerText.includes(x.toLowerCase()));
+  }
+  if (!topic) return undefined;
+
+  const tags: string[] = [];
+  if (parsed && Array.isArray(parsed.tags)) {
+    for (const raw of parsed.tags) {
+      const clean = sanitizeTag(raw);
+      if (clean && !tags.includes(clean)) tags.push(clean);
+      if (tags.length >= 4) break;
+    }
+  }
+  return { topic, tags };
 }
 
 interface AnthropicResponse {
@@ -140,7 +195,7 @@ export async function classifyWithClaude(
   input: ClassifyInput,
   settings: ClassifySettings,
   deps: ClassifyDeps = {},
-): Promise<string | undefined> {
+): Promise<ClassifyResult | undefined> {
   const key = settings.anthropicApiKey?.trim();
   if (!key) return undefined;
 
@@ -156,7 +211,7 @@ export async function classifyWithClaude(
 
   const body = JSON.stringify({
     model: settings.classifyModel ?? DEFAULT_MODEL,
-    max_tokens: 30,
+    max_tokens: 80,
     messages: [{ role: "user", content: prompt }],
   });
 
@@ -178,24 +233,18 @@ export async function classifyWithClaude(
 
   if (response.status !== 200) return undefined;
   const data = response.json as AnthropicResponse | undefined;
-  const text = data?.content?.[0]?.text?.trim().toLowerCase();
+  const text = data?.content?.[0]?.text?.trim();
   if (!text) return undefined;
 
-  const matched = topics.find((t) => text === t.toLowerCase());
-  if (matched) return matched;
-
-  for (const t of topics) {
-    if (text.includes(t.toLowerCase())) return t;
-  }
-  return undefined;
+  return parseClassifyReply(text, topics);
 }
 
 export async function classifyTopic(
   input: ClassifyInput,
   settings: ClassifySettings,
   deps: ClassifyDeps = {},
-): Promise<string> {
-  if (input.source === "intake-fxtwitter") return "tweet";
+): Promise<ClassifyResult> {
+  if (input.source === "intake-fxtwitter") return { topic: "tweet", tags: [] };
 
   if (settings.useClaudeForClassification !== false && settings.anthropicApiKey?.trim()) {
     const fromClaude = await classifyWithClaude(input, settings, deps);
@@ -206,7 +255,7 @@ export async function classifyTopic(
     input.domain,
     settings.publisherTopicMap,
   );
-  if (fromPublisher) return fromPublisher;
+  if (fromPublisher) return { topic: fromPublisher, tags: [] };
 
-  return FALLBACK_TOPIC;
+  return { topic: FALLBACK_TOPIC, tags: [] };
 }
