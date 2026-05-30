@@ -1,5 +1,6 @@
 import {
   MarkdownView,
+  Notice,
   Plugin,
   type TFile,
   type WorkspaceLeaf,
@@ -84,6 +85,14 @@ export default class ReadQueuePlugin extends Plugin {
           void this.reclassifyCurrentTopic(file);
         }
         return true;
+      },
+    });
+
+    this.addCommand({
+      id: "classify-all-without-topic",
+      name: "Classify all articles without topic",
+      callback: () => {
+        void this.classifyAllWithoutTopic();
       },
     });
 
@@ -203,6 +212,11 @@ export default class ReadQueuePlugin extends Plugin {
   }
 
   private async reclassifyCurrentTopic(file: TFile): Promise<void> {
+    await this.classifyOne(file);
+    await this.refreshQueueView();
+  }
+
+  private async classifyOne(file: TFile): Promise<string> {
     const fm = this.app.metadataCache.getFileCache(file)?.frontmatter as
       | ReadFrontmatter
       | undefined;
@@ -223,6 +237,43 @@ export default class ReadQueuePlugin extends Plugin {
     await this.app.fileManager.processFrontMatter(file, (raw) => {
       (raw as Record<string, unknown>)["topic"] = topic;
     });
+    return topic;
+  }
+
+  async classifyAllWithoutTopic(): Promise<void> {
+    const folder = stripTrailingSlash(this.settings.webFolder);
+    const prefix = `${folder}/`;
+    const candidates = this.app.vault
+      .getMarkdownFiles()
+      .filter((f) => f.path.startsWith(prefix))
+      .filter((f) => {
+        const fm = this.app.metadataCache.getFileCache(f)?.frontmatter as
+          | ReadFrontmatter
+          | undefined;
+        const topic = (fm as unknown as { topic?: unknown })?.topic;
+        return !topic || (typeof topic === "string" && !topic.trim());
+      });
+
+    if (candidates.length === 0) {
+      new Notice("ReadQueue: no articles without topic.");
+      return;
+    }
+
+    new Notice(`ReadQueue: clasificando ${candidates.length} artículos…`);
+    let ok = 0;
+    let failed = 0;
+    for (const file of candidates) {
+      try {
+        await this.classifyOne(file);
+        ok++;
+      } catch (err) {
+        failed++;
+        console.error("ReadQueue classify failed", file.path, err);
+      }
+    }
+    new Notice(
+      `ReadQueue: ${ok} clasificados${failed > 0 ? `, ${failed} fallidos` : ""}.`,
+    );
     await this.refreshQueueView();
   }
 
