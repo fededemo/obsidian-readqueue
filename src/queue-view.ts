@@ -2,10 +2,13 @@ import { ItemView, type WorkspaceLeaf } from "obsidian";
 
 import {
   estimateReadingMinutesFromSize,
+  filterByQuery,
   filterByStatus,
   filterBySnoozedUntil,
+  filterByTopic,
   groupArticles,
   sortArticles,
+  topicSlug,
   type ArticleGroup,
   type GroupKey,
   type QueueArticle,
@@ -42,6 +45,10 @@ export class QueueView extends ItemView {
   sortBy: SortKey = "newest";
   private visibleArticles: QueueArticle[] = [];
   private selectedIndex = 0;
+  private searchQuery = "";
+  private activeTopicFilter: string | undefined = undefined;
+  private unreadCount = 0;
+  private searchInputEl: HTMLInputElement | undefined;
 
   constructor(leaf: WorkspaceLeaf, plugin: ReadQueuePlugin) {
     super(leaf);
@@ -67,7 +74,9 @@ export class QueueView extends ItemView {
   }
 
   getDisplayText(): string {
-    return "Reading Queue";
+    return this.unreadCount > 0
+      ? `Reading Queue (${this.unreadCount})`
+      : "Reading Queue";
   }
 
   override getIcon(): string {
@@ -126,12 +135,41 @@ export class QueueView extends ItemView {
       void this.render();
     };
 
+    const searchEl = root.createEl("input", {
+      cls: "readqueue-view__search",
+      attr: {
+        type: "search",
+        placeholder: "Filtrar título / topic / fuente…",
+        "aria-label": "Filtrar la cola",
+      },
+    });
+    searchEl.value = this.searchQuery;
+    searchEl.oninput = () => {
+      this.searchQuery = searchEl.value;
+      void this.render();
+    };
+    this.searchInputEl = searchEl;
+
+    if (this.activeTopicFilter) {
+      const pill = root.createDiv({ cls: "readqueue-view__filter-pill" });
+      pill.createSpan({ text: `Filtrando topic: ${this.activeTopicFilter}` });
+      const clearBtn = pill.createEl("button", { text: "× Limpiar" });
+      clearBtn.onclick = () => {
+        this.activeTopicFilter = undefined;
+        void this.render();
+      };
+    }
+
     const articles = this.plugin.loadQueueArticles();
     const unread = filterByStatus(articles, "unread");
     const active = filterBySnoozedUntil(unread);
-    const sorted = sortArticles(active, this.sortBy);
+    this.unreadCount = active.length;
+    const byQuery = filterByQuery(active, this.searchQuery);
+    const byTopic = filterByTopic(byQuery, this.activeTopicFilter);
+    const sorted = sortArticles(byTopic, this.sortBy);
     const groups = groupArticles(sorted, this.groupBy);
     const visibleGroups = groups.filter((g) => g.articles.length > 0);
+    this.refreshTabTitle();
     this.visibleArticles = visibleGroups.flatMap((g) =>
       this.collapsedGroups.has(g.label) && this.groupBy !== "none"
         ? []
@@ -213,7 +251,19 @@ export class QueueView extends ItemView {
     if (article.savedAt) {
       meta.createEl("span", { text: article.savedAt.toLocaleDateString() });
     }
-    if (article.topic) meta.createEl("span", { text: article.topic });
+    if (article.topic) {
+      const slug = topicSlug(article.topic);
+      const badge = meta.createEl("span", {
+        cls: `readqueue-view__topic-badge readqueue-view__topic-badge--${slug}`,
+        text: article.topic,
+        attr: { title: `Filtrar por topic: ${article.topic}` },
+      });
+      badge.onclick = (ev) => {
+        ev.stopPropagation();
+        this.activeTopicFilter = article.topic;
+        void this.render();
+      };
+    }
     const size = article.file.stat?.size ?? 0;
     if (size > 0) {
       const minutes = estimateReadingMinutesFromSize(size);
@@ -303,6 +353,11 @@ export class QueueView extends ItemView {
   private registerKeyboardShortcuts(): void {
     this.containerEl.tabIndex = 0;
     this.containerEl.addEventListener("keydown", (ev) => {
+      if (ev.key === "f" && (ev.metaKey || ev.ctrlKey)) {
+        this.searchInputEl?.focus();
+        ev.preventDefault();
+        return;
+      }
       if (
         ev.target instanceof HTMLInputElement ||
         ev.target instanceof HTMLTextAreaElement ||
@@ -337,6 +392,11 @@ export class QueueView extends ItemView {
           break;
       }
     });
+  }
+
+  private refreshTabTitle(): void {
+    const leaf = this.leaf as unknown as { updateHeader?: () => void };
+    leaf.updateHeader?.();
   }
 }
 

@@ -102,6 +102,134 @@
   padding: var(--size-2-1) var(--size-2-3);
 }
 
+.readqueue-view__search {
+  width: 100%;
+  margin-bottom: var(--size-4-2);
+  padding: var(--size-2-2) var(--size-2-3);
+  font-size: var(--font-ui-small);
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  color: var(--text-normal);
+}
+
+.readqueue-view__search:focus {
+  outline: 1px solid var(--interactive-accent);
+  border-color: var(--interactive-accent);
+}
+
+.readqueue-view__filter-pill {
+  display: flex;
+  align-items: center;
+  gap: var(--size-2-2);
+  margin-bottom: var(--size-4-2);
+  padding: var(--size-2-2) var(--size-2-3);
+  background: var(--background-modifier-hover);
+  border-radius: var(--radius-m);
+  font-size: var(--font-ui-smaller);
+}
+
+.readqueue-view__filter-pill button {
+  font-size: var(--font-ui-smaller);
+  padding: var(--size-2-1) var(--size-2-3);
+}
+
+.readqueue-view__group-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--background-primary);
+}
+
+.readqueue-view__topic-badge {
+  font-size: var(--font-ui-smaller);
+  padding: 1px var(--size-2-2);
+  border-radius: var(--radius-s);
+  cursor: pointer;
+  font-weight: var(--font-medium);
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.readqueue-view__topic-badge:hover {
+  filter: brightness(1.15);
+}
+
+.readqueue-view__topic-badge--tech {
+  background: rgba(33, 150, 243, 0.18);
+  color: #1976d2;
+}
+
+.readqueue-view__topic-badge--producto {
+  background: rgba(255, 152, 0, 0.20);
+  color: #d97800;
+}
+
+.readqueue-view__topic-badge--macro {
+  background: rgba(76, 175, 80, 0.18);
+  color: #2e7d32;
+}
+
+.readqueue-view__topic-badge--ciencia {
+  background: rgba(156, 39, 176, 0.18);
+  color: #7b1fa2;
+}
+
+.readqueue-view__topic-badge--personal {
+  background: rgba(244, 67, 54, 0.18);
+  color: #c62828;
+}
+
+.readqueue-view__topic-badge--cultura {
+  background: rgba(0, 188, 212, 0.18);
+  color: #00838f;
+}
+
+.readqueue-view__topic-badge--tweet {
+  background: rgba(96, 125, 139, 0.20);
+  color: #455a64;
+}
+
+.readqueue-view__topic-badge--otros {
+  background: rgba(158, 158, 158, 0.18);
+  color: var(--text-muted);
+}
+
+.readqueue-view__topic-badge--custom {
+  background: rgba(121, 134, 203, 0.18);
+  color: #3949ab;
+}
+
+.readqueue-view__topic-badge--unknown {
+  background: var(--background-modifier-hover);
+  color: var(--text-muted);
+}
+
+.theme-dark .readqueue-view__topic-badge--tech {
+  color: #64b5f6;
+}
+.theme-dark .readqueue-view__topic-badge--producto {
+  color: #ffb74d;
+}
+.theme-dark .readqueue-view__topic-badge--macro {
+  color: #81c784;
+}
+.theme-dark .readqueue-view__topic-badge--ciencia {
+  color: #ba68c8;
+}
+.theme-dark .readqueue-view__topic-badge--personal {
+  color: #ef9a9a;
+}
+.theme-dark .readqueue-view__topic-badge--cultura {
+  color: #4dd0e1;
+}
+.theme-dark .readqueue-view__topic-badge--tweet {
+  color: #90a4ae;
+}
+.theme-dark .readqueue-view__topic-badge--custom {
+  color: #9fa8da;
+}
+
 /* Reader-mode premium typography — scoped via body.readqueue-reader-active */
 body.readqueue-reader-active .markdown-preview-view {
   font-family: var(--font-text, ui-serif, Georgia, "Times New Roman", serif);

@@ -4,12 +4,15 @@ import {
   articleFromFile,
   dateBucket,
   estimateReadingMinutes,
+  filterByQuery,
   filterBySnoozedUntil,
   filterByStatus,
+  filterByTopic,
   groupArticles,
   randomArticle,
   sortArticles,
   sourceLabel,
+  topicSlug,
   type QueueArticle,
   type ReadFrontmatter,
 } from "../src/queue-data";
@@ -378,5 +381,81 @@ describe("randomArticle", () => {
     const a1 = randomArticle(items, mulberry32(99));
     const a2 = randomArticle(items, mulberry32(99));
     expect(a1).toBe(a2);
+  });
+});
+
+describe("topicSlug", () => {
+  it("returns known slug lowercased", () => {
+    expect(topicSlug("Tech")).toBe("tech");
+    expect(topicSlug("PRODUCTO")).toBe("producto");
+  });
+
+  it("returns 'custom' for unknown topic", () => {
+    expect(topicSlug("filosofía")).toBe("custom");
+  });
+
+  it("returns 'unknown' for empty/undefined", () => {
+    expect(topicSlug(undefined)).toBe("unknown");
+    expect(topicSlug("")).toBe("unknown");
+    expect(topicSlug("   ")).toBe("unknown");
+  });
+});
+
+describe("filterByQuery", () => {
+  const a = mkArticle({ title: "AI in production", topic: "tech" });
+  const b = mkArticle({
+    title: "How to ship faster",
+    topic: "producto",
+    url: "https://stratechery.com/x",
+  });
+  const c = mkArticle({ title: "Tasa de interés", topic: "macro" });
+  const all = [a, b, c];
+
+  it("returns copy when query is empty", () => {
+    const out = filterByQuery(all, "");
+    expect(out).toEqual(all);
+    expect(out).not.toBe(all);
+  });
+
+  it("matches against title", () => {
+    expect(filterByQuery(all, "ship")).toEqual([b]);
+  });
+
+  it("matches against topic", () => {
+    expect(filterByQuery(all, "macro")).toEqual([c]);
+  });
+
+  it("matches against url", () => {
+    expect(filterByQuery(all, "stratechery")).toEqual([b]);
+  });
+
+  it("is case insensitive", () => {
+    expect(filterByQuery(all, "AI")).toEqual([a]);
+    expect(filterByQuery(all, "TASA")).toEqual([c]);
+  });
+
+  it("trims whitespace", () => {
+    expect(filterByQuery(all, "   ship   ")).toEqual([b]);
+  });
+});
+
+describe("filterByTopic", () => {
+  const a = mkArticle({ title: "a", topic: "tech" });
+  const b = mkArticle({ title: "b", topic: "macro" });
+  const c = mkArticle({ title: "c", topic: undefined });
+
+  it("returns copy when topic is undefined", () => {
+    const out = filterByTopic([a, b, c], undefined);
+    expect(out).toEqual([a, b, c]);
+    expect(out).not.toBe([a, b, c]);
+  });
+
+  it("filters by exact topic (case-insensitive)", () => {
+    expect(filterByTopic([a, b, c], "tech")).toEqual([a]);
+    expect(filterByTopic([a, b, c], "TECH")).toEqual([a]);
+  });
+
+  it("excludes articles without topic", () => {
+    expect(filterByTopic([a, b, c], "tech")).not.toContain(c);
   });
 });

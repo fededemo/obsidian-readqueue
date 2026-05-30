@@ -166,6 +166,9 @@ export default class ReadQueuePlugin extends Plugin {
 
     this.app.workspace.onLayoutReady(() => {
       void (async () => {
+        if (this.settings.openOnStartup) {
+          await this.activateView();
+        }
         await this.runIntakeOnce();
         if (this.settings.classifyOnLoad) {
           await this.classifyAllWithoutTopic({ silent: true });

@@ -91,6 +91,54 @@ export function estimateReadingMinutesFromSize(
   return Math.max(1, Math.ceil(words / wordsPerMinute));
 }
 
+const KNOWN_TOPIC_SLUGS: ReadonlyArray<string> = [
+  "tech",
+  "producto",
+  "macro",
+  "ciencia",
+  "personal",
+  "cultura",
+  "tweet",
+  "otros",
+];
+
+export function topicSlug(topic: string | undefined): string {
+  if (!topic) return "unknown";
+  const lower = topic.toLowerCase().trim();
+  if (!lower) return "unknown";
+  if (KNOWN_TOPIC_SLUGS.includes(lower)) return lower;
+  return "custom";
+}
+
+export function filterByQuery(
+  articles: readonly QueueArticle[],
+  rawQuery: string,
+): QueueArticle[] {
+  const q = rawQuery.trim().toLowerCase();
+  if (!q) return [...articles];
+  return articles.filter((a) => {
+    const haystack = [
+      a.title,
+      a.topic ?? "",
+      a.url ?? "",
+      a.source ?? "",
+      a.author ?? "",
+    ]
+      .join(" ")
+      .toLowerCase();
+    return haystack.includes(q);
+  });
+}
+
+export function filterByTopic(
+  articles: readonly QueueArticle[],
+  topic: string | undefined,
+): QueueArticle[] {
+  if (!topic) return [...articles];
+  const t = topic.toLowerCase();
+  return articles.filter((a) => (a.topic ?? "").toLowerCase() === t);
+}
+
 export type StatusFilter = "unread" | "read" | "all";
 
 export function filterByStatus(

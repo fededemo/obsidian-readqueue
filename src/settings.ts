@@ -17,6 +17,7 @@ export interface ReadQueueSettings {
   readTag: string;
   collapsedGroupsByGroupBy: Record<string, string[]>;
   enableReaderStyles: boolean;
+  openOnStartup: boolean;
 }
 
 export const DEFAULT_SETTINGS: ReadQueueSettings = {
@@ -33,6 +34,7 @@ export const DEFAULT_SETTINGS: ReadQueueSettings = {
   readTag: "leido",
   collapsedGroupsByGroupBy: {},
   enableReaderStyles: true,
+  openOnStartup: true,
 };
 
 export class ReadQueueSettingsTab extends PluginSettingTab {
@@ -249,6 +251,22 @@ export class ReadQueueSettingsTab extends PluginSettingTab {
           .setValue(this.plugin.settings.enableReaderStyles)
           .onChange(async (value) => {
             this.plugin.settings.enableReaderStyles = value;
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    containerEl.createEl("h3", { text: "Vista" });
+
+    new Setting(containerEl)
+      .setName("Abrir cola al iniciar")
+      .setDesc(
+        "Al cargar el plugin, abre la vista de cola automáticamente en el panel derecho. Desactivar si preferís tap en el ribbon icon.",
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.openOnStartup)
+          .onChange(async (value) => {
+            this.plugin.settings.openOnStartup = value;
             await this.plugin.saveSettings();
           }),
       );
