@@ -1,0 +1,26 @@
+# Build output
+main.js
+*.js.map
+
+# Dependencies
+node_modules/
+
+# System
+.DS_Store
+.idea/
+.vscode/
+
+# Obsidian plugin runtime
+data.json
+
+# Claude
+.claude/agent-memory/
+.claude/worktrees/
+.claude/settings.local.json
+
+# Tests
+coverage/
+
+# Logs
+*.log
+npm-debug.log*

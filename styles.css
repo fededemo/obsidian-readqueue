@@ -1,0 +1,42 @@
+/* ReadQueue styles — keep minimal, use Obsidian CSS variables for theme compatibility */
+
+.readqueue-view {
+  padding: var(--size-4-3);
+}
+
+.readqueue-view__toolbar {
+  display: flex;
+  gap: var(--size-2-2);
+  margin-bottom: var(--size-4-2);
+  align-items: center;
+}
+
+.readqueue-view__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-2);
+}
+
+.readqueue-view__card {
+  padding: var(--size-4-2);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  cursor: pointer;
+  background: var(--background-secondary);
+}
+
+.readqueue-view__card:hover {
+  background: var(--background-modifier-hover);
+}
+
+.readqueue-view__card-title {
+  font-weight: var(--font-semibold);
+  margin-bottom: var(--size-2-1);
+}
+
+.readqueue-view__card-meta {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+  display: flex;
+  gap: var(--size-4-2);
+}
