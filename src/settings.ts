@@ -13,6 +13,7 @@ export interface ReadQueueSettings {
   classifyModel: string;
   useClaudeForClassification: boolean;
   classifyOnIntake: boolean;
+  classifyOnLoad: boolean;
   readTag: string;
 }
 
@@ -26,6 +27,7 @@ export const DEFAULT_SETTINGS: ReadQueueSettings = {
   classifyModel: "claude-haiku-4-5",
   useClaudeForClassification: true,
   classifyOnIntake: true,
+  classifyOnLoad: true,
   readTag: "leido",
 };
 
@@ -154,6 +156,20 @@ export class ReadQueueSettingsTab extends PluginSettingTab {
           .setValue(this.plugin.settings.classifyOnIntake)
           .onChange(async (value) => {
             this.plugin.settings.classifyOnIntake = value;
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("Clasificar al cargar el plugin")
+      .setDesc(
+        "Cuando se carga el plugin (toggle off/on o reinicio de Obsidian), busca artículos sin topic en la carpeta de la cola y los clasifica en background.",
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.classifyOnLoad)
+          .onChange(async (value) => {
+            this.plugin.settings.classifyOnLoad = value;
             await this.plugin.saveSettings();
           }),
       );

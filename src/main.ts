@@ -117,7 +117,12 @@ export default class ReadQueuePlugin extends Plugin {
     );
 
     this.app.workspace.onLayoutReady(() => {
-      void this.runIntakeOnce();
+      void (async () => {
+        await this.runIntakeOnce();
+        if (this.settings.classifyOnLoad) {
+          await this.classifyAllWithoutTopic({ silent: true });
+        }
+      })();
     });
 
     if (this.settings.intakeIntervalMin > 0) {
@@ -240,7 +245,7 @@ export default class ReadQueuePlugin extends Plugin {
     return topic;
   }
 
-  async classifyAllWithoutTopic(): Promise<void> {
+  async classifyAllWithoutTopic(opts: { silent?: boolean } = {}): Promise<void> {
     const folder = stripTrailingSlash(this.settings.webFolder);
     const prefix = `${folder}/`;
     const candidates = this.app.vault
@@ -255,11 +260,15 @@ export default class ReadQueuePlugin extends Plugin {
       });
 
     if (candidates.length === 0) {
-      new Notice("ReadQueue: no articles without topic.");
+      if (!opts.silent) new Notice("ReadQueue: no articles without topic.");
       return;
     }
 
-    new Notice(`ReadQueue: clasificando ${candidates.length} artículos…`);
+    if (!opts.silent) {
+      new Notice(`ReadQueue: clasificando ${candidates.length} artículos…`);
+    } else {
+      console.log(`ReadQueue: auto-classifying ${candidates.length} articles without topic`);
+    }
     let ok = 0;
     let failed = 0;
     for (const file of candidates) {
@@ -271,9 +280,13 @@ export default class ReadQueuePlugin extends Plugin {
         console.error("ReadQueue classify failed", file.path, err);
       }
     }
-    new Notice(
-      `ReadQueue: ${ok} clasificados${failed > 0 ? `, ${failed} fallidos` : ""}.`,
-    );
+    if (!opts.silent) {
+      new Notice(
+        `ReadQueue: ${ok} clasificados${failed > 0 ? `, ${failed} fallidos` : ""}.`,
+      );
+    } else {
+      console.log(`ReadQueue: auto-classified ok=${ok} failed=${failed}`);
+    }
     await this.refreshQueueView();
   }
 
