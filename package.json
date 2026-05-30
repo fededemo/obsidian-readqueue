@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit --skipLibCheck",
     "version": "node version-bump.mjs && git add manifest.json versions.json",
-    "import-matter": "tsx scripts/import-matter.ts"
+    "import-matter": "tsx scripts/import-matter.ts",
+    "sync-kindle": "tsx scripts/sync-kindle.ts"
   },
   "keywords": [
     "obsidian",

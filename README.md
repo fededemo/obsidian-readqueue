@@ -60,6 +60,49 @@ This plugin is currently private. Mobile distribution is via [BRAT](https://gith
 2. Add `fededemo/obsidian-readqueue` as a beta plugin.
 3. BRAT will sync the plugin to all devices where BRAT is installed.
 
+## Kindle highlights sync
+
+Standalone CLI that scrapes your Kindle library + highlights from
+`read.amazon.com/notebook` and writes one `.md` per book to
+`Inbox/Kindle/` with `source: kindle-scrape` frontmatter (highlights as
+blockquotes, optional Claude topic classification).
+
+```bash
+npm run sync-kindle -- \
+  --cookie "session-id=...; ubid-main=...; ..." \
+  --dest "/path/to/vault/Inbox/Kindle" \
+  --anthropic-key "$ANTHROPIC_API_KEY"   # optional
+```
+
+Flags:
+- `--cookie "<raw>"` — paste the full `Cookie:` header from a logged-in
+  request to `read.amazon.com/notebook`. **OR** `--cookie-file path` to
+  read it from a file.
+- `--dest` (required) — destination folder.
+- `--anthropic-key` (optional) — classifies each book into a topic with
+  Claude Haiku 4.5. Without it, every book gets `topic: otros`.
+- `--dry-run` — parses + classifies but doesn't write.
+- `--force` — overwrite existing files.
+
+### How to get the cookie
+
+1. Open https://read.amazon.com/notebook in Chrome/Safari/Firefox.
+2. Log in.
+3. Open DevTools → Network tab → reload → click the `notebook` request.
+4. In the request headers, copy the entire `Cookie:` header value (long
+   string with `session-id=…; ubid-main=…; at-main=…; …`).
+5. Paste it as the `--cookie` argument (quote it). Keep it secret —
+   anyone with this cookie can act as you on Amazon.
+
+### When the scrape breaks
+
+Amazon mutates the HTML periodically. If a sync run reports "Found 0
+books" or fails to extract highlights, the CSS selectors in
+`scripts/sync-kindle.ts` need updating. Inspect the live HTML in
+DevTools and patch `parseLibrary` / `parseBookHighlights`. Tests use
+captured fixtures so they keep passing; bump fixtures when you refresh
+the selectors.
+
 ## License
 
 MIT — see source.
