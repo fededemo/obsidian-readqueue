@@ -14,6 +14,7 @@ export interface ReadQueueSettings {
   useClaudeForClassification: boolean;
   classifyOnIntake: boolean;
   classifyOnLoad: boolean;
+  autoMoveOrphans: boolean;
   readTag: string;
   collapsedGroupsByGroupBy: Record<string, string[]>;
   enableReaderStyles: boolean;
@@ -31,6 +32,7 @@ export const DEFAULT_SETTINGS: ReadQueueSettings = {
   useClaudeForClassification: true,
   classifyOnIntake: true,
   classifyOnLoad: true,
+  autoMoveOrphans: true,
   readTag: "leido",
   collapsedGroupsByGroupBy: {},
   enableReaderStyles: true,
@@ -176,6 +178,20 @@ export class ReadQueueSettingsTab extends PluginSettingTab {
           .setValue(this.plugin.settings.classifyOnLoad)
           .onChange(async (value) => {
             this.plugin.settings.classifyOnLoad = value;
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("Mover huérfanos del Web Clipper al cargar")
+      .setDesc(
+        "El Web Clipper de iOS Safari a veces guarda tweets/clips fuera de Inbox/Web (raíz de la vault, Clippings/, etc). Si está activo, al cargar el plugin mueve esos archivos automáticamente a la carpeta de la cola.",
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.autoMoveOrphans)
+          .onChange(async (value) => {
+            this.plugin.settings.autoMoveOrphans = value;
             await this.plugin.saveSettings();
           }),
       );

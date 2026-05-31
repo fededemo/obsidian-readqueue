@@ -5,7 +5,7 @@ export interface ReadFrontmatter {
   title?: string;
   url?: string;
   topic?: string;
-  author?: string;
+  author?: string | string[];
   published?: string;
   savedAt?: string;
   status?: string;
@@ -43,20 +43,41 @@ function normalizeTags(raw: unknown): string[] {
   return [];
 }
 
+const URL_LIKE_RE = /^https?:\/\//i;
+
+function isUrlString(value: unknown): value is string {
+  return isString(value) && URL_LIKE_RE.test(value);
+}
+
+function normalizeAuthor(value: unknown): string | undefined {
+  if (isString(value)) return value || undefined;
+  if (Array.isArray(value)) {
+    const first = value.find(isString);
+    if (first) return first.replace(/^\[\[|\]\]$/g, "");
+  }
+  return undefined;
+}
+
 export function articleFromFile(
   file: TFile,
   frontmatter: ReadFrontmatter | undefined,
 ): QueueArticle {
   const fm = frontmatter ?? {};
+  const fmAny = fm as Record<string, unknown>;
+  const rawUrl = isString(fm.url) ? fm.url : undefined;
+  const rawSource = isString(fm.source) ? fm.source : undefined;
+  const url = rawUrl ?? (isUrlString(rawSource) ? rawSource : undefined);
+  const source = isUrlString(rawSource) ? undefined : rawSource;
+  const savedAt = parseDate(fm.savedAt) ?? parseDate(fmAny["created"]);
   return {
     file,
     title: isString(fm.title) && fm.title ? fm.title : file.basename,
-    url: isString(fm.url) ? fm.url : undefined,
-    source: isString(fm.source) ? fm.source : undefined,
+    url,
+    source,
     topic: isString(fm.topic) ? fm.topic : undefined,
-    author: isString(fm.author) ? fm.author : undefined,
+    author: normalizeAuthor(fm.author),
     published: isString(fm.published) ? fm.published : undefined,
-    savedAt: parseDate(fm.savedAt),
+    savedAt,
     status: isString(fm.status) ? fm.status : "unread",
     tags: normalizeTags(fm.tags),
     snoozedUntil: parseDate(fm.snoozedUntil),
