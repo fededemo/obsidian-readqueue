@@ -118,6 +118,44 @@ describe("articleFromFile", () => {
     expect(a.status).toBe("unread");
     expect(a.tags).toEqual([]);
   });
+
+  it("promotes source URL to url when url is absent (Web Clipper convention)", () => {
+    const a = articleFromFile(file, {
+      source: "https://meltingasphalt.com/honesty-and-the-human-body/",
+    });
+    expect(a.url).toBe(
+      "https://meltingasphalt.com/honesty-and-the-human-body/",
+    );
+    expect(a.source).toBeUndefined();
+  });
+
+  it("keeps non-URL source as source and leaves url undefined", () => {
+    const a = articleFromFile(file, { source: "web-clipper" });
+    expect(a.source).toBe("web-clipper");
+    expect(a.url).toBeUndefined();
+  });
+
+  it("prefers explicit url over source when both are present", () => {
+    const a = articleFromFile(file, {
+      url: "https://example.com/x",
+      source: "https://other.com/y",
+    });
+    expect(a.url).toBe("https://example.com/x");
+    expect(a.source).toBeUndefined();
+  });
+
+  it("flattens array author (Web Clipper wikilink form)", () => {
+    const a = articleFromFile(file, {
+      author: ["[[Kevin Simler]]"],
+    });
+    expect(a.author).toBe("Kevin Simler");
+  });
+
+  it("falls back to created when savedAt is missing", () => {
+    const fm = { created: "2026-05-31" } as unknown as ReadFrontmatter;
+    const a = articleFromFile(file, fm);
+    expect(a.savedAt?.toISOString().slice(0, 10)).toBe("2026-05-31");
+  });
 });
 
 describe("filterByStatus", () => {

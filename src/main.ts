@@ -117,6 +117,14 @@ export default class ReadQueuePlugin extends Plugin {
       },
     });
 
+    this.addCommand({
+      id: "move-webclipper-orphans",
+      name: "Move Web Clipper orphans to Inbox/Web",
+      callback: () => {
+        void this.moveWebClipperOrphans();
+      },
+    });
+
     for (const days of [1, 7, 30]) {
       const label =
         days === 1 ? "1 day" : days === 7 ? "1 week" : "1 month";
@@ -195,6 +203,9 @@ export default class ReadQueuePlugin extends Plugin {
           await this.activateView();
         }
         await this.runIntakeOnce();
+        if (this.settings.autoMoveOrphans !== false) {
+          await this.moveWebClipperOrphans({ silent: true });
+        }
         if (this.settings.classifyOnLoad) {
           await this.classifyAllWithoutTopic({ silent: true });
         }
@@ -452,10 +463,14 @@ export default class ReadQueuePlugin extends Plugin {
     const content = await this.app.vault.cachedRead(file);
     const bodyStart = content.indexOf("\n---", 3);
     const body = bodyStart >= 0 ? content.slice(bodyStart + 4) : content;
+    const author = fm?.author;
+    const flatAuthor = Array.isArray(author)
+      ? author.find((a) => typeof a === "string")?.replace(/^\[\[|\]\]$/g, "")
+      : author;
     const article: ParsedArticle = {
       title: fm?.title ?? file.basename,
       url: fm?.url ?? "",
-      author: fm?.author,
+      author: flatAuthor,
       published: fm?.published,
       domain: hostnameFromFrontmatter(fm),
       contentHtml: "",
@@ -525,6 +540,90 @@ export default class ReadQueuePlugin extends Plugin {
     for (const leaf of leaves) {
       const view = leaf.view;
       if (view instanceof QueueView) await view.refresh();
+    }
+  }
+
+  async moveWebClipperOrphans(opts: { silent?: boolean } = {}): Promise<void> {
+    const webFolder = stripTrailingSlash(this.settings.webFolder);
+    const webPrefix = `${webFolder}/`;
+    const pendingPrefix = `${stripTrailingSlash(this.settings.pendingFolder)}/`;
+    const protectedPrefixes = [
+      webPrefix,
+      pendingPrefix,
+      "Inbox/Legacy/",
+      "Diario/",
+    ];
+
+    const candidates = this.app.vault.getMarkdownFiles().filter((f) => {
+      if (protectedPrefixes.some((p) => f.path.startsWith(p))) return false;
+      const fm = this.app.metadataCache.getFileCache(f)?.frontmatter as
+        | Record<string, unknown>
+        | undefined;
+      if (!fm) return false;
+      const tagsRaw = fm["tags"];
+      const tags = Array.isArray(tagsRaw)
+        ? tagsRaw.filter((t): t is string => typeof t === "string")
+        : typeof tagsRaw === "string"
+          ? [tagsRaw]
+          : [];
+      const isClipping = tags.some(
+        (t) => t === "clippings" || t === "reader" || t === "tweet",
+      );
+      const source = fm["source"];
+      const sourceLooksLikeUrl =
+        typeof source === "string" && /^https?:\/\//i.test(source);
+      const sourceMatchesIntake =
+        source === "web-clipper" ||
+        source === "intake-defuddle" ||
+        source === "intake-fxtwitter";
+      return isClipping || sourceLooksLikeUrl || sourceMatchesIntake;
+    });
+
+    if (candidates.length === 0) {
+      if (!opts.silent) new Notice("ReadQueue: no orphans found.");
+      return;
+    }
+
+    await ensureFolder(this.app, webFolder);
+
+    let moved = 0;
+    let collisions = 0;
+    for (const file of candidates) {
+      let dest = `${webFolder}/${file.name}`;
+      if (this.app.vault.getAbstractFileByPath(dest)) {
+        const stem = file.basename;
+        const ext = file.extension || "md";
+        let n = 2;
+        while (
+          this.app.vault.getAbstractFileByPath(
+            `${webFolder}/${stem} (${n}).${ext}`,
+          )
+        ) {
+          n++;
+        }
+        dest = `${webFolder}/${stem} (${n}).${ext}`;
+        collisions++;
+      }
+      try {
+        await this.app.fileManager.renameFile(file, dest);
+        moved++;
+      } catch (err) {
+        console.error("ReadQueue: failed to move orphan", file.path, err);
+      }
+    }
+
+    if (moved > 0) {
+      await this.refreshQueueView();
+    }
+    if (!opts.silent) {
+      const tail = collisions > 0 ? ` (${collisions} renombrados)` : "";
+      new Notice(
+        moved > 0
+          ? `ReadQueue: ${moved} huérfano(s) movido(s) a ${webFolder}${tail}.`
+          : "ReadQueue: no orphans moved.",
+      );
+    } else if (moved > 0) {
+      console.log(`ReadQueue: auto-moved ${moved} orphan(s) to ${webFolder}`);
     }
   }
 }
