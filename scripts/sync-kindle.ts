@@ -15,8 +15,11 @@ import {
   parseBookHighlights,
   parseLibrary,
   type KindleBook,
+  type KindleBookHighlights,
   type KindleHighlight,
 } from "../src/kindle";
+import { mergeHighlightsIntoMarkdown, planMerge } from "../src/kindle-merge";
+import { slugifyForFilename } from "../src/slugify";
 
 export {
   buildBookMarkdown,
@@ -32,6 +35,7 @@ export interface CliArgs {
   apiKey: string | undefined;
   dryRun: boolean;
   force: boolean;
+  merge: boolean;
   cookieFile: string | undefined;
 }
 
@@ -42,6 +46,7 @@ export function parseArgs(argv: readonly string[]): CliArgs {
     apiKey: undefined,
     dryRun: false,
     force: false,
+    merge: false,
     cookieFile: undefined,
   };
   for (let i = 0; i < argv.length; i++) {
@@ -64,6 +69,9 @@ export function parseArgs(argv: readonly string[]): CliArgs {
         break;
       case "--force":
         args.force = true;
+        break;
+      case "--merge":
+        args.merge = true;
         break;
       default:
         if (a && a.startsWith("--")) {
@@ -116,6 +124,8 @@ const defaultParseDom = (html: string): Document => {
 
 const defaultWriteFile: NonNullable<RunDeps["writeFile"]> = (p, c) =>
   fs.writeFile(p, c, "utf-8");
+const defaultReadFile: NonNullable<RunDeps["readFile"]> = (p) =>
+  fs.readFile(p, "utf-8");
 const defaultExists: NonNullable<RunDeps["exists"]> = async (p) => {
   try {
     await fs.access(p);
@@ -132,7 +142,28 @@ export interface RunSummary {
   written: number;
   skipped: number;
   failed: number;
+  /** --merge: books whose existing .md got new highlights appended. */
+  merged: number;
+  /** --merge: pre-MX12 books whose delivered-keys state got initialized (file untouched). */
+  initialized: number;
+  /** --merge: total highlights appended across merged books. */
+  newHighlights: number;
   errors: string[];
+}
+
+export const SYNC_STATE_FILENAME = ".kindle-sync-state.json";
+
+interface SyncStateFile {
+  version: 1;
+  books: Record<string, { deliveredKeys: string[] }>;
+}
+
+function parseSyncState(raw: string): SyncStateFile {
+  const parsed = JSON.parse(raw) as Partial<SyncStateFile>;
+  return {
+    version: 1,
+    books: parsed.books && typeof parsed.books === "object" ? parsed.books : {},
+  };
 }
 
 export async function run(args: CliArgs, deps: RunDeps = {}): Promise<RunSummary> {
@@ -164,10 +195,43 @@ export async function run(args: CliArgs, deps: RunDeps = {}): Promise<RunSummary
     written: 0,
     skipped: 0,
     failed: 0,
+    merged: 0,
+    initialized: 0,
+    newHighlights: 0,
     errors: [],
   };
 
   await mkdirp(args.dest);
+
+  const readFile = deps.readFile ?? defaultReadFile;
+  const statePath = path.join(args.dest, SYNC_STATE_FILENAME);
+  let syncState: SyncStateFile = { version: 1, books: {} };
+  if (args.merge && (await exists(statePath))) {
+    try {
+      syncState = parseSyncState(await readFile(statePath));
+    } catch {
+      log(`Warning: could not parse ${SYNC_STATE_FILENAME} — starting with empty state.`);
+    }
+  }
+
+  const classifyFor = async (
+    book: KindleBook,
+    data: KindleBookHighlights,
+  ): Promise<string> => {
+    if (deps.classify) return deps.classify(book, data.highlights);
+    if (!args.apiKey) return "otros";
+    const excerpt = data.highlights.slice(0, 3).map((h) => h.text).join("\n");
+    const result = await classifyTopic(
+      {
+        title: book.title,
+        excerpt,
+        domain: "read.amazon.com",
+        source: "kindle-scrape",
+      },
+      settings,
+    );
+    return result.topic;
+  };
 
   log("Fetching Kindle library…");
   const libRes = await fetchUrl(LIBRARY_URL, cookie);
@@ -192,29 +256,65 @@ export async function run(args: CliArgs, deps: RunDeps = {}): Promise<RunSummary
         continue;
       }
       const data = parseBookHighlights(bookRes.text, book, parseDom);
+      const slug = slugifyForFilename(`${book.title}-${book.asin}`);
+      const destPath = path.join(args.dest, `${slug}.md`);
+      const tag = `[${i + 1}/${books.length}]`;
 
-      let topic = "otros";
-      if (deps.classify) {
-        topic = await deps.classify(book, data.highlights);
-      } else if (args.apiKey) {
-        const excerpt = data.highlights.slice(0, 3).map((h) => h.text).join("\n");
-        const result = await classifyTopic(
-          {
-            title: book.title,
-            excerpt,
-            domain: "read.amazon.com",
-            source: "kindle-scrape",
-          },
-          settings,
-        );
-        topic = result.topic;
+      if (args.merge) {
+        const plan = planMerge({
+          scraped: data.highlights,
+          deliveredKeys: syncState.books[book.asin]?.deliveredKeys,
+          // --force rebuilds the file from scratch, same as if it were missing
+          fileExists: !args.force && (await exists(destPath)),
+        });
+        switch (plan.action) {
+          case "init-state":
+            syncState.books[book.asin] = { deliveredKeys: plan.deliveredKeys };
+            summary.initialized++;
+            log(
+              `${tag} init ${book.title} (${plan.deliveredKeys.length} highlights marked as delivered, file untouched)`,
+            );
+            break;
+          case "none":
+            summary.skipped++;
+            log(`${tag} skip ${book.title} (no new highlights)`);
+            break;
+          case "recreate": {
+            const topic = await classifyFor(book, data);
+            const md = buildBookMarkdown(data, topic, now());
+            if (!args.dryRun) await writeFile(destPath, md.content);
+            syncState.books[book.asin] = { deliveredKeys: plan.deliveredKeys };
+            summary.written++;
+            log(
+              `${tag} ${args.dryRun ? "dry" : "ok"} ${book.title} (recreated, ${data.highlights.length} highlights, topic: ${topic})`,
+            );
+            break;
+          }
+          case "append": {
+            const existing = await readFile(destPath);
+            const mergedContent = mergeHighlightsIntoMarkdown(
+              existing,
+              plan.newHighlights,
+              plan.deliveredKeys.length,
+            );
+            if (!args.dryRun) await writeFile(destPath, mergedContent);
+            syncState.books[book.asin] = { deliveredKeys: plan.deliveredKeys };
+            summary.merged++;
+            summary.newHighlights += plan.newHighlights.length;
+            log(
+              `${tag} ${args.dryRun ? "dry" : "merge"} ${book.title} (+${plan.newHighlights.length} highlights)`,
+            );
+            break;
+          }
+        }
+        continue;
       }
 
+      const topic = await classifyFor(book, data);
       const md = buildBookMarkdown(data, topic, now());
-      const destPath = path.join(args.dest, `${md.slug}.md`);
       if (!args.force && (await exists(destPath))) {
         summary.skipped++;
-        log(`[${i + 1}/${books.length}] skip ${book.title} (exists)`);
+        log(`${tag} skip ${book.title} (exists)`);
         continue;
       }
       if (!args.dryRun) {
@@ -222,7 +322,7 @@ export async function run(args: CliArgs, deps: RunDeps = {}): Promise<RunSummary
       }
       summary.written++;
       log(
-        `[${i + 1}/${books.length}] ${args.dryRun ? "dry" : "ok"} ${book.title} (${data.highlights.length} highlights, topic: ${topic})`,
+        `${tag} ${args.dryRun ? "dry" : "ok"} ${book.title} (${data.highlights.length} highlights, topic: ${topic})`,
       );
     } catch (err) {
       summary.failed++;
@@ -232,8 +332,12 @@ export async function run(args: CliArgs, deps: RunDeps = {}): Promise<RunSummary
     }
   }
 
+  if (args.merge && !args.dryRun) {
+    await writeFile(statePath, `${JSON.stringify(syncState, null, 2)}\n`);
+  }
+
   log(
-    `Done. books=${summary.books} written=${summary.written} skipped=${summary.skipped} failed=${summary.failed}`,
+    `Done. books=${summary.books} written=${summary.written} merged=${summary.merged} initialized=${summary.initialized} newHighlights=${summary.newHighlights} skipped=${summary.skipped} failed=${summary.failed}`,
   );
   return summary;
 }

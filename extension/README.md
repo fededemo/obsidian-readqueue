@@ -6,8 +6,8 @@ Auto-syncs your Kindle highlights into a folder of your Obsidian vault, **once a
 
 - Uses your **active Chrome session** at `read.amazon.com/notebook` — no manual cookie export.
 - Reads your full library + highlights of every book.
-- Skips books already imported (tracks ASINs in `chrome.storage.local`).
 - Writes each new book as `<slug>.md` directly to a folder you choose **inside your Obsidian vault** (via the File System Access API).
+- **Re-checks already-imported books on every sync** (MX12): if you kept reading a book and added highlights, only the new ones get appended to the existing `.md` — your edits to the file are preserved, and highlights you deleted from it never come back.
 - Runs automatically every 24h via `chrome.alarms`. Service worker sleeps in between — zero footprint when idle.
 - **Cero visible to you**: no tabs, no popups, no URL prompts. Notifications only when something new arrives or something fails.
 
@@ -86,6 +86,21 @@ When the ReadQueue plugin runs `classifyAllWithoutTopic` (it does automatically 
 
 After that, auto-sync runs every 24h. Chrome can be in the background; the service worker wakes for ~5 seconds and goes back to sleep.
 
+## Incremental re-sync of known books (MX12)
+
+Every sync re-fetches each already-imported book (with a 1.2s delay between requests, to be polite with Amazon — it runs once a day) and compares against what was **ever delivered** to your vault:
+
+- Highlight identity = normalized text (whitespace collapsed) + location. Per book, the set of delivered keys lives in `chrome.storage.local` (`bookStates`).
+- New highlights = scraped − ever-delivered. They get appended at the end of the `## Highlights` section of the existing file, in the same format as a fresh import, and `highlightCount` in the frontmatter is updated (= count of delivered keys). Nothing else in the file is touched.
+- Because the state tracks "ever delivered" rather than file contents, a highlight you deleted from the `.md` does **not** reappear.
+- If you deleted the whole `.md` from the vault, the next sync with new highlights recreates it in full.
+- **Migration**: books imported before MX12 only have their ASIN tracked. The first re-sync initializes the delivered set with the currently scraped highlights **without touching the file** — nothing gets duplicated.
+- Notification only when there is something new: "N highlights nuevos en M libros".
+
+The merge logic is a pure module: `src/kindle-merge.ts` (tests in `tests/kindle-merge.test.ts`). The CLI has parity via `npm run sync-kindle -- --merge`, storing state in `.kindle-sync-state.json` inside `--dest`.
+
+After rebuilding (`npm run build:extension`), reload the extension in `chrome://extensions` (↻ on the card) to pick up the new code.
+
 ## When the session expires
 
 Amazon cookies expire every ~14 days. When that happens:
@@ -105,15 +120,15 @@ If Chrome isn't available, `scripts/sync-kindle.ts` (the CLI from MX8) still wor
 ## Files
 
 - `manifest.json` — Manifest V3.
-- `background.ts` — service worker. Alarm 24h + fetch + parse + delegate write to offscreen.
-- `offscreen.ts` — DOM context that has File System Access. Receives the markdown payload from the SW and writes via `FileSystemDirectoryHandle`.
+- `background.ts` — service worker. Alarm 24h + fetch + parse + incremental diff of known books + delegate write/merge to offscreen.
+- `offscreen.ts` — DOM context that has File System Access. Receives the markdown payload from the SW and writes via `FileSystemDirectoryHandle`; for known books it reads the existing file and appends only the new highlights (`src/kindle-merge.ts`).
 - `popup.ts` + `popup.html` — UI for setup + manual sync + status.
 - `handle-store.ts` — IndexedDB persistence of the `FileSystemDirectoryHandle`.
 - `esbuild.config.mjs` — bundle TS → JS for each entry.
 
 ## Permissions
 
-- `storage` — track known ASINs + last sync.
+- `storage` — track known ASINs + delivered highlight keys per book + last sync.
 - `alarms` — daily auto-sync.
 - `notifications` — surface success / errors without opening the popup.
 - `offscreen` — Manifest V3 mechanism to access DOM APIs (File System Access) from a service worker context.

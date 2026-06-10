@@ -2,9 +2,15 @@ import { clearHandle, loadHandle, saveHandle, verifyPermission } from "./handle-
 
 interface StoredState {
   knownAsins?: string[];
+  bookStates?: Record<string, string[]>;
   lastSync?: string;
   lastError?: string;
-  lastResult?: { written: number; failed: number };
+  lastResult?: {
+    written: number;
+    failed: number;
+    newHighlights?: number;
+    mergedBooks?: number;
+  };
 }
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
@@ -71,11 +77,16 @@ $<HTMLButtonElement>("sync-now").addEventListener("click", async () => {
   btn.disabled = true;
   btn.textContent = "Sincronizando…";
   try {
-    const res = await new Promise<{ status: string; written: number; newBooks: number; errors: string[] }>(
-      (resolve) => chrome.runtime.sendMessage({ type: "sync-now" }, resolve),
-    );
+    const res = await new Promise<{
+      status: string;
+      written: number;
+      newBooks: number;
+      newHighlights: number;
+      mergedBooks: number;
+      errors: string[];
+    }>((resolve) => chrome.runtime.sendMessage({ type: "sync-now" }, resolve));
     if (res) {
-      btn.textContent = `${res.written} escritos · ${res.newBooks} nuevos`;
+      btn.textContent = `${res.written} nuevos · ${res.newHighlights ?? 0} highlights`;
     } else {
       btn.textContent = "Listo";
     }

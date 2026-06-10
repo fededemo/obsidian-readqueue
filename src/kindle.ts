@@ -127,6 +127,18 @@ function yamlList(values: readonly string[]): string {
   return `[${values.map(yamlScalar).join(", ")}]`;
 }
 
+/** Renders one highlight as markdown block lines (blockquote + location + 📝 note), ending with a blank line. Shared by full builds and incremental merges so both produce identical output. */
+export function renderHighlightLines(h: KindleHighlight): string[] {
+  const lines = [`> ${h.text.replace(/\n/g, "\n> ")}`];
+  if (h.location) lines.push(`*${h.location}*`);
+  if (h.note) {
+    lines.push("");
+    lines.push(`📝 ${h.note}`);
+  }
+  lines.push("");
+  return lines;
+}
+
 export function buildBookMarkdown(
   data: KindleBookHighlights,
   topic: string,
@@ -163,13 +175,7 @@ export function buildBookMarkdown(
     "",
   ];
   for (const h of highlights) {
-    bodyLines.push(`> ${h.text.replace(/\n/g, "\n> ")}`);
-    if (h.location) bodyLines.push(`*${h.location}*`);
-    if (h.note) {
-      bodyLines.push("");
-      bodyLines.push(`📝 ${h.note}`);
-    }
-    bodyLines.push("");
+    bodyLines.push(...renderHighlightLines(h));
   }
 
   const content = `---\n${fmLines.join("\n")}\n---\n\n${bodyLines.join("\n")}`;

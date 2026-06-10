@@ -22,6 +22,20 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
   and writes a `## Highlights para repasar` section into today's reading
   digest (idempotent; the digest command also includes it, toggle in
   settings, default on).
+- **Incremental Kindle re-sync** (MX12): the Chrome extension no longer
+  skips already-imported books — every daily sync re-fetches each known
+  book (1.2s delay between requests) and appends only the highlights
+  never delivered before to the existing `.md` in the vault, preserving
+  the user's edits (frontmatter changes, own notes, deleted highlights
+  never reappear). Highlight identity = normalized text + location; per
+  book the set of ever-delivered keys lives in `chrome.storage.local`.
+  Books imported pre-MX12 migrate on first re-sync by marking the
+  currently scraped highlights as delivered without touching the file.
+  If the `.md` was deleted from the vault it gets recreated in full.
+  Notification only on news: "N highlights nuevos en M libros". The CLI
+  gains parity via `npm run sync-kindle -- --merge` with state in
+  `.kindle-sync-state.json` inside `--dest`. Pure merge module in
+  `src/kindle-merge.ts` with 24 new tests.
 - **Highlight-on-select in reading view** (MX11): selecting text in the
   preview (mouse on desktop, long-press on iOS) shows a floating button
   with "Subrayar" and "Subrayar + nota" — the selection is located in
