@@ -44,7 +44,25 @@ import {
   type ReadQueueSettings,
 } from "./settings";
 import { QUEUE_VIEW_TYPE, QueueView } from "./queue-view";
+import { HIGHLIGHTS_VIEW_TYPE, HighlightsView } from "./highlights-view";
+import {
+  buildDigestHighlightsSection,
+  classifyArticleSource,
+  digestHasHighlightsSection,
+  extractHighlights,
+  pickDailyHighlights,
+  rngFromSeed,
+  type ArticleSource,
+  type ExtractedHighlight,
+} from "./highlights-data";
 import { HighlightUI } from "./highlight-ui";
+
+export interface VaultFileHighlights {
+  file: TFile;
+  title: string;
+  articleSource: ArticleSource;
+  highlights: ExtractedHighlight[];
+}
 
 export default class ReadQueuePlugin extends Plugin {
   settings: ReadQueueSettings = DEFAULT_SETTINGS;
@@ -54,9 +72,17 @@ export default class ReadQueuePlugin extends Plugin {
     await this.loadSettings();
 
     this.registerView(QUEUE_VIEW_TYPE, (leaf) => new QueueView(leaf, this));
+    this.registerView(
+      HIGHLIGHTS_VIEW_TYPE,
+      (leaf) => new HighlightsView(leaf, this),
+    );
 
     this.addRibbonIcon("book-open", "Reading Queue", () => {
       void this.activateView();
+    });
+
+    this.addRibbonIcon("highlighter", "Highlights", () => {
+      void this.activateHighlightsView();
     });
 
     this.addCommand({
@@ -208,6 +234,22 @@ export default class ReadQueuePlugin extends Plugin {
       },
     });
 
+    this.addCommand({
+      id: "open-highlights-view",
+      name: "Abrir Highlights",
+      callback: () => {
+        void this.activateHighlightsView();
+      },
+    });
+
+    this.addCommand({
+      id: "review-today-highlights",
+      name: "Repasar highlights de hoy",
+      callback: () => {
+        void this.reviewTodayHighlights();
+      },
+    });
+
     this.registerEvent(
       this.app.workspace.on("file-open", (file) => {
         if (!file) {
@@ -334,11 +376,7 @@ export default class ReadQueuePlugin extends Plugin {
   async createDailyDigest(): Promise<void> {
     const picks = await this.pickTodayReading();
     if (picks.length === 0) return;
-    const now = new Date();
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, "0");
-    const dd = String(now.getDate()).padStart(2, "0");
-    const slug = `${yyyy}-${mm}-${dd}`;
+    const slug = localDateSlug();
     const dest = `Diario/${slug} lectura.md`;
     const existing = this.app.vault.getAbstractFileByPath(dest);
     if (existing) {
@@ -357,9 +395,126 @@ export default class ReadQueuePlugin extends Plugin {
       const min = minutes > 0 ? ` · ${minutes} min` : "";
       lines.push(`- [[${a.file.basename}]]${topic}${min}`);
     }
+    if (this.settings.includeHighlightsInDigest) {
+      const highlightPicks = await this.pickDailyHighlightPicks(slug);
+      if (highlightPicks.length > 0) {
+        lines.push("");
+        lines.push(...buildDigestHighlightsSection(highlightPicks));
+      }
+    }
     await ensureFolder(this.app, "Diario");
     await this.app.vault.create(dest, lines.join("\n") + "\n");
     new Notice(`ReadQueue: creado ${dest}`);
+    const file = this.app.vault.getAbstractFileByPath(dest);
+    if (file instanceof TFile) {
+      await this.app.workspace.getLeaf(false).openFile(file);
+    }
+  }
+
+  async activateHighlightsView(): Promise<void> {
+    const existing = this.app.workspace.getLeavesOfType(HIGHLIGHTS_VIEW_TYPE);
+    if (existing.length > 0) {
+      const leaf = existing[0];
+      if (leaf) this.app.workspace.revealLeaf(leaf);
+      return;
+    }
+    const leaf = this.app.workspace.getRightLeaf(false);
+    if (!leaf) return;
+    await leaf.setViewState({ type: HIGHLIGHTS_VIEW_TYPE, active: true });
+    this.app.workspace.revealLeaf(leaf);
+  }
+
+  private highlightFolderPrefixes(): string[] {
+    return [
+      this.settings.webFolder,
+      this.settings.kindleFolder,
+      this.settings.matterFolder,
+    ]
+      .map((f) => stripTrailingSlash(f))
+      .filter((f) => f.length > 0)
+      .map((f) => `${f}/`);
+  }
+
+  isHighlightSourcePath(path: string): boolean {
+    return this.highlightFolderPrefixes().some((p) => path.startsWith(p));
+  }
+
+  /** Scans the configured folders and extracts highlights, newest file first. */
+  async collectHighlights(): Promise<VaultFileHighlights[]> {
+    const prefixes = this.highlightFolderPrefixes();
+    const files = this.app.vault
+      .getMarkdownFiles()
+      .filter((f) => prefixes.some((p) => f.path.startsWith(p)));
+    const out: VaultFileHighlights[] = [];
+    for (const file of files) {
+      const fm = this.app.metadataCache.getFileCache(file)?.frontmatter as
+        | ReadFrontmatter
+        | undefined;
+      const content = await this.app.vault.cachedRead(file);
+      const title =
+        typeof fm?.title === "string" && fm.title ? fm.title : file.basename;
+      const source = typeof fm?.source === "string" ? fm.source : undefined;
+      const highlights = extractHighlights(content, {
+        sourcePath: file.path,
+        title,
+        source,
+      });
+      if (highlights.length === 0) continue;
+      out.push({
+        file,
+        title,
+        articleSource: classifyArticleSource(source),
+        highlights,
+      });
+    }
+    out.sort((a, b) => (b.file.stat?.mtime ?? 0) - (a.file.stat?.mtime ?? 0));
+    return out;
+  }
+
+  private async pickDailyHighlightPicks(
+    dateSeed: string,
+  ): Promise<ExtractedHighlight[]> {
+    const groups = await this.collectHighlights();
+    const flat = groups.flatMap((g) => g.highlights);
+    return pickDailyHighlights(
+      flat,
+      this.settings.dailyHighlightsCount,
+      rngFromSeed(dateSeed),
+    );
+  }
+
+  async reviewTodayHighlights(): Promise<void> {
+    const slug = localDateSlug();
+    const picks = await this.pickDailyHighlightPicks(slug);
+    if (picks.length === 0) {
+      new Notice("ReadQueue: no hay highlights para repasar.");
+      return;
+    }
+    const dest = `Diario/${slug} lectura.md`;
+    const existing = this.app.vault.getAbstractFileByPath(dest);
+    if (existing instanceof TFile) {
+      const content = await this.app.vault.cachedRead(existing);
+      if (digestHasHighlightsSection(content)) {
+        new Notice(`ReadQueue: ${dest} ya tiene highlights para repasar.`);
+      } else {
+        await this.app.vault.process(existing, (c) =>
+          `${c.trimEnd()}\n\n${buildDigestHighlightsSection(picks).join("\n")}\n`,
+        );
+        new Notice(
+          `ReadQueue: ${picks.length} highlights agregados a ${dest}.`,
+        );
+      }
+      await this.app.workspace.getLeaf(false).openFile(existing);
+      return;
+    }
+    const lines = [
+      `# Lectura del ${slug}`,
+      "",
+      ...buildDigestHighlightsSection(picks),
+    ];
+    await ensureFolder(this.app, "Diario");
+    await this.app.vault.create(dest, lines.join("\n") + "\n");
+    new Notice(`ReadQueue: creado ${dest} con ${picks.length} highlights.`);
     const file = this.app.vault.getAbstractFileByPath(dest);
     if (file instanceof TFile) {
       await this.app.workspace.getLeaf(false).openFile(file);
@@ -663,6 +818,13 @@ export default class ReadQueuePlugin extends Plugin {
 
 function stripTrailingSlash(path: string): string {
   return path.replace(/\/+$/, "");
+}
+
+function localDateSlug(now: Date = new Date()): string {
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const dd = String(now.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 function mergeTagsForFrontmatter(

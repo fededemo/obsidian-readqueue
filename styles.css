@@ -345,3 +345,48 @@ body.readqueue-reader-active .markdown-preview-view blockquote {
   color: var(--text-muted);
   font-style: italic;
 }
+
+/* --- Highlights view (MX13) --- */
+
+.readqueue-highlights__group {
+  display: flex;
+  align-items: baseline;
+  gap: var(--size-2-2);
+}
+
+.readqueue-highlights__badge {
+  font-size: var(--font-ui-smaller);
+  padding: 0 var(--size-2-2);
+  border-radius: var(--radius-s);
+  border: 1px solid var(--background-modifier-border);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.readqueue-highlights__badge--web {
+  color: var(--color-blue);
+}
+
+.readqueue-highlights__badge--kindle {
+  color: var(--color-orange);
+}
+
+.readqueue-highlights__badge--matter {
+  color: var(--color-purple);
+}
+
+.readqueue-highlights__card {
+  border-left: 3px solid var(--text-highlight-bg, var(--color-yellow));
+}
+
+.readqueue-highlights__text {
+  margin-bottom: var(--size-2-1);
+}
+
+.readqueue-highlights__note {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+  font-style: italic;
+  margin-bottom: var(--size-2-1);
+}

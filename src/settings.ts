@@ -20,6 +20,10 @@ export interface ReadQueueSettings {
   enableReaderStyles: boolean;
   enableHighlightButton: boolean;
   openOnStartup: boolean;
+  kindleFolder: string;
+  matterFolder: string;
+  dailyHighlightsCount: number;
+  includeHighlightsInDigest: boolean;
 }
 
 export const DEFAULT_SETTINGS: ReadQueueSettings = {
@@ -39,6 +43,10 @@ export const DEFAULT_SETTINGS: ReadQueueSettings = {
   enableReaderStyles: true,
   enableHighlightButton: true,
   openOnStartup: true,
+  kindleFolder: "Inbox/Kindle/",
+  matterFolder: "Inbox/Legacy/",
+  dailyHighlightsCount: 5,
+  includeHighlightsInDigest: true,
 };
 
 export class ReadQueueSettingsTab extends PluginSettingTab {
@@ -283,6 +291,69 @@ export class ReadQueueSettingsTab extends PluginSettingTab {
           .setValue(this.plugin.settings.enableHighlightButton)
           .onChange(async (value) => {
             this.plugin.settings.enableHighlightButton = value;
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    containerEl.createEl("h3", { text: "Highlights" });
+
+    new Setting(containerEl)
+      .setName("Carpeta de Kindle")
+      .setDesc(
+        'Notas con highlights de Kindle (source: kindle-scrape). Ej: "Inbox/Kindle/".',
+      )
+      .addText((text) =>
+        text
+          .setPlaceholder("Inbox/Kindle/")
+          .setValue(this.plugin.settings.kindleFolder)
+          .onChange(async (value) => {
+            this.plugin.settings.kindleFolder = ensureTrailingSlash(value);
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("Carpeta de Matter legacy")
+      .setDesc(
+        'Notas migradas de Matter (source: matter-legacy). Ej: "Inbox/Legacy/".',
+      )
+      .addText((text) =>
+        text
+          .setPlaceholder("Inbox/Legacy/")
+          .setValue(this.plugin.settings.matterFolder)
+          .onChange(async (value) => {
+            this.plugin.settings.matterFolder = ensureTrailingSlash(value);
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("Highlights diarios para repasar")
+      .setDesc(
+        "Cuántos highlights elige el comando «Repasar highlights de hoy» (mismo día = misma selección).",
+      )
+      .addText((text) =>
+        text
+          .setPlaceholder("5")
+          .setValue(String(this.plugin.settings.dailyHighlightsCount))
+          .onChange(async (value) => {
+            const n = Number.parseInt(value, 10);
+            this.plugin.settings.dailyHighlightsCount =
+              Number.isFinite(n) && n > 0 ? n : 5;
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("Highlights en el digest diario")
+      .setDesc(
+        "Agregar la sección «Highlights para repasar» a la nota de digest de lectura.",
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.includeHighlightsInDigest)
+          .onChange(async (value) => {
+            this.plugin.settings.includeHighlightsInDigest = value;
             await this.plugin.saveSettings();
           }),
       );
