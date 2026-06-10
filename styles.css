@@ -253,6 +253,58 @@
   color: #9fa8da;
 }
 
+/* Highlight-on-select floating button */
+.readqueue-highlight-fab {
+  position: fixed;
+  z-index: var(--layer-menu, 30);
+  display: flex;
+  gap: var(--size-2-1);
+  padding: var(--size-2-1);
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  box-shadow: var(--shadow-s);
+}
+
+.readqueue-highlight-fab__btn {
+  font-size: var(--font-ui-small);
+  min-height: 36px;
+  padding: var(--size-2-1) var(--size-2-3);
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border: none;
+  border-radius: var(--radius-s);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.readqueue-highlight-fab__btn:hover {
+  background: var(--interactive-accent-hover);
+}
+
+.readqueue-highlight-fab__btn:active {
+  filter: brightness(0.9);
+}
+
+/* bigger touch targets on mobile */
+.is-mobile .readqueue-highlight-fab__btn {
+  min-height: 44px;
+  font-size: var(--font-ui-medium);
+}
+
+.readqueue-highlight-note__input {
+  width: 100%;
+  resize: vertical;
+  font-size: var(--font-ui-medium);
+}
+
+.readqueue-highlight-note__actions {
+  display: flex;
+  gap: var(--size-2-2);
+  justify-content: flex-end;
+  margin-top: var(--size-4-2);
+}
+
 /* Reader-mode premium typography — scoped via body.readqueue-reader-active */
 body.readqueue-reader-active .markdown-preview-view {
   font-family: var(--font-text, ui-serif, Georgia, "Times New Roman", serif);

@@ -44,9 +44,11 @@ import {
   type ReadQueueSettings,
 } from "./settings";
 import { QUEUE_VIEW_TYPE, QueueView } from "./queue-view";
+import { HighlightUI } from "./highlight-ui";
 
 export default class ReadQueuePlugin extends Plugin {
   settings: ReadQueueSettings = DEFAULT_SETTINGS;
+  private highlightUI: HighlightUI | null = null;
 
   async onload(): Promise<void> {
     await this.loadSettings();
@@ -161,6 +163,35 @@ export default class ReadQueuePlugin extends Plugin {
       await this.readRandom();
     });
 
+    this.highlightUI = new HighlightUI(
+      this,
+      () => this.settings.enableHighlightButton,
+    );
+    this.highlightUI.register();
+
+    this.addCommand({
+      id: "highlight-selection",
+      name: "Subrayar selección",
+      hotkeys: [{ modifiers: ["Mod", "Shift"], key: "h" }],
+      checkCallback: (checking) => {
+        const ui = this.highlightUI;
+        if (!ui || !ui.hasActionableSelection()) return false;
+        if (!checking) ui.highlightCurrentSelection();
+        return true;
+      },
+    });
+
+    this.addCommand({
+      id: "highlight-selection-note",
+      name: "Subrayar selección + nota",
+      checkCallback: (checking) => {
+        const ui = this.highlightUI;
+        if (!ui || !ui.hasActionableSelection()) return false;
+        if (!checking) ui.highlightCurrentSelectionWithNote();
+        return true;
+      },
+    });
+
     this.addCommand({
       id: "pick-today-reading",
       name: "Pick today's reading (5 articles)",
@@ -226,6 +257,8 @@ export default class ReadQueuePlugin extends Plugin {
   }
 
   async onunload(): Promise<void> {
+    this.highlightUI?.destroy();
+    this.highlightUI = null;
     console.log("ReadQueue: unloaded");
   }
 

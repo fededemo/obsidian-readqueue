@@ -18,6 +18,7 @@ export interface ReadQueueSettings {
   readTag: string;
   collapsedGroupsByGroupBy: Record<string, string[]>;
   enableReaderStyles: boolean;
+  enableHighlightButton: boolean;
   openOnStartup: boolean;
 }
 
@@ -36,6 +37,7 @@ export const DEFAULT_SETTINGS: ReadQueueSettings = {
   readTag: "leido",
   collapsedGroupsByGroupBy: {},
   enableReaderStyles: true,
+  enableHighlightButton: true,
   openOnStartup: true,
 };
 
@@ -267,6 +269,20 @@ export class ReadQueueSettingsTab extends PluginSettingTab {
           .setValue(this.plugin.settings.enableReaderStyles)
           .onChange(async (value) => {
             this.plugin.settings.enableReaderStyles = value;
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("Botón flotante de subrayado")
+      .setDesc(
+        "Al seleccionar texto en reading view aparece un botón para subrayar (==...==) sin pasar a modo edición. Los comandos de paleta «Subrayar selección» funcionan igual con esto apagado.",
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.enableHighlightButton)
+          .onChange(async (value) => {
+            this.plugin.settings.enableHighlightButton = value;
             await this.plugin.saveSettings();
           }),
       );
