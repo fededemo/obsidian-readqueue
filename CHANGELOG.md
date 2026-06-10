@@ -8,6 +8,20 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 
+- **Unified highlights view + daily resurfacing** (MX13): new
+  "Highlights" side panel (palette command + ribbon icon) that scans the
+  web, Kindle, and Matter-legacy folders (all configurable) and lists
+  every highlight grouped by note — `==inline==` marks with their
+  adjacent `%%note%%` (code blocks excluded) plus blockquotes under
+  `## Highlights` sections with `*Location N*` and `📝` notes. Realtime
+  search filters the in-memory cache (invalidated on vault
+  modify/create/delete); clicking a highlight opens the note scrolled to
+  its line. New command "Repasar highlights de hoy" picks N highlights
+  (default 5, configurable) deterministically per date — same day, same
+  picks — weighting source variety (web → kindle → matter round-robin),
+  and writes a `## Highlights para repasar` section into today's reading
+  digest (idempotent; the digest command also includes it, toggle in
+  settings, default on).
 - **Highlight-on-select in reading view** (MX11): selecting text in the
   preview (mouse on desktop, long-press on iOS) shows a floating button
   with "Subrayar" and "Subrayar + nota" — the selection is located in
