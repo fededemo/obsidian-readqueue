@@ -4,6 +4,24 @@ All notable changes to this plugin are documented here.
 
 The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [SemVer](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Highlight-on-select in reading view** (MX11): selecting text in the
+  preview (mouse on desktop, long-press on iOS) shows a floating button
+  with "Subrayar" and "Subrayar + nota" — the selection is located in
+  the markdown source (whitespace-tolerant, skips `**bold**` /
+  `*italic*` / `[link](url)` markers, disambiguates repeated text using
+  surrounding context) and wrapped in `==...==` without leaving reading
+  view. Notes are appended as `%%comment%%` (invisible in preview,
+  editable in source mode). Palette commands "Subrayar selección"
+  (suggested hotkey Cmd/Ctrl+Shift+H) and "Subrayar selección + nota"
+  work even with the floating button disabled (settings toggle, default
+  on). Multi-paragraph selections, selections inside an existing
+  highlight, and ambiguous fragments are rejected with a clear Notice.
+  Atomic writes via `vault.process`.
+
 ## [0.2.0] — 2026-05-30
 
 The "make it usable" release. Sums up M1–M10 (Twitter intake fix, Claude

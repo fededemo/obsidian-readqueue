@@ -42,6 +42,7 @@
 
 | ID | Descripción | Closed | Commit |
 |----|-------------|--------|--------|
+| MX11 | Subrayado por selección en reading view — botón flotante (desktop + iOS) + comandos de paleta, `==...==` + nota `%%...%%`, módulo puro `src/highlight.ts` con 43 tests | 2026-06-10 | `9536d1c` |
 | B-001 | `queue-data.ts` con tests | 2026-05-30 | `5865d3b` |
 | B-002 + B-005 | `queue-view.ts` + URI handler + settings tab + comandos paleta (mergeados en un solo wire-up) | 2026-05-30 | `55a392b` |
 | B-003 | `read-action.ts` (open + force preview + mark as read) | 2026-05-30 | `7704edc` |
