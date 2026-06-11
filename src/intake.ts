@@ -37,9 +37,15 @@ export interface IntakeOutcome {
   error?: string;
 }
 
-export interface IntakeDeps {
+export interface ProcessUrlOutcome {
+  ok: boolean;
+  destination?: string;
+  title?: string;
+  error?: string;
+}
+
+export interface ProcessUrlDeps {
   app: App;
-  pendingFolder: string;
   webFolder: string;
   htmlToMarkdown?: (html: string) => string;
   yamlStringify?: (value: unknown) => string;
@@ -49,6 +55,10 @@ export interface IntakeDeps {
   classify?: (
     article: ParsedArticle,
   ) => Promise<{ topic: string; tags: string[] } | undefined>;
+}
+
+export interface IntakeDeps extends ProcessUrlDeps {
+  pendingFolder: string;
 }
 
 const defaultParseDom = (html: string): Document => {
@@ -277,10 +287,15 @@ export function extractUrlFromPending(content: string): string | undefined {
   return tokenMatch ? tokenMatch[0] : undefined;
 }
 
-export async function processPending(
-  file: TFile,
-  deps: IntakeDeps,
-): Promise<IntakeOutcome> {
+/**
+ * Core of the intake pipeline: URL → parsed article → note written to the
+ * web folder. Shared by the pending-folder scan and the "Agregar URL a la
+ * cola" command — never duplicate the parsing logic outside this function.
+ */
+export async function processUrl(
+  url: string,
+  deps: ProcessUrlDeps,
+): Promise<ProcessUrlOutcome> {
   const {
     app,
     webFolder,
@@ -290,12 +305,6 @@ export async function processPending(
     fetchUrl = defaultFetchUrl,
     now = () => new Date(),
   } = deps;
-
-  const content = await app.vault.read(file);
-  const url = extractUrlFromPending(content);
-  if (!url) {
-    return await markIntakeError(app, file, "no-url-found", now);
-  }
 
   try {
     let parsed: ParsedArticle | undefined;
@@ -308,7 +317,7 @@ export async function processPending(
     if (!parsed) {
       const res = await fetchUrl(url);
       if (res.status >= 400) {
-        return await markIntakeError(app, file, `http-${res.status}`, now);
+        return { ok: false, error: `http-${res.status}` };
       }
       parsed = parseHtmlToArticle(res.text, url, parseDom);
     }
@@ -333,12 +342,37 @@ export async function processPending(
       `${webFolder.replace(/\/$/, "")}/${slug}.md`,
     );
     await app.vault.create(destination, noteFile);
+    return { ok: true, destination, title: parsed.title };
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : String(err);
+    return { ok: false, error: reason };
+  }
+}
+
+export async function processPending(
+  file: TFile,
+  deps: IntakeDeps,
+): Promise<IntakeOutcome> {
+  const { app, now = () => new Date() } = deps;
+
+  const content = await app.vault.read(file);
+  const url = extractUrlFromPending(content);
+  if (!url) {
+    return await markIntakeError(app, file, "no-url-found", now);
+  }
+
+  const result = await processUrl(url, deps);
+  if (!result.ok || !result.destination) {
+    return await markIntakeError(app, file, result.error ?? "unknown", now);
+  }
+
+  try {
     await app.vault.delete(file);
-    return { ok: true, destination };
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
     return await markIntakeError(app, file, reason, now);
   }
+  return { ok: true, destination: result.destination };
 }
 
 async function markIntakeError(
