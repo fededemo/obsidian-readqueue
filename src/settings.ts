@@ -1,6 +1,7 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 
 import type ReadQueuePlugin from "./main";
+import type { ScrollStore } from "./scroll-memory";
 import { DEFAULT_PUBLISHER_TOPIC_MAP, DEFAULT_TOPIC_LIST } from "./topics";
 
 export interface ReadQueueSettings {
@@ -24,6 +25,9 @@ export interface ReadQueueSettings {
   matterFolder: string;
   dailyHighlightsCount: number;
   includeHighlightsInDigest: boolean;
+  showMarkReadAtEnd: boolean;
+  /** Not a user setting: per-note scroll positions (MX14), LRU-capped. */
+  scrollPositions: ScrollStore;
 }
 
 export const DEFAULT_SETTINGS: ReadQueueSettings = {
@@ -47,6 +51,8 @@ export const DEFAULT_SETTINGS: ReadQueueSettings = {
   matterFolder: "Inbox/Legacy/",
   dailyHighlightsCount: 5,
   includeHighlightsInDigest: true,
+  showMarkReadAtEnd: true,
+  scrollPositions: {},
 };
 
 export class ReadQueueSettingsTab extends PluginSettingTab {
@@ -291,6 +297,20 @@ export class ReadQueueSettingsTab extends PluginSettingTab {
           .setValue(this.plugin.settings.enableHighlightButton)
           .onChange(async (value) => {
             this.plugin.settings.enableHighlightButton = value;
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("Botón «Marcar como leído» al final")
+      .setDesc(
+        "Al llegar al final de un artículo de la cola aparece un botón inline para marcarlo como leído. Nunca se marca solo.",
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.showMarkReadAtEnd)
+          .onChange(async (value) => {
+            this.plugin.settings.showMarkReadAtEnd = value;
             await this.plugin.saveSettings();
           }),
       );
