@@ -8,6 +8,26 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 
+- **Reading flow polish** (MX14): four quality-of-life improvements to
+  the reading loop. (1) *Resume where you left off*: the scroll position
+  of queue notes is captured while you read and persisted in the
+  plugin's `data.json` (LRU-capped at 200 notes), then restored when the
+  note is reopened — only if you were past ~10% of the article; the
+  entry is dropped when the note is marked as read. (2) *Mark as read at
+  the end*: scrolling past ~97% of an unread article reveals a subtle
+  inline "✓ Marcar como leído" button after the content (Notice on
+  click, never auto-marks; toggle in settings, default on). (3) New
+  palette command **"Agregar URL a la cola"**: a modal pre-filled from
+  the clipboard when it holds a URL, running the exact same intake
+  pipeline as the pending-folder scan (defuddle, FxTwitter for
+  twitter-likes, topic classification) — the shared core was extracted
+  as `processUrl()` in `src/intake.ts` — and ending with a Notice that
+  shows the resulting title plus an "Abrir" action. (4) *Highlight
+  flash*: jumping to a highlight from the Highlights view now flashes
+  the rendered `==mark==` with a ~2s accent fade (static outline under
+  `prefers-reduced-motion`; degrades silently if the element can't be
+  located). Pure logic in `src/scroll-memory.ts`, `src/add-url.ts`, and
+  `src/flash.ts` with 32 new tests.
 - **Unified highlights view + daily resurfacing** (MX13): new
   "Highlights" side panel (palette command + ribbon icon) that scans the
   web, Kindle, and Matter-legacy folders (all configurable) and lists
