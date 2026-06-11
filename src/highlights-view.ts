@@ -1,5 +1,10 @@
-import { ItemView, TFile, type WorkspaceLeaf } from "obsidian";
+import { ItemView, MarkdownView, TFile, type WorkspaceLeaf } from "obsidian";
 
+import {
+  findHighlightElement,
+  HIGHLIGHT_FLASH_CLASS,
+  HIGHLIGHT_FLASH_DURATION_MS,
+} from "./flash";
 import type { ArticleSource, ExtractedHighlight } from "./highlights-data";
 import type ReadQueuePlugin from "./main";
 import type { VaultFileHighlights } from "./main";
@@ -207,6 +212,36 @@ export class HighlightsView extends ItemView {
     if (!(file instanceof TFile)) return;
     const leaf = this.app.workspace.getLeaf(false);
     await leaf.openFile(file, { eState: { line: h.line } });
+    this.flashHighlight(leaf, h.sourcePath, h.text);
+  }
+
+  /**
+   * Ephemeral flash on the jumped-to highlight (MX14). Best-effort with
+   * retries while the preview renders; if the <mark> can't be located,
+   * degrade silently — no Notice, the line-scroll already happened.
+   */
+  private flashHighlight(
+    leaf: WorkspaceLeaf,
+    path: string,
+    text: string,
+  ): void {
+    const view = leaf.view;
+    if (!(view instanceof MarkdownView)) return;
+    const delays = [200, 600, 1400];
+    let done = false;
+    for (const delay of delays) {
+      window.setTimeout(() => {
+        if (done || view.file?.path !== path) return;
+        const el = findHighlightElement(view.contentEl, text);
+        if (!el) return;
+        done = true;
+        el.classList.add(HIGHLIGHT_FLASH_CLASS);
+        window.setTimeout(
+          () => el.classList.remove(HIGHLIGHT_FLASH_CLASS),
+          HIGHLIGHT_FLASH_DURATION_MS,
+        );
+      }, delay);
+    }
   }
 
   private refreshTabTitle(): void {

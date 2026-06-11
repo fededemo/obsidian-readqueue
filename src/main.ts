@@ -28,10 +28,15 @@ import {
   snoozeDate,
 } from "./read-action";
 import {
+  processUrl,
   scanPendingFolder,
   type IntakeDeps,
   type ParsedArticle,
+  type ProcessUrlDeps,
+  type ProcessUrlOutcome,
 } from "./intake";
+import { AddUrlModal } from "./add-url-modal";
+import { ReadingFlowManager } from "./reading-flow";
 import {
   classifyTopic,
   type ClassifyDeps,
@@ -67,9 +72,13 @@ export interface VaultFileHighlights {
 export default class ReadQueuePlugin extends Plugin {
   settings: ReadQueueSettings = DEFAULT_SETTINGS;
   private highlightUI: HighlightUI | null = null;
+  private readingFlow: ReadingFlowManager | null = null;
 
   async onload(): Promise<void> {
     await this.loadSettings();
+
+    this.readingFlow = new ReadingFlowManager(this);
+    this.readingFlow.register();
 
     this.registerView(QUEUE_VIEW_TYPE, (leaf) => new QueueView(leaf, this));
     this.registerView(
@@ -108,11 +117,17 @@ export default class ReadQueuePlugin extends Plugin {
         const file = this.app.workspace.getActiveFile();
         if (!file) return false;
         if (!checking) {
-          void markAsRead(this.app, file, this.settings.readTag).then(() =>
-            this.refreshQueueView(),
-          );
+          void this.markArticleAsRead(file);
         }
         return true;
+      },
+    });
+
+    this.addCommand({
+      id: "add-url-to-queue",
+      name: "Agregar URL a la cola",
+      callback: () => {
+        new AddUrlModal(this.app, this).open();
       },
     });
 
@@ -252,6 +267,7 @@ export default class ReadQueuePlugin extends Plugin {
 
     this.registerEvent(
       this.app.workspace.on("file-open", (file) => {
+        this.readingFlow?.onFileOpen(file);
         if (!file) {
           this.applyReaderBodyClass(undefined);
           return;
@@ -299,9 +315,35 @@ export default class ReadQueuePlugin extends Plugin {
   }
 
   async onunload(): Promise<void> {
+    this.readingFlow?.destroy();
+    this.readingFlow = null;
     this.highlightUI?.destroy();
     this.highlightUI = null;
     console.log("ReadQueue: unloaded");
+  }
+
+  /**
+   * Single mark-as-read entry point: mutates frontmatter, drops the saved
+   * scroll position, and refreshes the queue view.
+   */
+  async markArticleAsRead(file: TFile): Promise<void> {
+    await markAsRead(this.app, file, this.settings.readTag);
+    this.readingFlow?.clearFor(file.path);
+    await this.refreshQueueView();
+  }
+
+  /** Same pipeline as the pending-folder intake, fed directly with a URL. */
+  async addUrlToQueue(url: string): Promise<ProcessUrlOutcome> {
+    const deps: ProcessUrlDeps = {
+      app: this.app,
+      webFolder: this.settings.webFolder,
+    };
+    if (this.settings.classifyOnIntake) {
+      deps.classify = (article: ParsedArticle) => this.classifyArticle(article);
+    }
+    const outcome = await processUrl(url, deps);
+    if (outcome.ok) await this.refreshQueueView();
+    return outcome;
   }
 
   async loadSettings(): Promise<void> {

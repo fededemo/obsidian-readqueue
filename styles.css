@@ -390,3 +390,82 @@ body.readqueue-reader-active .markdown-preview-view blockquote {
   font-style: italic;
   margin-bottom: var(--size-2-1);
 }
+
+/* --- MX14: reading flow polish --- */
+
+/* End-of-article "mark as read" affordance */
+.readqueue-endmark {
+  display: flex;
+  justify-content: center;
+  padding: var(--size-4-8) 0 var(--size-4-12);
+}
+
+.readqueue-endmark__btn {
+  font-size: var(--font-ui-small);
+  padding: var(--size-2-3) var(--size-4-4);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  background: var(--background-secondary);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.readqueue-endmark__btn:hover {
+  color: var(--text-on-accent);
+  background: var(--interactive-accent);
+  border-color: var(--interactive-accent);
+}
+
+.readqueue-endmark__btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* "Agregar URL a la cola" modal */
+.readqueue-addurl__input {
+  width: 100%;
+  font-size: var(--font-ui-medium);
+  padding: var(--size-2-2) var(--size-2-3);
+}
+
+.readqueue-addurl__error {
+  color: var(--text-error);
+  font-size: var(--font-ui-smaller);
+  min-height: 1.4em;
+  margin-top: var(--size-2-1);
+}
+
+.readqueue-addurl__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--size-4-2);
+}
+
+/* Ephemeral flash when jumping to a highlight from the Highlights view */
+.readqueue-highlight-flash {
+  animation: readqueue-flash-fade 2s ease-out forwards;
+  border-radius: var(--radius-s);
+}
+
+@keyframes readqueue-flash-fade {
+  0% {
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+  }
+  60% {
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+  }
+  100% {
+    background-color: var(--text-highlight-bg, var(--color-yellow));
+    color: inherit;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .readqueue-highlight-flash {
+    animation: none;
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 1px;
+  }
+}

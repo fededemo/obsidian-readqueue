@@ -16,7 +16,6 @@ import {
   type SortKey,
 } from "./queue-data";
 import {
-  markAsRead,
   openInReadingView,
   postponeArticle,
   snoozeArticle,
@@ -305,7 +304,7 @@ export class QueueView extends ItemView {
     });
     markBtn.onclick = async (ev) => {
       ev.stopPropagation();
-      await markAsRead(this.plugin.app, article.file, this.plugin.settings.readTag);
+      await this.plugin.markArticleAsRead(article.file);
       await this.render();
     };
 
@@ -360,7 +359,7 @@ export class QueueView extends ItemView {
   private async markSelected(): Promise<void> {
     const a = this.getSelectedArticle();
     if (!a) return;
-    await markAsRead(this.plugin.app, a.file, this.plugin.settings.readTag);
+    await this.plugin.markArticleAsRead(a.file);
     await this.render();
   }
 
