@@ -4,6 +4,20 @@ All notable changes to this plugin are documented here.
 
 The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [SemVer](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **Reading Queue search was unusable on mobile** (MX15): typing a single
+  letter dropped keyboard focus and reset the scroll. The `oninput`
+  handler called the full `render()`, which rebuilt the whole view —
+  destroying and recreating the `<input>` on every keystroke. Now search
+  (and group/sort/collapse) only rebuild the list container; the toolbar,
+  search box and filter pill stay mounted, so focus, caret and scroll
+  survive. The empty state now distinguishes "no results for this filter"
+  from "nothing in the queue". The Highlights view (MX13) already did this
+  correctly and was unaffected.
+
 ## [0.3.0] — 2026-06-10
 
 ### Added
