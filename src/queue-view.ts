@@ -49,6 +49,8 @@ export class QueueView extends ItemView {
   private activeTopicFilter: string | undefined = undefined;
   private unreadCount = 0;
   private searchInputEl: HTMLInputElement | undefined;
+  private listEl: HTMLElement | undefined;
+  private allArticles: QueueArticle[] = [];
   todayPicks = new Set<string>();
 
   constructor(leaf: WorkspaceLeaf, plugin: ReadQueuePlugin) {
@@ -103,8 +105,8 @@ export class QueueView extends ItemView {
     root.empty();
     root.addClass("readqueue-view");
 
-    const allArticles = this.plugin.loadQueueArticles();
-    const stats = computeStats(allArticles);
+    this.allArticles = this.plugin.loadQueueArticles();
+    const stats = computeStats(this.allArticles);
     const statsBar = root.createDiv({ cls: "readqueue-view__stats" });
     const statsBits: string[] = [`${stats.unread} unread`];
     if (stats.snoozed > 0) statsBits.push(`${stats.snoozed} 💤`);
@@ -128,7 +130,7 @@ export class QueueView extends ItemView {
     groupSelect.value = this.groupBy;
     groupSelect.onchange = () => {
       this.groupBy = groupSelect.value as GroupKey;
-      void this.render();
+      this.renderList();
     };
 
     const sortSelect = toolbar.createEl("select", {
@@ -141,7 +143,7 @@ export class QueueView extends ItemView {
     sortSelect.value = this.sortBy;
     sortSelect.onchange = () => {
       this.sortBy = sortSelect.value as SortKey;
-      void this.render();
+      this.renderList();
     };
 
     const refresh = toolbar.createEl("button", { text: "Recargar" });
@@ -158,9 +160,12 @@ export class QueueView extends ItemView {
       },
     });
     searchEl.value = this.searchQuery;
+    // Re-render only the list on each keystroke — never the whole view.
+    // Rebuilding the toolbar would destroy this <input>, dropping focus and
+    // resetting scroll on every letter (unusable on mobile, the original bug).
     searchEl.oninput = () => {
       this.searchQuery = searchEl.value;
-      void this.render();
+      this.renderList();
     };
     this.searchInputEl = searchEl;
 
@@ -174,7 +179,22 @@ export class QueueView extends ItemView {
       };
     }
 
-    const unread = filterByStatus(allArticles, "unread");
+    this.listEl = root.createDiv({ cls: "readqueue-view__list" });
+    this.renderList();
+  }
+
+  /**
+   * Rebuilds only the list container from the in-memory `allArticles`
+   * snapshot. Safe to call on every search keystroke: the toolbar, search
+   * input and filter pill stay in the DOM, so focus, caret and scroll
+   * survive. A full `render()` is reserved for actions that change the
+   * chrome (group/sort/topic/reload, card mutations).
+   */
+  private renderList(): void {
+    const list = this.listEl;
+    if (!list) return;
+
+    const unread = filterByStatus(this.allArticles, "unread");
     const active = filterBySnoozedUntil(unread);
     this.unreadCount = active.length;
     const byQuery = filterByQuery(active, this.searchQuery);
@@ -192,10 +212,15 @@ export class QueueView extends ItemView {
       this.selectedIndex = Math.max(0, this.visibleArticles.length - 1);
     }
 
-    const list = root.createDiv({ cls: "readqueue-view__list" });
+    list.empty();
 
     if (visibleGroups.length === 0) {
-      list.createEl("p", { text: "No hay nada en la cola." });
+      const filtering = this.searchQuery.trim() !== "" || this.activeTopicFilter;
+      list.createEl("p", {
+        text: filtering
+          ? "Sin resultados para ese filtro."
+          : "No hay nada en la cola.",
+      });
       return;
     }
 
@@ -241,7 +266,7 @@ export class QueueView extends ItemView {
     header.onclick = () => {
       const isCollapsed = this.collapsedGroups.has(group.label);
       void this.setGroupCollapsed(group.label, !isCollapsed).then(() =>
-        this.render(),
+        this.renderList(),
       );
     };
   }
