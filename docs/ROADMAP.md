@@ -16,7 +16,7 @@ Cola formal de trabajo pendiente de validación. `qa-tester` lee esto en paso 0 
 
 | Release | SHA merge | Fecha | Pendiente de QA | Owner |
 |---------|-----------|-------|-----------------|-------|
-| _(vacío — no hay items pendientes de QA al momento)_ | | | | |
+| MX15 — fix búsqueda mobile | `3d7c0d4` | 2026-06-18 | Verificar en Obsidian **mobile real** que tipear en el buscador de la Reading Queue ya no pierde foco ni resetea el scroll. Si OK → cortar v0.3.1 para que BRAT lo propague al iPhone. | user |
 
 ---
 
@@ -26,7 +26,11 @@ Bitácora cronológica de releases del plugin (más reciente primero). Cada entr
 
 | Fecha | Versión | SHA | PRs | Notas |
 |-------|---------|-----|-----|-------|
-| _(vacío — primer release aún no registrado)_ | | | | |
+| 2026-06-10 | v0.3.0 | `096b21f` | — | MX11 subrayado por selección · MX12 re-sync incremental Kindle · MX13 vista unificada de highlights + repaso diario · MX14 polish de lectura. Release con artefactos BRAT (`main.js`/`manifest.json`/`styles.css`/`versions.json`). |
+| 2026-05-30 | v0.2.0 | `b4e17ef` | — | "Make it usable": M1–M10 + MX1–MX10 — FxTwitter intake, clasificación Claude + auto-tagging, migración Matter, snooze/postpone, reader typography, stats panel + digest, Kindle scrape CLI (MX8) + extensión Chrome auto-sync (MX9). CI + Release workflow. |
+| 2026-05-30 | v0.1.0 | `35f4d4b` | — | Bootstrap + F1 MVP (queue-data, read-action, intake, queue-view, main wire-up). |
+
+> Nota: `MX15` (fix búsqueda mobile) está en `main` desde 2026-06-18 pero **sin release** — se incluirá en v0.3.1 (ver cola de QA arriba).
 
 ---
 
@@ -122,25 +126,38 @@ Bitácora cronológica de releases del plugin (más reciente primero). Cada entr
 
 ---
 
-## Phase F2 — Polish (PLANNED, opcional)
+## Phase F2 — Polish (SHIPPED en v0.2.0)
 
-Solo si F1 deja fricciones reales después de 2 semanas:
+Todo lo planeado salió, antes de lo previsto:
 
-- Reading-mode CSS snippet (typography serif, max-width, line-height).
-- Time-to-read estimado en cards.
-- Snooze (`snoozedUntil` frontmatter + filtro).
-- Daily digest (comando que arma una nota con 5 recomendados).
+- ✅ Reading-mode CSS snippet (typography serif, max-width, line-height) — MX4.
+- ✅ Time-to-read estimado en cards — MX4.
+- ✅ Snooze (`snoozedUntil` frontmatter + filtro) — MX3.
+- ✅ Daily digest (comando que arma una nota con recomendados) — MX5.
+- ✅ Extras no planeados: search box, topic badges con filtro, sticky headers, unread count, stats panel, "Pick today's reading", auto-clasificación + auto-tagging con Claude.
 
 ---
 
-## Phase F3 — Multi-source expansion (PLANNED, futura)
+## Phase F3 — Multi-source expansion (PARCIALMENTE SHIPPED)
 
-- Kindle highlights via plugin `hadynz/obsidian-kindle-plugin`.
-- Twitter likes vía BookmarkRapture export → script intake.
-- Podcasts/video con mismo frontmatter standard.
+- ✅ Kindle highlights — **con solución propia, no el plugin ajeno** (`hadynz/obsidian-kindle-plugin` descartado): CLI de scrape (MX8) + extensión Chrome auto-sync diario que escribe directo a la vault (MX9) + re-sync incremental que appendea solo highlights nuevos sin pisar ediciones del user (MX12). Código en `src/kindle.ts` / `src/kindle-merge.ts` / `extension/`.
+- ✅ Twitter/X — intake vía FxTwitter (MX1), no BookmarkRapture.
+- ⏳ Podcasts/video con mismo frontmatter standard — futuro, sin fecha.
+
+---
+
+## Phase F4 — Highlights como producto (SHIPPED en v0.3.0)
+
+El bloque que cierra el ciclo lectura → subrayar → encontrar → repasar:
+
+- ✅ Subrayado por selección en reading view (desktop + iOS): botón flotante + comandos de paleta, `==…==` + nota `%%…%%`, módulo puro `src/highlight.ts` — MX11.
+- ✅ Vista unificada de highlights (web + Kindle + Matter): search realtime + jump-to + flash efímero, `src/highlights-view.ts` / `src/highlights-data.ts` — MX13.
+- ✅ Repaso diario determinístico (seed = fecha) integrado al digest — MX13.
+- ✅ Polish de lectura: retomar scroll por nota, "marcar leído" al final, comando "Agregar URL", flash al saltar — MX14.
+- ✅ Fix búsqueda mobile de la Reading Queue (re-render recreaba el `<input>`) — MX15, en `main`, pendiente v0.3.1.
 
 ---
 
 ## Última actualización
 
-2026-05-30 — F1.0–F1.5 mergeados a main. 70 tests verdes, TypeScript estricto pasa, build de prod 467KB. Pendiente: F1.6 (BRAT install + 2 semanas de uso).
+2026-06-18 — v0.3.0 publicado (MX11–MX14). MX15 (fix búsqueda mobile) en `main`, pendiente de verificación mobile + corte de v0.3.1. 337 tests verdes, TypeScript estricto pasa, CI verde. Estado por fase: F1 (MVP) ✅ · F2 (polish) ✅ · F3 (multi-source: Kindle + Twitter propios) ✅ parcial · F4 (highlights como producto) ✅. Único pendiente operativo: F1.6 (uso real sostenido) + release v0.3.1.

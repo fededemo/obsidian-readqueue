@@ -6,8 +6,8 @@
 
 **obsidian-readqueue** es un plugin de Obsidian que reemplaza la UX de Matter (read-it-later) dentro de la vault. Resuelve la pieza floja de Obsidian Web Clipper: gestionar la cola de lectura.
 
-- **Estado**: Fase 0 validada (Web Clipper setup + share extension iOS funcionando). Fase 1 (este plugin) en arranque.
-- **Plan aprobado**: `~/.claude/plans/imperative-sparking-dusk.md`
+- **Estado**: **v0.3.0 publicado** (GitHub Release con artefactos BRAT). MVP (F1) + polish (F2) shipped; Kindle highlights integrado con **solución propia** (extensión Chrome + CLI, no plugin ajeno); highlights como producto (F4) shipped. Último: MX11–MX15 (subrayado por selección, re-sync incremental Kindle, vista unificada de highlights + repaso diario, polish de lectura, fix búsqueda mobile). MX15 está en `main` pero **sin release** todavía → pendiente cortar v0.3.1 para que BRAT lo propague. Detalle por hito en `docs/ROADMAP.md` + `CHANGELOG.md`.
+- **Plan original**: `~/.claude/plans/imperative-sparking-dusk.md`
 - **Vault target del user**: `fedenotes` (iCloud Drive). El plugin debe funcionar con iCloud-backed vaults.
 
 ## Stack canónico
@@ -169,4 +169,4 @@ Cobertura prioritaria:
 
 ## Última actualización
 
-2026-05-30 — Bootstrap inicial. Plan completo en `~/.claude/plans/imperative-sparking-dusk.md`.
+2026-06-18 — v0.3.0 publicado (MX11–MX14). MX15 (fix: la búsqueda de la Reading Queue era inusable en mobile porque `oninput` recreaba el `<input>` en cada tecla; ahora `renderList()` re-renderiza solo la lista) en `main`, [Unreleased], pendiente de verificación mobile + corte de v0.3.1. 337 tests verdes, TS estricto pasa, CI verde. Bitácora por hito en `docs/ROADMAP.md`; bootstrap original en `~/.claude/plans/imperative-sparking-dusk.md`.
