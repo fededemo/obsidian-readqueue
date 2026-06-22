@@ -903,6 +903,7 @@ export default class ReadQueuePlugin extends Plugin {
     const pendingPrefix = `${stripTrailingSlash(this.settings.pendingFolder)}/`;
     const readPrefix = `${stripTrailingSlash(this.settings.readFolder)}/`;
     const protectedPrefixes = [
+      "Inbox/",
       webPrefix,
       pendingPrefix,
       readPrefix,

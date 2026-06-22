@@ -44,7 +44,7 @@ export const DEFAULT_SETTINGS: ReadQueueSettings = {
   useClaudeForClassification: true,
   classifyOnIntake: true,
   classifyOnLoad: true,
-  autoMoveOrphans: true,
+  autoMoveOrphans: false,
   readTag: "leido",
   archiveOnRead: true,
   readFolder: "Inbox/Read/",
@@ -236,7 +236,7 @@ export class ReadQueueSettingsTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("Mover huérfanos del Web Clipper al cargar")
       .setDesc(
-        "El Web Clipper de iOS Safari a veces guarda tweets/clips fuera de Inbox/Web (raíz de la vault, Clippings/, etc). Si está activo, al cargar el plugin mueve esos archivos automáticamente a la carpeta de la cola.",
+        "El Web Clipper a veces guarda clips fuera de Inbox/Web (raíz de la vault, Clippings/). Si está activo, al cargar el plugin los mueve a la cola. Apagado por defecto: nunca toca el árbol Inbox/ ni notas ya leídas, pero el auto-move en el arranque es la pieza más riesgosa del plugin. Dejalo apagado salvo que lo necesites; el comando «Move Web Clipper orphans» hace lo mismo a demanda.",
       )
       .addToggle((toggle) =>
         toggle

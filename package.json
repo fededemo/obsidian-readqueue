@@ -1,6 +1,6 @@
 {
   "name": "obsidian-readqueue",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "description": "Reading queue plugin for Obsidian — replaces Matter-style read-it-later UX inside your vault. Queue view, shuffle, group-by-topic, force reading view, intake job that parses URLs saved by Obsidian Mobile share extension.",
   "main": "main.js",
   "private": true,

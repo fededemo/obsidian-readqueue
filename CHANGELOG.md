@@ -6,6 +6,23 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.3.6] — 2026-06-22
+
+### Changed
+
+- **El auto-move de huérfanos ya no corre solo** (raíz del vaciado de
+  `Inbox/Read`): `moveWebClipperOrphans` corría en cada arranque, gateado por
+  `autoMoveOrphans`. Aunque v0.3.4 protegió `Inbox/Read`, un build viejo en
+  cualquier dispositivo (propagado por iCloud) podía seguir vaciando Read.
+  - `autoMoveOrphans` ahora es **`false` por defecto**: el rescate de clips
+    sueltos pasa a ser solo manual (comando "Move Web Clipper orphans"). Como
+    el gate vive en `data.json` (sincronizado por iCloud) y lo respetan todos
+    los builds, apagarlo protege a TODOS los dispositivos sin importar la
+    versión instalada.
+  - El orphan-mover ahora protege **todo el árbol `Inbox/`** (no solo carpetas
+    sueltas), además de la defensa por `status: read`. Estructuralmente no
+    puede tocar Web/Read/Pending/Legacy/Kindle.
+
 ## [0.3.5] — 2026-06-22
 
 ### Added

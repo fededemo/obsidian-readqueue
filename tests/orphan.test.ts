@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { isWebClipperOrphan } from "../src/queue-data";
 
 const PROTECTED = [
+  "Inbox/",
   "Inbox/Web/",
   "Inbox/Pending/",
   "Inbox/Read/",
@@ -22,6 +23,18 @@ describe("isWebClipperOrphan", () => {
     expect(
       isWebClipperOrphan("Inbox/Read/2026-06/post.md", clip, PROTECTED),
     ).toBe(false);
+  });
+
+  it("never touches anything under the managed Inbox/ tree", () => {
+    for (const p of [
+      "Inbox/Web/x.md",
+      "Inbox/Read/2026-06/x.md",
+      "Inbox/Kindle/x.md",
+      "Inbox/Legacy/x.md",
+      "Inbox/whatever/x.md",
+    ]) {
+      expect(isWebClipperOrphan(p, clip, PROTECTED)).toBe(false);
+    }
   });
 
   it("never moves a status:read note, even outside the read folder", () => {
