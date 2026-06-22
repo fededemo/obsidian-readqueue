@@ -1,7 +1,7 @@
 {
   "id": "readqueue",
   "name": "ReadQueue",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "minAppVersion": "1.5.0",
   "description": "Reading queue management for web articles saved with Obsidian Web Clipper. Group by topic, shuffle, force reading view, and intake URLs from non-Safari iOS apps via defuddle.",
   "author": "Fede",

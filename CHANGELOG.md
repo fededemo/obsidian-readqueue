@@ -6,6 +6,28 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.3.3] — 2026-06-22
+
+### Added
+
+- **Categorización automática al llegar un artículo** (MX19): antes la
+  clasificación solo corría al abrir Obsidian (`classifyOnLoad`), así que un
+  artículo guardado mientras el plugin ya estaba abierto se quedaba sin
+  `topic` hasta el siguiente reinicio. Ahora un handler de
+  `vault.on("create")` / `vault.on("rename")` dispara una pasada de
+  clasificación (debounced 4s, coalescente para ráfagas de sync de iCloud)
+  cuando aparece un `.md` nuevo en la carpeta de la cola. Reusa el gate de
+  `classifyAllWithoutTopic`: respeta el marcador `classified` y los topics
+  ya asignados.
+
+### Changed
+
+- **La cola abre sin agrupar por defecto** (MX19): el group-by por defecto
+  pasó de "Por tópico" a "Sin agrupar". Al ordenar por "Más nuevos" se ve
+  una lista plana por fecha con la categoría como un dato más en cada fila
+  (entre la fecha y la duración), en vez de quedar agrupada. Agrupar por
+  tópico/fuente/fecha sigue disponible en el control.
+
 ## [0.3.2] — 2026-06-22
 
 ### Added

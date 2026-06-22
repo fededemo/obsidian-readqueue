@@ -41,7 +41,7 @@ const SORT_OPTIONS: ReadonlyArray<readonly [SortKey, string]> = [
 
 export class QueueView extends ItemView {
   plugin: ReadQueuePlugin;
-  groupBy: GroupKey = "topic";
+  groupBy: GroupKey = "none";
   sortBy: SortKey = "newest";
   private visibleArticles: QueueArticle[] = [];
   private selectedIndex = 0;

@@ -1,4 +1,5 @@
 import {
+  debounce,
   MarkdownView,
   Notice,
   Plugin,
@@ -75,6 +76,18 @@ export default class ReadQueuePlugin extends Plugin {
   settings: ReadQueueSettings = DEFAULT_SETTINGS;
   private highlightUI: HighlightUI | null = null;
   private readingFlow: ReadingFlowManager | null = null;
+  private layoutReady = false;
+  // Clasifica artículos nuevos al llegar (Web Clipper escribe directo a webFolder
+  // sin pasar por el intake). Debounced para coalescer ráfagas de sync de iCloud.
+  private readonly classifyNewArticles = debounce(
+    () => {
+      if (this.settings.classifyOnLoad) {
+        void this.classifyAllWithoutTopic({ silent: true });
+      }
+    },
+    4000,
+    false,
+  );
 
   async onload(): Promise<void> {
     await this.loadSettings();
@@ -296,7 +309,36 @@ export default class ReadQueuePlugin extends Plugin {
       }),
     );
 
+    const inWebFolder = (path: string): boolean =>
+      path.startsWith(`${stripTrailingSlash(this.settings.webFolder)}/`);
+    this.registerEvent(
+      this.app.vault.on("create", (file) => {
+        if (!this.layoutReady) return;
+        if (
+          file instanceof TFile &&
+          file.extension === "md" &&
+          inWebFolder(file.path)
+        ) {
+          this.classifyNewArticles();
+        }
+      }),
+    );
+    this.registerEvent(
+      this.app.vault.on("rename", (file, oldPath) => {
+        if (!this.layoutReady) return;
+        if (
+          file instanceof TFile &&
+          file.extension === "md" &&
+          inWebFolder(file.path) &&
+          !inWebFolder(oldPath)
+        ) {
+          this.classifyNewArticles();
+        }
+      }),
+    );
+
     this.app.workspace.onLayoutReady(() => {
+      this.layoutReady = true;
       void (async () => {
         if (this.settings.openOnStartup) {
           await this.activateView();
