@@ -8,6 +8,7 @@ import {
   filterBySnoozedUntil,
   filterByTopic,
   groupArticles,
+  nextArticleAfterPath,
   sortArticles,
   topicSlug,
   type ArticleGroup,
@@ -372,6 +373,11 @@ export class QueueView extends ItemView {
 
   private getSelectedArticle(): QueueArticle | undefined {
     return this.visibleArticles[this.selectedIndex];
+  }
+
+  /** Next article after `path` in the currently displayed order (MX21). */
+  nextUnreadAfter(path: string): QueueArticle | undefined {
+    return nextArticleAfterPath(this.visibleArticles, path);
   }
 
   private async snoozeSelected(days: number): Promise<void> {

@@ -133,7 +133,7 @@ export default class ReadQueuePlugin extends Plugin {
         const file = this.app.workspace.getActiveFile();
         if (!file) return false;
         if (!checking) {
-          void this.markArticleAsRead(file);
+          void this.markAsReadAndAdvance(file);
         }
         return true;
       },
@@ -386,6 +386,23 @@ export default class ReadQueuePlugin extends Plugin {
       await this.archiveReadFile(file, readAt);
     }
     await this.refreshQueueView();
+  }
+
+  private openQueueView(): QueueView | undefined {
+    for (const leaf of this.app.workspace.getLeavesOfType(QUEUE_VIEW_TYPE)) {
+      if (leaf.view instanceof QueueView) return leaf.view;
+    }
+    return undefined;
+  }
+
+  /** Mark as read, then open the next queue article in reading view (MX21). */
+  async markAsReadAndAdvance(file: TFile): Promise<void> {
+    const view = this.openQueueView();
+    const next = view?.nextUnreadAfter(file.path);
+    await this.markArticleAsRead(file);
+    if (this.settings.advanceOnRead === false || !view) return;
+    if (next) await openInReadingView(this.app, next.file);
+    else new Notice("ReadQueue: terminaste la cola 🎉");
   }
 
   /**

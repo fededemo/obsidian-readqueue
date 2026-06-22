@@ -28,6 +28,7 @@ export interface ReadQueueSettings {
   dailyHighlightsCount: number;
   includeHighlightsInDigest: boolean;
   showMarkReadAtEnd: boolean;
+  advanceOnRead: boolean;
   /** Not a user setting: per-note scroll positions (MX14), LRU-capped. */
   scrollPositions: ScrollStore;
 }
@@ -56,6 +57,7 @@ export const DEFAULT_SETTINGS: ReadQueueSettings = {
   dailyHighlightsCount: 5,
   includeHighlightsInDigest: true,
   showMarkReadAtEnd: true,
+  advanceOnRead: true,
   scrollPositions: {},
 };
 
@@ -344,6 +346,20 @@ export class ReadQueueSettingsTab extends PluginSettingTab {
           .setValue(this.plugin.settings.showMarkReadAtEnd)
           .onChange(async (value) => {
             this.plugin.settings.showMarkReadAtEnd = value;
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("Ir al siguiente al marcar como leído")
+      .setDesc(
+        "Al marcar un artículo como leído (desde el lector o el comando), abre automáticamente el siguiente de la cola en modo lectura.",
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.advanceOnRead)
+          .onChange(async (value) => {
+            this.plugin.settings.advanceOnRead = value;
             await this.plugin.saveSettings();
           }),
       );

@@ -11,6 +11,7 @@ import {
   filterByStatus,
   filterByTopic,
   groupArticles,
+  nextArticleAfterPath,
   pickForToday,
   randomArticle,
   sortArticles,
@@ -631,5 +632,29 @@ describe("cleanTitle", () => {
 
   it("handles empty input", () => {
     expect(cleanTitle("")).toBe("");
+  });
+});
+
+describe("nextArticleAfterPath", () => {
+  const a = mkArticle({ title: "a" });
+  const b = mkArticle({ title: "b" });
+  const c = mkArticle({ title: "c" });
+  const list = [a, b, c];
+
+  it("returns the following article", () => {
+    expect(nextArticleAfterPath(list, a.file.path)).toBe(b);
+    expect(nextArticleAfterPath(list, b.file.path)).toBe(c);
+  });
+
+  it("returns undefined after the last one (end of queue)", () => {
+    expect(nextArticleAfterPath(list, c.file.path)).toBeUndefined();
+  });
+
+  it("falls back to the first when the path is not present", () => {
+    expect(nextArticleAfterPath(list, "Inbox/Web/zzz.md")).toBe(a);
+  });
+
+  it("returns undefined for an empty list", () => {
+    expect(nextArticleAfterPath([], "x")).toBeUndefined();
   });
 });

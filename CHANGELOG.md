@@ -6,6 +6,17 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.3.5] — 2026-06-22
+
+### Added
+
+- **Ir al siguiente al marcar como leído** (MX21): marcar un artículo como
+  leído (desde el botón de fin de lectura o el comando "Mark current note as
+  read") ahora abre automáticamente el siguiente de la cola en modo lectura,
+  para leer en continuo. Al terminar la cola avisa "terminaste la cola 🎉".
+  El "siguiente" respeta el orden y filtros actuales de la vista. Se puede
+  desactivar con el toggle "Ir al siguiente al marcar como leído" (default on).
+
 ## [0.3.4] — 2026-06-22
 
 ### Fixed

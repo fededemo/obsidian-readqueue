@@ -398,3 +398,13 @@ export function isWebClipperOrphan(
     source === "intake-fxtwitter";
   return isClipping || sourceLooksLikeUrl || sourceMatchesIntake;
 }
+
+/** Next article after `path` in an ordered list; first item if not found. */
+export function nextArticleAfterPath(
+  articles: readonly QueueArticle[],
+  path: string,
+): QueueArticle | undefined {
+  if (articles.length === 0) return undefined;
+  const idx = articles.findIndex((a) => a.file.path === path);
+  return idx === -1 ? articles[0] : articles[idx + 1];
+}

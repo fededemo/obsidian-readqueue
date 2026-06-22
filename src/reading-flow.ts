@@ -184,7 +184,7 @@ export class ReadingFlowManager {
     btn.onclick = (ev) => {
       ev.preventDefault();
       btn.disabled = true;
-      void this.plugin.markArticleAsRead(file).then(() => {
+      void this.plugin.markAsReadAndAdvance(file).then(() => {
         new Notice("ReadQueue: marcado como leído.");
         wrap.remove();
       });
