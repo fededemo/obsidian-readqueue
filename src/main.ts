@@ -23,6 +23,7 @@ import {
   markAsRead,
   openInReadingView,
   postponeArticle,
+  readArchiveMonth,
   shouldForcePreview,
   snoozeArticle,
   snoozeDate,
@@ -336,9 +337,44 @@ export default class ReadQueuePlugin extends Plugin {
    * scroll position, and refreshes the queue view.
    */
   async markArticleAsRead(file: TFile): Promise<void> {
-    await markAsRead(this.app, file, this.settings.readTag);
+    const readAt = await markAsRead(this.app, file, this.settings.readTag);
     this.readingFlow?.clearFor(file.path);
+    if (this.settings.archiveOnRead) {
+      await this.archiveReadFile(file, readAt);
+    }
     await this.refreshQueueView();
+  }
+
+  /**
+   * Moves a just-read note into `<readFolder>/<YYYY-MM>/` (month from readAt).
+   * No-op if already there. Best-effort: a failed move logs but never blocks
+   * the mark-as-read flow. Collisions get a ` (n)` suffix like orphan moves.
+   */
+  private async archiveReadFile(file: TFile, readAtIso: string): Promise<void> {
+    const base = stripTrailingSlash(this.settings.readFolder);
+    if (!base) return;
+    const folder = `${base}/${readArchiveMonth(readAtIso)}`;
+    let dest = `${folder}/${file.name}`;
+    if (dest === file.path) return;
+    await ensureFolder(this.app, base);
+    await ensureFolder(this.app, folder);
+    const existing = this.app.vault.getAbstractFileByPath(dest);
+    if (existing && existing !== file) {
+      const stem = file.basename;
+      const ext = file.extension || "md";
+      let n = 2;
+      while (
+        this.app.vault.getAbstractFileByPath(`${folder}/${stem} (${n}).${ext}`)
+      ) {
+        n++;
+      }
+      dest = `${folder}/${stem} (${n}).${ext}`;
+    }
+    try {
+      await this.app.fileManager.renameFile(file, dest);
+    } catch (err) {
+      console.error("ReadQueue: failed to archive read file", file.path, err);
+    }
   }
 
   /** Same pipeline as the pending-folder intake, fed directly with a URL. */

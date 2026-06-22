@@ -17,6 +17,8 @@ export interface ReadQueueSettings {
   classifyOnLoad: boolean;
   autoMoveOrphans: boolean;
   readTag: string;
+  archiveOnRead: boolean;
+  readFolder: string;
   collapsedGroupsByGroupBy: Record<string, string[]>;
   enableReaderStyles: boolean;
   enableHighlightButton: boolean;
@@ -43,6 +45,8 @@ export const DEFAULT_SETTINGS: ReadQueueSettings = {
   classifyOnLoad: true,
   autoMoveOrphans: true,
   readTag: "leido",
+  archiveOnRead: true,
+  readFolder: "Inbox/Read/",
   collapsedGroupsByGroupBy: {},
   enableReaderStyles: true,
   enableHighlightButton: true,
@@ -95,6 +99,35 @@ export class ReadQueueSettingsTab extends PluginSettingTab {
           .setValue(this.plugin.settings.pendingFolder)
           .onChange(async (value) => {
             this.plugin.settings.pendingFolder = ensureTrailingSlash(value);
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("Archivar al marcar como leído")
+      .setDesc(
+        "Al marcar un artículo como leído, moverlo a una subcarpeta por mes dentro de la carpeta de leídos (ej. Inbox/Read/2026-06/, según su fecha de lectura).",
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.archiveOnRead)
+          .onChange(async (value) => {
+            this.plugin.settings.archiveOnRead = value;
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("Carpeta de leídos")
+      .setDesc(
+        'Base donde se archivan los artículos leídos, en subcarpetas AAAA-MM. Ej: "Inbox/Read/".',
+      )
+      .addText((text) =>
+        text
+          .setPlaceholder("Inbox/Read/")
+          .setValue(this.plugin.settings.readFolder)
+          .onChange(async (value) => {
+            this.plugin.settings.readFolder = ensureTrailingSlash(value);
             await this.plugin.saveSettings();
           }),
       );

@@ -69,11 +69,28 @@ export async function markAsRead(
   app: App,
   file: TFile,
   readTag?: string,
-): Promise<void> {
+): Promise<string> {
   const mutation = markAsReadMutation(undefined, readTag);
   await app.fileManager.processFrontMatter(file, (fm) => {
     applyMarkAsRead(fm as Record<string, unknown>, mutation);
   });
+  return mutation.readAt;
+}
+
+/**
+ * Year-month slug (YYYY-MM) for the read-archive subfolder, derived from the
+ * article's readAt timestamp (local time). Falls back to `now` when readAt is
+ * missing or unparseable.
+ */
+export function readArchiveMonth(
+  readAtIso: string | undefined,
+  now: Date = new Date(),
+): string {
+  const parsed = readAtIso ? new Date(readAtIso) : null;
+  const d = parsed && !Number.isNaN(parsed.getTime()) ? parsed : now;
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  return `${yyyy}-${mm}`;
 }
 
 export interface ForceReadingViewDeps {

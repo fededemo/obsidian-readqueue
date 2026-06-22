@@ -8,6 +8,7 @@ import {
   markAsReadMutation,
   openInReadingView,
   postponeArticle,
+  readArchiveMonth,
   shouldForcePreview,
   snoozeArticle,
   snoozeDate,
@@ -160,6 +161,24 @@ describe("markAsRead", () => {
     await markAsRead(app, file);
 
     expect(processFrontMatter).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("readArchiveMonth", () => {
+  it("derives YYYY-MM from a readAt timestamp", () => {
+    expect(readArchiveMonth("2026-06-15T12:00:00.000Z")).toBe("2026-06");
+  });
+
+  it("zero-pads single-digit months", () => {
+    expect(readArchiveMonth("2026-03-15T12:00:00.000Z")).toBe("2026-03");
+  });
+
+  it("falls back to `now` when readAt is missing", () => {
+    expect(readArchiveMonth(undefined, new Date(2026, 0, 9))).toBe("2026-01");
+  });
+
+  it("falls back to `now` when readAt is unparseable", () => {
+    expect(readArchiveMonth("not-a-date", new Date(2026, 10, 2))).toBe("2026-11");
   });
 });
 

@@ -6,6 +6,20 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.3.2] — 2026-06-22
+
+### Added
+
+- **Archivado automático al marcar como leído** (MX18): marcar un artículo
+  como leído ahora lo mueve a `Inbox/Read/AAAA-MM/` (mes tomado de su
+  `readAt`), además de fijar `status: read`. Antes solo cambiaba el
+  frontmatter y el archivo quedaba en `Inbox/Web/`, por lo que la carpeta
+  de leídos por mes nunca se llenaba. La carpeta base (`Inbox/Read/`) y el
+  comportamiento son configurables (toggle "Archivar al marcar como leído",
+  default on). Colisiones de nombre se resuelven con sufijo ` (n)`; si el
+  archivo ya está en destino es no-op; un move fallido se loguea sin
+  bloquear el marcado. Nuevo helper puro `readArchiveMonth` con 4 tests.
+
 ## [0.3.1] — 2026-06-22
 
 ### Added
