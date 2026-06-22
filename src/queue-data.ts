@@ -5,6 +5,8 @@ export interface ReadFrontmatter {
   title?: string;
   url?: string;
   topic?: string;
+  classified?: boolean;
+  description?: string;
   author?: string | string[];
   published?: string;
   savedAt?: string;

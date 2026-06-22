@@ -8,6 +8,26 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Fixed
 
+- **Auto-classification skipped every Web Clipper article** (MX16): the
+  Web Clipper "Read Later" template writes `topic: otros` literally, but
+  `classifyAllWithoutTopic` only ran on notes with an *empty* topic, so it
+  treated the template default as "already classified" and never touched
+  it — leaving the whole queue stuck in `otros`. The classify gate now
+  also reclassifies notes whose topic is the fallback `otros`, guarded by
+  a new `classified: true` frontmatter marker so genuinely-`otros`
+  verdicts are written once and never re-hit the API on later loads.
+
+### Changed
+
+- **Richer classification signal** (MX16): the Claude prompt now includes
+  the article's domain, its Web Clipper summary, and the descriptive tags
+  the clipper already generated — not just title + first 600 chars. Topic
+  descriptions were tuned to the real reading corpus (progress studies,
+  urbanism, social science, business/founder profiles, AI). Twitter/X
+  domains now hard-map to `tweet` even when Claude classification is on.
+- New command **"Re-classify ALL articles in queue (force)"** to re-run
+  classification over the whole queue after taxonomy changes.
+
 - **Reading Queue search was unusable on mobile** (MX15): typing a single
   letter dropped keyboard focus and reset the scroll. The `oninput`
   handler called the full `render()`, which rebuilt the whole view —

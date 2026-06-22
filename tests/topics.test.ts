@@ -79,8 +79,7 @@ describe("buildClassifyPrompt", () => {
     const prompt = buildClassifyPrompt(
       ["tech", "otros"],
       { tech: "engineering", otros: "catchall" },
-      "Title",
-      "Excerpt",
+      { title: "Title", excerpt: "Excerpt" },
     );
     expect(prompt).toContain("- tech: engineering");
     expect(prompt).toContain("- otros: catchall");
@@ -90,9 +89,25 @@ describe("buildClassifyPrompt", () => {
 
   it("truncates excerpt to 600 chars", () => {
     const long = "a".repeat(1000);
-    const prompt = buildClassifyPrompt(["tech"], { tech: "x" }, "T", long);
+    const prompt = buildClassifyPrompt(["tech"], { tech: "x" }, {
+      title: "T",
+      excerpt: long,
+    });
     expect(prompt).toContain("a".repeat(600));
     expect(prompt).not.toContain("a".repeat(601));
+  });
+
+  it("includes domain, summary and tags when provided, dropping 'clippings'", () => {
+    const prompt = buildClassifyPrompt(["tech"], { tech: "x" }, {
+      title: "T",
+      excerpt: "E",
+      domain: "example.com",
+      description: "a short summary",
+      tags: ["ai", "clippings", "llm"],
+    });
+    expect(prompt).toContain("Domain: example.com");
+    expect(prompt).toContain("Summary: a short summary");
+    expect(prompt).toContain("Existing tags: ai, llm");
   });
 });
 
@@ -242,6 +257,17 @@ describe("classifyTopic orchestrator", () => {
     const fetchJson = vi.fn();
     const result = await classifyTopic(
       makeInput({ source: "intake-fxtwitter", domain: "example.com" }),
+      makeSettings({ anthropicApiKey: "sk", useClaudeForClassification: true }),
+      { fetchJson },
+    );
+    expect(result.topic).toBe("tweet");
+    expect(fetchJson).not.toHaveBeenCalled();
+  });
+
+  it("short-circuits to 'tweet' for a twitter/x domain even with Claude on", async () => {
+    const fetchJson = vi.fn();
+    const result = await classifyTopic(
+      makeInput({ domain: "x.com" }),
       makeSettings({ anthropicApiKey: "sk", useClaudeForClassification: true }),
       { fetchJson },
     );

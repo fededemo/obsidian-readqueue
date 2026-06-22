@@ -39,6 +39,7 @@ import { AddUrlModal } from "./add-url-modal";
 import { ReadingFlowManager } from "./reading-flow";
 import {
   classifyTopic,
+  FALLBACK_TOPIC,
   type ClassifyDeps,
   type ClassifyInput,
   type ClassifyResult,
@@ -149,6 +150,14 @@ export default class ReadQueuePlugin extends Plugin {
       name: "Classify all articles without topic",
       callback: () => {
         void this.classifyAllWithoutTopic();
+      },
+    });
+
+    this.addCommand({
+      id: "reclassify-all",
+      name: "Re-classify ALL articles in queue (force)",
+      callback: () => {
+        void this.classifyAllWithoutTopic({ force: true });
       },
     });
 
@@ -590,6 +599,8 @@ export default class ReadQueuePlugin extends Plugin {
       excerpt: article.bodyMarkdown ?? article.contentHtml,
       domain: article.domain,
       source: article.source,
+      description: article.description,
+      tags: article.tags,
     };
     return classifyTopic(input, this.settings, this.classifyDeps());
   }
@@ -697,6 +708,12 @@ export default class ReadQueuePlugin extends Plugin {
     const flatAuthor = Array.isArray(author)
       ? author.find((a) => typeof a === "string")?.replace(/^\[\[|\]\]$/g, "")
       : author;
+    const rawTags = fm?.tags;
+    const fmTags = Array.isArray(rawTags)
+      ? rawTags
+      : typeof rawTags === "string"
+        ? [rawTags]
+        : undefined;
     const article: ParsedArticle = {
       title: fm?.title ?? file.basename,
       url: fm?.url ?? "",
@@ -706,11 +723,14 @@ export default class ReadQueuePlugin extends Plugin {
       contentHtml: "",
       bodyMarkdown: body.slice(0, 2000),
       source: fm?.source,
+      description: fm?.description,
+      tags: fmTags,
     };
     const result = await this.classifyArticle(article);
     await this.app.fileManager.processFrontMatter(file, (raw) => {
       const obj = raw as Record<string, unknown>;
       obj["topic"] = result.topic;
+      obj["classified"] = true;
       if (result.tags.length > 0) {
         const existing = obj["tags"];
         const merged = mergeTagsForFrontmatter(existing, result.tags);
@@ -720,18 +740,26 @@ export default class ReadQueuePlugin extends Plugin {
     return result.topic;
   }
 
-  async classifyAllWithoutTopic(opts: { silent?: boolean } = {}): Promise<void> {
+  async classifyAllWithoutTopic(
+    opts: { silent?: boolean; force?: boolean } = {},
+  ): Promise<void> {
     const folder = stripTrailingSlash(this.settings.webFolder);
     const prefix = `${folder}/`;
     const candidates = this.app.vault
       .getMarkdownFiles()
       .filter((f) => f.path.startsWith(prefix))
       .filter((f) => {
+        if (opts.force) return true;
         const fm = this.app.metadataCache.getFileCache(f)?.frontmatter as
           | ReadFrontmatter
           | undefined;
+        if ((fm as { classified?: unknown })?.classified === true) return false;
         const topic = (fm as unknown as { topic?: unknown })?.topic;
-        return !topic || (typeof topic === "string" && !topic.trim());
+        if (!topic || (typeof topic === "string" && !topic.trim())) return true;
+        return (
+          typeof topic === "string" &&
+          topic.trim().toLowerCase() === FALLBACK_TOPIC
+        );
       });
 
     if (candidates.length === 0) {

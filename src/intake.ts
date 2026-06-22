@@ -21,6 +21,7 @@ export interface ParsedArticle {
   domain: string;
   contentHtml: string;
   source?: string;
+  description?: string;
   bodyMarkdown?: string;
   tags?: string[];
   topic?: string;

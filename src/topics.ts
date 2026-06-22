@@ -10,14 +10,18 @@ export const DEFAULT_TOPIC_LIST: readonly string[] = [
 ];
 
 export const DEFAULT_TOPIC_DESCRIPTIONS: Readonly<Record<string, string>> = {
-  tech: "software engineering, AI/ML, programming, infrastructure, developer tooling",
-  producto: "startups, business strategy, product management, growth, design decisions",
-  macro: "economics, finance, geopolitics, markets, monetary policy",
-  ciencia: "scientific research, data, biology, progress studies, energy, physics",
-  personal: "habits, productivity, psychology, life advice, self-improvement",
-  cultura: "society, philosophy, history, arts, books, culture commentary",
-  tweet: "any short-form social media post (Twitter/X)",
-  otros: "anything that does not clearly fit the other topics",
+  tech: "software engineering, AI/ML, LLMs, programming, infrastructure, developer tooling, hardware, semiconductors, technical how-it-works explainers",
+  producto:
+    "startups, founders, business strategy, product, growth, investing, company or founder profiles and biographies, venture",
+  macro: "economics, finance, monetary policy, geopolitics, trade, public policy, regulation, monopolies, economic history",
+  ciencia:
+    "scientific research, biology, genetics, medicine, health, neuroscience, physics, energy, progress studies, data",
+  personal:
+    "productivity, habits, focus, creativity, self-improvement, life advice, psychology of the self, mental health",
+  cultura:
+    "history, society, philosophy, urbanism and cities, transport and infrastructure history, anthropology, social status and human behavior, arts, books, fiction, culture commentary",
+  tweet: "short-form social media post (Twitter/X), only when the item is itself a tweet",
+  otros: "use ONLY if the article genuinely fits none of the topics above",
 };
 
 export const DEFAULT_PUBLISHER_TOPIC_MAP: Readonly<Record<string, string>> = {
@@ -61,6 +65,8 @@ export interface ClassifyInput {
   excerpt: string;
   domain: string;
   source: string | undefined;
+  description?: string;
+  tags?: readonly string[];
 }
 
 export interface ClassifySettings {
@@ -79,7 +85,18 @@ export interface ClassifyDeps {
   ) => Promise<{ status: number; json: unknown }>;
 }
 
-const FALLBACK_TOPIC = "otros";
+export const FALLBACK_TOPIC = "otros";
+
+const TWITTER_DOMAINS: ReadonlySet<string> = new Set([
+  "twitter.com",
+  "mobile.twitter.com",
+  "x.com",
+  "mobile.x.com",
+  "fxtwitter.com",
+  "fixupx.com",
+  "vxtwitter.com",
+  "nitter.net",
+]);
 const DEFAULT_MODEL = "claude-haiku-4-5";
 
 const normalizeDomain = (raw: string): string =>
@@ -94,27 +111,43 @@ export function classifyFromPublisher(
   return map[key];
 }
 
+export interface ClassifyPromptInput {
+  title: string;
+  excerpt: string;
+  domain?: string;
+  description?: string;
+  tags?: readonly string[];
+}
+
 export function buildClassifyPrompt(
   topics: readonly string[],
   descriptions: Readonly<Record<string, string>>,
-  title: string,
-  excerpt: string,
+  input: ClassifyPromptInput,
 ): string {
   const list = topics
     .map((t) => `- ${t}: ${descriptions[t] ?? "specific topic"}`)
     .join("\n");
-  return [
-    "Classify the following article. Pick ONE topic from this closed list and 2-3 short lowercase tags that describe the article more specifically.",
+  const tags = (input.tags ?? []).filter((t) => t && t !== "clippings");
+  const lines = [
+    "You are categorizing a saved reading-queue article into ONE topic from a closed list.",
+    "Pick the single best fit by SUBJECT MATTER. Almost every article fits a named topic; use 'otros' only as a true last resort.",
     "",
+    "Topics:",
     list,
     "",
-    `Title: ${title}`,
+    `Title: ${input.title}`,
+  ];
+  if (input.domain) lines.push(`Domain: ${input.domain}`);
+  if (input.description) lines.push(`Summary: ${input.description}`);
+  if (tags.length > 0) lines.push(`Existing tags: ${tags.join(", ")}`);
+  lines.push(
     "",
-    `First 600 characters of the content:`,
-    excerpt.slice(0, 600),
+    "First 600 characters of the content:",
+    input.excerpt.slice(0, 600),
     "",
     'Reply with ONLY a JSON object on a single line: {"topic":"<one>","tags":["t1","t2"]}. Lowercase, no spaces in tags, no leading #. Use the closed topic list above.',
-  ].join("\n");
+  );
+  return lines.join("\n");
 }
 
 export interface ClassifyResult {
@@ -201,12 +234,13 @@ export async function classifyWithClaude(
 
   const topics = settings.topics.length > 0 ? settings.topics : DEFAULT_TOPIC_LIST;
   const descriptions = settings.topicDescriptions ?? DEFAULT_TOPIC_DESCRIPTIONS;
-  const prompt = buildClassifyPrompt(
-    topics,
-    descriptions,
-    input.title,
-    input.excerpt,
-  );
+  const prompt = buildClassifyPrompt(topics, descriptions, {
+    title: input.title,
+    excerpt: input.excerpt,
+    domain: input.domain,
+    description: input.description,
+    tags: input.tags,
+  });
   const fetchJson = deps.fetchJson ?? defaultFetchJson;
 
   const body = JSON.stringify({
@@ -245,6 +279,15 @@ export async function classifyTopic(
   deps: ClassifyDeps = {},
 ): Promise<ClassifyResult> {
   if (input.source === "intake-fxtwitter") return { topic: "tweet", tags: [] };
+
+  const resolvedTopics =
+    settings.topics.length > 0 ? settings.topics : DEFAULT_TOPIC_LIST;
+  if (
+    resolvedTopics.includes("tweet") &&
+    TWITTER_DOMAINS.has(normalizeDomain(input.domain))
+  ) {
+    return { topic: "tweet", tags: [] };
+  }
 
   if (settings.useClaudeForClassification !== false && settings.anthropicApiKey?.trim()) {
     const fromClaude = await classifyWithClaude(input, settings, deps);
