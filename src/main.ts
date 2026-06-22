@@ -14,6 +14,7 @@ import {
   estimateReadingMinutesFromSize,
   filterByStatus,
   filterBySnoozedUntil,
+  isWebClipperOrphan,
   pickForToday,
   randomArticle,
   type QueueArticle,
@@ -883,36 +884,20 @@ export default class ReadQueuePlugin extends Plugin {
     const webFolder = stripTrailingSlash(this.settings.webFolder);
     const webPrefix = `${webFolder}/`;
     const pendingPrefix = `${stripTrailingSlash(this.settings.pendingFolder)}/`;
+    const readPrefix = `${stripTrailingSlash(this.settings.readFolder)}/`;
     const protectedPrefixes = [
       webPrefix,
       pendingPrefix,
+      readPrefix,
       "Inbox/Legacy/",
       "Diario/",
     ];
 
     const candidates = this.app.vault.getMarkdownFiles().filter((f) => {
-      if (protectedPrefixes.some((p) => f.path.startsWith(p))) return false;
       const fm = this.app.metadataCache.getFileCache(f)?.frontmatter as
         | Record<string, unknown>
         | undefined;
-      if (!fm) return false;
-      const tagsRaw = fm["tags"];
-      const tags = Array.isArray(tagsRaw)
-        ? tagsRaw.filter((t): t is string => typeof t === "string")
-        : typeof tagsRaw === "string"
-          ? [tagsRaw]
-          : [];
-      const isClipping = tags.some(
-        (t) => t === "clippings" || t === "reader" || t === "tweet",
-      );
-      const source = fm["source"];
-      const sourceLooksLikeUrl =
-        typeof source === "string" && /^https?:\/\//i.test(source);
-      const sourceMatchesIntake =
-        source === "web-clipper" ||
-        source === "intake-defuddle" ||
-        source === "intake-fxtwitter";
-      return isClipping || sourceLooksLikeUrl || sourceMatchesIntake;
+      return isWebClipperOrphan(f.path, fm, protectedPrefixes);
     });
 
     if (candidates.length === 0) {

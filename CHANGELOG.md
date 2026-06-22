@@ -6,6 +6,20 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.3.4] — 2026-06-22
+
+### Fixed
+
+- **`Inbox/Read` se vaciaba en cada reinicio** (regresión crítica de MX18):
+  el job de mover huérfanos del Web Clipper (`moveWebClipperOrphans`, corre en
+  cada `onLayoutReady`) no protegía `Inbox/Read/`. Como los artículos
+  archivados conservan su frontmatter de clipping (source URL, tag
+  `clippings`), el job los trataba como huérfanos y los devolvía a la cola en
+  cada arranque, deshaciendo el archivado. Ahora `Inbox/Read/` (vía
+  `readFolder`) está protegido y, como segunda defensa, ningún archivo con
+  `status: read` se mueve nunca, esté donde esté. La detección se extrajo a
+  `isWebClipperOrphan` (función pura) con cobertura de tests.
+
 ## [0.3.3] — 2026-06-22
 
 ### Added

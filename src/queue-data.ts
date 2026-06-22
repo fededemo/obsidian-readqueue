@@ -364,3 +364,37 @@ export function randomArticle(
   const idx = Math.floor(rng() * articles.length);
   return articles[idx];
 }
+
+
+/**
+ * True if `path` is a Web Clipper article sitting OUTSIDE the managed inbox
+ * structure (so the orphan job should pull it into the queue). Read/archived
+ * notes and anything under a protected prefix are never orphans — that bug
+ * (Inbox/Read not protected) re-queued read articles on every startup.
+ */
+export function isWebClipperOrphan(
+  path: string,
+  frontmatter: Record<string, unknown> | undefined,
+  protectedPrefixes: readonly string[],
+): boolean {
+  if (protectedPrefixes.some((p) => path.startsWith(p))) return false;
+  if (!frontmatter) return false;
+  if (frontmatter["status"] === "read") return false;
+  const tagsRaw = frontmatter["tags"];
+  const tags = Array.isArray(tagsRaw)
+    ? tagsRaw.filter((t): t is string => typeof t === "string")
+    : typeof tagsRaw === "string"
+      ? [tagsRaw]
+      : [];
+  const isClipping = tags.some(
+    (t) => t === "clippings" || t === "reader" || t === "tweet",
+  );
+  const source = frontmatter["source"];
+  const sourceLooksLikeUrl =
+    typeof source === "string" && /^https?:\/\//i.test(source);
+  const sourceMatchesIntake =
+    source === "web-clipper" ||
+    source === "intake-defuddle" ||
+    source === "intake-fxtwitter";
+  return isClipping || sourceLooksLikeUrl || sourceMatchesIntake;
+}
