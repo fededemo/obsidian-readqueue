@@ -68,9 +68,9 @@ describe("classifyFromPublisher", () => {
     ).toBe("tech");
   });
 
-  it("twitter / x map to 'tweet'", () => {
-    expect(classifyFromPublisher("twitter.com")).toBe("tweet");
-    expect(classifyFromPublisher("x.com")).toBe("tweet");
+  it("twitter / x are not publisher-mapped (tweets are classified by content)", () => {
+    expect(classifyFromPublisher("twitter.com")).toBeUndefined();
+    expect(classifyFromPublisher("x.com")).toBeUndefined();
   });
 });
 
@@ -253,26 +253,17 @@ describe("classifyWithClaude", () => {
 });
 
 describe("classifyTopic orchestrator", () => {
-  it("short-circuits to 'tweet' for source: intake-fxtwitter", async () => {
-    const fetchJson = vi.fn();
+  it("classifies a tweet by its content, not as a 'tweet' topic", async () => {
+    const fetchJson: ClassifyDeps["fetchJson"] = async () => ({
+      status: 200,
+      json: { content: [{ type: "text", text: '{"topic":"tech","tags":[]}' }] },
+    });
     const result = await classifyTopic(
-      makeInput({ source: "intake-fxtwitter", domain: "example.com" }),
+      makeInput({ domain: "x.com", source: "intake-fxtwitter" }),
       makeSettings({ anthropicApiKey: "sk", useClaudeForClassification: true }),
       { fetchJson },
     );
-    expect(result.topic).toBe("tweet");
-    expect(fetchJson).not.toHaveBeenCalled();
-  });
-
-  it("short-circuits to 'tweet' for a twitter/x domain even with Claude on", async () => {
-    const fetchJson = vi.fn();
-    const result = await classifyTopic(
-      makeInput({ domain: "x.com" }),
-      makeSettings({ anthropicApiKey: "sk", useClaudeForClassification: true }),
-      { fetchJson },
-    );
-    expect(result.topic).toBe("tweet");
-    expect(fetchJson).not.toHaveBeenCalled();
+    expect(result.topic).toBe("tech");
   });
 
   it("uses Claude when API key + toggle on, and falls back to heuristic if Claude returns nothing", async () => {

@@ -5,7 +5,6 @@ export const DEFAULT_TOPIC_LIST: readonly string[] = [
   "ciencia",
   "personal",
   "cultura",
-  "tweet",
   "otros",
 ];
 
@@ -20,7 +19,6 @@ export const DEFAULT_TOPIC_DESCRIPTIONS: Readonly<Record<string, string>> = {
     "productivity, habits, focus, creativity, self-improvement, life advice, psychology of the self, mental health",
   cultura:
     "history, society, philosophy, urbanism and cities, transport and infrastructure history, anthropology, social status and human behavior, arts, books, fiction, culture commentary",
-  tweet: "short-form social media post (Twitter/X), only when the item is itself a tweet",
   otros: "use ONLY if the article genuinely fits none of the topics above",
 };
 
@@ -53,11 +51,6 @@ export const DEFAULT_PUBLISHER_TOPIC_MAP: Readonly<Record<string, string>> = {
   "fs.blog": "personal",
   "theatlantic.com": "cultura",
   "newyorker.com": "cultura",
-  "twitter.com": "tweet",
-  "x.com": "tweet",
-  "fxtwitter.com": "tweet",
-  "fixupx.com": "tweet",
-  "vxtwitter.com": "tweet",
 };
 
 export interface ClassifyInput {
@@ -86,17 +79,6 @@ export interface ClassifyDeps {
 }
 
 export const FALLBACK_TOPIC = "otros";
-
-const TWITTER_DOMAINS: ReadonlySet<string> = new Set([
-  "twitter.com",
-  "mobile.twitter.com",
-  "x.com",
-  "mobile.x.com",
-  "fxtwitter.com",
-  "fixupx.com",
-  "vxtwitter.com",
-  "nitter.net",
-]);
 const DEFAULT_MODEL = "claude-haiku-4-5";
 
 const normalizeDomain = (raw: string): string =>
@@ -278,17 +260,6 @@ export async function classifyTopic(
   settings: ClassifySettings,
   deps: ClassifyDeps = {},
 ): Promise<ClassifyResult> {
-  if (input.source === "intake-fxtwitter") return { topic: "tweet", tags: [] };
-
-  const resolvedTopics =
-    settings.topics.length > 0 ? settings.topics : DEFAULT_TOPIC_LIST;
-  if (
-    resolvedTopics.includes("tweet") &&
-    TWITTER_DOMAINS.has(normalizeDomain(input.domain))
-  ) {
-    return { topic: "tweet", tags: [] };
-  }
-
   if (settings.useClaudeForClassification !== false && settings.anthropicApiKey?.trim()) {
     const fromClaude = await classifyWithClaude(input, settings, deps);
     if (fromClaude) return fromClaude;

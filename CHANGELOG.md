@@ -23,8 +23,13 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
   the article's domain, its Web Clipper summary, and the descriptive tags
   the clipper already generated — not just title + first 600 chars. Topic
   descriptions were tuned to the real reading corpus (progress studies,
-  urbanism, social science, business/founder profiles, AI). Twitter/X
-  domains now hard-map to `tweet` even when Claude classification is on.
+  urbanism, social science, business/founder profiles, AI).
+- **`tweet` removed as a topic** (MX16): it described the *source*, not the
+  content. A tweet about Claude Code is `tech`; a tweet about creativity is
+  `personal`. Tweets are now classified by their subject like any other
+  article (the FxTwitter intake still fetches the tweet body, so there is
+  real content to classify; "it's a tweet" is preserved via the `source`
+  field and `tweet` tag).
 - New command **"Re-classify ALL articles in queue (force)"** to re-run
   classification over the whole queue after taxonomy changes.
 

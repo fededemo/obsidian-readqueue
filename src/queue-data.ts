@@ -205,7 +205,6 @@ const KNOWN_TOPIC_SLUGS: ReadonlyArray<string> = [
   "ciencia",
   "personal",
   "cultura",
-  "tweet",
   "otros",
 ];
 
