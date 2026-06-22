@@ -6,6 +6,7 @@ import {
   locateSelectionInSource,
   normalizeSelectedText,
   stripMarkdownToPlain,
+  wrapSelectionAsHighlight,
 } from "../src/highlight";
 
 function highlightResult(
@@ -316,5 +317,47 @@ describe("end-to-end: locate + apply", () => {
     const src = "==first== part and second part";
     const out = highlightResult(src, "second part");
     expect(out).toBe("==first== part and ==second part==");
+  });
+});
+
+describe("wrapSelectionAsHighlight (edit mode)", () => {
+  it("wraps a plain selection", () => {
+    expect(wrapSelectionAsHighlight("key insight")).toBe("==key insight==");
+  });
+
+  it("keeps surrounding whitespace outside the markers", () => {
+    expect(wrapSelectionAsHighlight("  key insight \n")).toBe(
+      "  ==key insight== \n",
+    );
+  });
+
+  it("appends a note as an invisible comment", () => {
+    expect(wrapSelectionAsHighlight("key insight", "volver acá")).toBe(
+      "==key insight== %%volver acá%%",
+    );
+  });
+
+  it("strips %% from the note to avoid breaking the comment", () => {
+    expect(wrapSelectionAsHighlight("foo", "a %%b%% c")).toBe(
+      "==foo== %%a b c%%",
+    );
+  });
+
+  it("toggles off an already-highlighted selection", () => {
+    expect(wrapSelectionAsHighlight("==key insight==")).toBe("key insight");
+  });
+
+  it("toggles off respecting surrounding whitespace", () => {
+    expect(wrapSelectionAsHighlight("  ==foo==  ")).toBe("  foo  ");
+  });
+
+  it("does not toggle when the span contains nested markers", () => {
+    const sel = "==a== and ==b==";
+    expect(wrapSelectionAsHighlight(sel)).toBe(`==${sel}==`);
+  });
+
+  it("returns the input unchanged for an empty or whitespace-only selection", () => {
+    expect(wrapSelectionAsHighlight("")).toBe("");
+    expect(wrapSelectionAsHighlight("   ")).toBe("   ");
   });
 });

@@ -6,6 +6,21 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.3.1] — 2026-06-22
+
+### Added
+
+- **Highlight by selection now works in edit mode** (MX17): the "Subrayar
+  selección" command (and its `Cmd/Ctrl+Shift+H` hotkey) previously only
+  fired in reading view — in Live Preview / source mode it was disabled,
+  so pressing the hotkey appeared to do nothing. It now also operates
+  directly on the editor selection in edit mode, wrapping it in `==…==`
+  (surrounding whitespace kept outside the markers) with an optional
+  `%%note%%` via "Subrayar selección + nota". Pressing it on an
+  already-highlighted span toggles the marks off. Reading view keeps its
+  existing DOM-snapshot path. New pure helper `wrapSelectionAsHighlight`
+  in `src/highlight.ts` with 8 unit tests.
+
 ### Fixed
 
 - **Auto-classification skipped every Web Clipper article** (MX16): the

@@ -13,6 +13,7 @@ import {
 import {
   applyHighlight,
   locateSelection,
+  wrapSelectionAsHighlight,
   type LocateFailureReason,
   type OccurrenceHint,
 } from "./highlight";
@@ -67,18 +68,74 @@ export class HighlightUI {
     this.snapshot = null;
   }
 
+  /**
+   * Markdown editor with a live (non-empty) selection — covers source mode and
+   * Live Preview, where `getMode()` is "source". Reading view returns null here
+   * and falls back to the debounced preview snapshot path.
+   */
+  private activeEditorWithSelection(): MarkdownView | null {
+    const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
+    if (!view || view.getMode() !== "source") return null;
+    return view.editor.getSelection().trim() ? view : null;
+  }
+
   hasActionableSelection(): boolean {
+    if (this.activeEditorWithSelection()) return true;
     const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
     if (!view || view.getMode() !== "preview") return false;
     return this.snapshot !== null;
   }
 
   highlightCurrentSelection(): void {
+    const editView = this.activeEditorWithSelection();
+    if (editView) {
+      this.applyEditorHighlight(editView);
+      return;
+    }
     void this.applySnapshot();
   }
 
   highlightCurrentSelectionWithNote(): void {
+    const editView = this.activeEditorWithSelection();
+    if (editView) {
+      this.promptNoteAndApplyEditor(editView);
+      return;
+    }
     this.promptNoteAndApply();
+  }
+
+  private applyEditorHighlight(view: MarkdownView, note?: string): void {
+    const editor = view.editor;
+    const selected = editor.getSelection();
+    const replaced = wrapSelectionAsHighlight(selected, note);
+    if (replaced === selected) {
+      new Notice(FAILURE_NOTICES.empty);
+      return;
+    }
+    editor.replaceSelection(replaced);
+    new Notice(note ? "Subrayado + nota agregados." : "Subrayado agregado.");
+  }
+
+  private promptNoteAndApplyEditor(view: MarkdownView): void {
+    const editor = view.editor;
+    const selected = editor.getSelection();
+    if (!selected.trim()) {
+      new Notice(FAILURE_NOTICES.empty);
+      return;
+    }
+    // capture the range before the modal steals focus and collapses the
+    // selection; replaceRange re-applies against the exact span afterwards
+    const from = editor.getCursor("from");
+    const to = editor.getCursor("to");
+    new HighlightNoteModal(
+      this.plugin.app,
+      (note) => {
+        const replaced = wrapSelectionAsHighlight(selected, note || undefined);
+        editor.replaceRange(replaced, from, to);
+        new Notice(note ? "Subrayado + nota agregados." : "Subrayado agregado.");
+      },
+      () => {},
+    ).open();
   }
 
   private onSelectionChange(): void {

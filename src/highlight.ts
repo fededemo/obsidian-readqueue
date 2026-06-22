@@ -423,3 +423,26 @@ export function applyHighlight(
     source.slice(end)
   );
 }
+
+/**
+ * Edit-mode highlight: wraps the raw editor selection in `==…==` directly,
+ * no source-offset matching needed (the selection IS the source text here).
+ * Surrounding whitespace is kept outside the markers so they hug the text.
+ * If the selection is already a single `==…==` span, it is unwrapped (toggle).
+ * Returns the original string unchanged when there is nothing to highlight.
+ */
+export function wrapSelectionAsHighlight(selected: string, note?: string): string {
+  const lead = selected.match(/^\s*/)?.[0] ?? "";
+  const trail = selected.match(/\s*$/)?.[0] ?? "";
+  const core = selected.slice(lead.length, selected.length - trail.length);
+  if (!core) return selected;
+
+  const inner = /^==([\s\S]+)==$/.exec(core)?.[1];
+  if (inner !== undefined && !inner.includes("==")) {
+    return lead + inner + trail;
+  }
+
+  const cleanNote = (note ?? "").replace(/%%/g, "").trim();
+  const suffix = cleanNote ? ` %%${cleanNote}%%` : "";
+  return `${lead}==${core}==${suffix}${trail}`;
+}
