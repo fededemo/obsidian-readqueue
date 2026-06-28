@@ -10,8 +10,15 @@ import Defuddle from "defuddle";
 
 import { cleanTitle, type ReadFrontmatter } from "./queue-data";
 import { slugifyForFilename } from "./slugify";
+import {
+  extractTweetIdentifiers,
+  isTwitterUrl,
+  type ExistingNote,
+} from "./url-canon";
 
 export { slugifyForFilename };
+export { extractTweetIdentifiers, isTwitterUrl };
+export type { ExistingNote };
 
 export interface ParsedArticle {
   title: string;
@@ -36,6 +43,8 @@ export interface IntakeOutcome {
   ok: boolean;
   destination?: string;
   error?: string;
+  skipped?: "duplicate";
+  existing?: ExistingNote;
 }
 
 export interface ProcessUrlOutcome {
@@ -43,6 +52,8 @@ export interface ProcessUrlOutcome {
   destination?: string;
   title?: string;
   error?: string;
+  skipped?: "duplicate";
+  existing?: ExistingNote;
 }
 
 export interface ProcessUrlDeps {
@@ -56,6 +67,11 @@ export interface ProcessUrlDeps {
   classify?: (
     article: ParsedArticle,
   ) => Promise<{ topic: string; tags: string[] } | undefined>;
+  /**
+   * Returns an already-present note matching `url` (by canonical key), or
+   * undefined. When set and it hits, intake skips the fetch/parse entirely.
+   */
+  lookupExisting?: (url: string) => ExistingNote | undefined;
 }
 
 export interface IntakeDeps extends ProcessUrlDeps {
@@ -94,10 +110,6 @@ function mergeTags(existing: readonly string[], extra: readonly string[]): strin
   return out;
 }
 
-const TWITTER_HOST_RE =
-  /^(?:www\.)?(twitter\.com|x\.com|fxtwitter\.com|fixupx\.com|vxtwitter\.com)$/;
-const TWEET_PATH_RE = /^\/([^/]+)\/status\/(\d+)/;
-
 export interface FxTwitterAuthor {
   name: string;
   screen_name: string;
@@ -130,26 +142,6 @@ export interface FxTwitterResponse {
   code: number;
   message: string;
   tweet?: FxTwitterTweet;
-}
-
-export function isTwitterUrl(url: string): boolean {
-  try {
-    return TWITTER_HOST_RE.test(new URL(url).hostname);
-  } catch {
-    return false;
-  }
-}
-
-export function extractTweetIdentifiers(
-  url: string,
-): { user: string; id: string } | undefined {
-  try {
-    const m = TWEET_PATH_RE.exec(new URL(url).pathname);
-    if (!m || !m[1] || !m[2]) return undefined;
-    return { user: m[1], id: m[2] };
-  } catch {
-    return undefined;
-  }
 }
 
 export async function fetchTweet(
@@ -305,7 +297,15 @@ export async function processUrl(
     parseDom = defaultParseDom,
     fetchUrl = defaultFetchUrl,
     now = () => new Date(),
+    lookupExisting,
   } = deps;
+
+  if (lookupExisting) {
+    const existing = lookupExisting(url);
+    if (existing) {
+      return { ok: false, skipped: "duplicate", existing };
+    }
+  }
 
   try {
     let parsed: ParsedArticle | undefined;
@@ -363,6 +363,17 @@ export async function processPending(
   }
 
   const result = await processUrl(url, deps);
+
+  if (result.skipped === "duplicate") {
+    try {
+      await app.vault.delete(file);
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : String(err);
+      return await markIntakeError(app, file, reason, now);
+    }
+    return { ok: false, skipped: "duplicate", existing: result.existing };
+  }
+
   if (!result.ok || !result.destination) {
     return await markIntakeError(app, file, result.error ?? "unknown", now);
   }

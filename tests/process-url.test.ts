@@ -90,6 +90,31 @@ describe("processUrl (shared intake core)", () => {
     expect(content).toContain('tags: ["reader","ai"]');
   });
 
+  it("skips fetch/parse/write when lookupExisting reports a duplicate", async () => {
+    const fetchUrl = vi.fn(async () => ({ status: 200, text: ARTICLE_HTML }));
+    const existing = {
+      path: "Inbox/Read/2026-05/old.md",
+      title: "Old Article",
+      status: "read",
+      readAt: "2026-05-01T00:00:00Z",
+    };
+    const deps = makeDeps({ fetchUrl, lookupExisting: () => existing });
+    const outcome = await processUrl("https://example.com/post", deps);
+    expect(outcome.ok).toBe(false);
+    expect(outcome.skipped).toBe("duplicate");
+    expect(outcome.existing).toEqual(existing);
+    expect(fetchUrl).not.toHaveBeenCalled();
+    expect(deps.app.vault.create).not.toHaveBeenCalled();
+  });
+
+  it("proceeds normally when lookupExisting finds nothing", async () => {
+    const deps = makeDeps({ lookupExisting: () => undefined });
+    const outcome = await processUrl("https://example.com/post", deps);
+    expect(outcome.ok).toBe(true);
+    expect(outcome.skipped).toBeUndefined();
+    expect(deps.app.vault.create).toHaveBeenCalledTimes(1);
+  });
+
   it("uses the FxTwitter pipeline for twitter-like URLs", async () => {
     const tweetJson = JSON.stringify({
       code: 200,

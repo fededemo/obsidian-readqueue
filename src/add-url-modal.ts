@@ -65,6 +65,11 @@ export class AddUrlModal extends Modal {
           this.showSuccessNotice(outcome.title ?? url, outcome.destination);
           return;
         }
+        if (outcome.skipped === "duplicate") {
+          this.close();
+          this.plugin.notifyDuplicate(outcome.existing);
+          return;
+        }
         this.busy = false;
         submit.disabled = false;
         submit.setText("Agregar");

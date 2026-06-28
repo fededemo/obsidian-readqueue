@@ -196,6 +196,27 @@ describe("processPending", () => {
     expect(deps.app.vault.delete).toHaveBeenCalledWith(f);
   });
 
+  it("deletes the pending and reports skip when URL is a duplicate", async () => {
+    const f = file("intake-dup");
+    const existing = {
+      path: "Inbox/Read/2026-05/old.md",
+      title: "Old Article",
+      status: "read",
+      readAt: "2026-05-01T00:00:00Z",
+    };
+    const deps = makeDeps({ lookupExisting: () => existing });
+    (deps.app.vault.read as ReturnType<typeof vi.fn>).mockResolvedValue(
+      "---\nurl: https://example.com/x\n---\n",
+    );
+    const outcome = await processPending(f, deps);
+    expect(outcome.ok).toBe(false);
+    expect(outcome.skipped).toBe("duplicate");
+    expect(outcome.existing).toEqual(existing);
+    expect(deps.app.vault.create).not.toHaveBeenCalled();
+    expect(deps.app.vault.delete).toHaveBeenCalledWith(f);
+    expect(deps.app.fileManager.processFrontMatter).not.toHaveBeenCalled();
+  });
+
   it("marks intake-error and keeps pending file when URL is missing", async () => {
     const f = file("intake-002");
     const deps = makeDeps();

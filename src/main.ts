@@ -38,6 +38,12 @@ import {
   type ProcessUrlDeps,
   type ProcessUrlOutcome,
 } from "./intake";
+import {
+  addToUrlIndex,
+  findDuplicate,
+  type ExistingNote,
+  type UrlIndex,
+} from "./url-canon";
 import { AddUrlModal } from "./add-url-modal";
 import { ReadingFlowManager } from "./reading-flow";
 import {
@@ -446,9 +452,67 @@ export default class ReadQueuePlugin extends Plugin {
     if (this.settings.classifyOnIntake) {
       deps.classify = (article: ParsedArticle) => this.classifyArticle(article);
     }
+    if (this.settings.dedupeOnIntake !== false) {
+      const index = this.buildUrlIndex();
+      deps.lookupExisting = (u) => findDuplicate(u, index);
+    }
     const outcome = await processUrl(url, deps);
     if (outcome.ok) await this.refreshQueueView();
     return outcome;
+  }
+
+  /**
+   * Maps every article in the vault (except raw pending URLs) by its canonical
+   * URL, so intake can skip something already queued or read. Built fresh per
+   * intake run from `metadataCache` — cheap, no file reads.
+   */
+  buildUrlIndex(): UrlIndex {
+    const pendingPrefix = `${stripTrailingSlash(this.settings.pendingFolder)}/`;
+    const index: UrlIndex = new Map();
+    for (const file of this.app.vault.getMarkdownFiles()) {
+      if (file.path.startsWith(pendingPrefix)) continue;
+      const fm = this.app.metadataCache.getFileCache(file)?.frontmatter as
+        | ReadFrontmatter
+        | undefined;
+      const article = articleFromFile(file, fm);
+      if (!article.url) continue;
+      addToUrlIndex(index, article.url, {
+        path: file.path,
+        title: article.title,
+        status: article.status,
+        readAt: article.readAt?.toISOString(),
+      });
+    }
+    return index;
+  }
+
+  /**
+   * Non-blocking "you already have this" notice with a link to the existing
+   * note. Shared by the intake scan and the "Agregar URL" modal.
+   */
+  notifyDuplicate(existing: ExistingNote | undefined): void {
+    if (!existing) return;
+    const detail =
+      existing.status === "read"
+        ? existing.readAt
+          ? `ya lo leíste (${isoToDateSlug(existing.readAt)})`
+          : "ya lo leíste"
+        : "ya está en tu cola";
+    const notice = new Notice("", 10_000);
+    notice.noticeEl.createSpan({
+      text: `ReadQueue: «${existing.title}» ${detail}; no lo agregué de nuevo. `,
+    });
+    const open = notice.noticeEl.createEl("a", { text: "Abrir" });
+    open.onclick = (ev) => {
+      ev.preventDefault();
+      const file = this.app.vault.getAbstractFileByPath(existing.path);
+      if (file instanceof TFile) {
+        void this.app.workspace
+          .getLeaf(false)
+          .openFile(file, { state: { mode: "preview" } });
+      }
+      notice.hide();
+    };
   }
 
   async loadSettings(): Promise<void> {
@@ -678,6 +742,10 @@ export default class ReadQueuePlugin extends Plugin {
     if (this.settings.classifyOnIntake) {
       deps.classify = (article: ParsedArticle) => this.classifyArticle(article);
     }
+    if (this.settings.dedupeOnIntake !== false) {
+      const index = this.buildUrlIndex();
+      deps.lookupExisting = (u) => findDuplicate(u, index);
+    }
     const lister = async (): Promise<TFile[]> => {
       return this.app.vault
         .getMarkdownFiles()
@@ -685,6 +753,9 @@ export default class ReadQueuePlugin extends Plugin {
     };
     const outcomes = await scanPendingFolder(deps, lister);
     const ok = outcomes.filter((o) => o.ok).length;
+    for (const outcome of outcomes) {
+      if (outcome.skipped === "duplicate") this.notifyDuplicate(outcome.existing);
+    }
     if (ok > 0) await this.refreshQueueView();
   }
 
@@ -976,6 +1047,11 @@ function localDateSlug(now: Date = new Date()): string {
   const mm = String(now.getMonth() + 1).padStart(2, "0");
   const dd = String(now.getDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
+}
+
+function isoToDateSlug(iso: string): string {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? iso : localDateSlug(d);
 }
 
 function mergeTagsForFrontmatter(

@@ -8,6 +8,7 @@ export interface ReadQueueSettings {
   webFolder: string;
   pendingFolder: string;
   intakeIntervalMin: number;
+  dedupeOnIntake: boolean;
   topics: string[];
   publisherTopicMap: Record<string, string>;
   anthropicApiKey: string;
@@ -37,6 +38,7 @@ export const DEFAULT_SETTINGS: ReadQueueSettings = {
   webFolder: "Inbox/Web/",
   pendingFolder: "Inbox/Pending/",
   intakeIntervalMin: 5,
+  dedupeOnIntake: true,
   topics: [...DEFAULT_TOPIC_LIST],
   publisherTopicMap: { ...DEFAULT_PUBLISHER_TOPIC_MAP },
   anthropicApiKey: "",
@@ -147,6 +149,20 @@ export class ReadQueueSettingsTab extends PluginSettingTab {
             const n = Number.parseInt(value, 10);
             this.plugin.settings.intakeIntervalMin =
               Number.isFinite(n) && n >= 0 ? n : 0;
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("Evitar artículos duplicados")
+      .setDesc(
+        "Al ingestar una URL (intake o «Agregar URL»), si ya existe una nota con la misma URL en la vault —incluso ya leída— no la agrega de nuevo y te avisa. Compara ignorando parámetros de tracking (utm, fbclid, etc).",
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.dedupeOnIntake)
+          .onChange(async (value) => {
+            this.plugin.settings.dedupeOnIntake = value;
             await this.plugin.saveSettings();
           }),
       );
