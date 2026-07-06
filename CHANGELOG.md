@@ -6,6 +6,55 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Kindle sync: bug fatal del `DOMParser` en el service worker (MX22-a).** La
+  extensión creaba `new DOMParser()` dentro del service worker MV3 (contexto que
+  no lo expone) → el sync fallaba en la primera corrida. El parseo del notebook
+  se movió al **offscreen document** (que sí tiene DOM) vía mensajes nuevos
+  `parse-library` / `parse-book`. El service worker solo hace fetch + orquesta.
+
+### Added
+
+- **Sidecar `.kindle-sync-state.json` en la vault (MX22-b).** El estado de
+  highlights ya entregados vive ahora en la carpeta de Kindle de la vault (mismo
+  formato v1 que el CLI), con `chrome.storage.local` como cache y precedencia
+  vault > cache. Lógica de reconciliación en el módulo puro `src/kindle-sync-plan.ts`
+  (`planLibrarySync`), espejo del flujo `planMerge` del CLI. Efecto: **"Reset
+  libros" y reinstalar son seguros** — las notas existentes se re-adoptan
+  (`init-state`) sin pisar ediciones; solo se recrean las que borraste.
+- **Wishlist de Amazon → fichas de libros (MX24).** Comando "Sincronizar wishlist
+  de Amazon": trae tu lista pública compartida con `requestUrl()` (sin sesión,
+  funciona en mobile), paginando `showMoreUrl`, y crea/actualiza fichas
+  `shelf: wishlist` en `Books/`. Módulo puro `src/wishlist.ts` + `src/books-data.ts`.
+- **Recomendador "¿Qué leo ahora?" (MX25).** Comando `recommend-books`: arma un
+  context pack de la vault (lo leído, lo subrayado, la cola, tus libros, tu
+  wishlist) y le pide a Claude 3–5 recomendaciones rankeadas, priorizando lo que
+  YA tenés sin leer antes que comprar algo nuevo (anti-compra-compulsiva).
+  Escribe `Books/Recomendaciones/AAAA-MM-DD.md` con `[[links]]` navegables.
+  Módulo puro `src/recommend.ts` con parser anti-alucinación. Comando "Empezar
+  este libro" (`readingStatus: reading`).
+- **Modelo de catálogo de libros (MX23).** Carpeta `Books/` en la raíz (setting
+  `booksFolder`), fichas con `shelf` (owned/sample/borrowed/wishlist) y
+  `readingStatus` (propiedad del user, nunca la pisa una máquina). El orphan-mover
+  protege `booksFolder`. Comando "Reconciliar biblioteca Kindle" (lee un
+  manifiesto `.kindle-library.json`; el productor —sync de biblioteca en la
+  extensión— queda pendiente del spike de endpoints del Cloud Reader).
+- **Helper compartido `src/anthropic.ts`** con retry/backoff acotado (1 reintento
+  en 429/5xx/errores de red) que ahora usan tanto la clasificación como el
+  recomendador — la clasificación antes fallaba en silencio ante un 429 transitorio.
+
+### Changed
+
+- **Popup de la extensión (MX22-c):** estado de permiso al abrir, botón
+  "Reautorizar carpeta" cuando el permiso caduca (con gesto), errores legibles
+  (sin carpeta / sin permiso / sesión expirada / Amazon cambió el HTML), y confirm
+  honesto de "Reset libros" (explica que no se pierden ediciones).
+- **`extension/README.md` reescrito (MX22-d):** prerrequisitos (`npm install`,
+  Chromium-only), crear `Inbox/Kindle/` primero, alineación carpeta-picker ↔
+  `kindleFolder`, cadencia de sync (solo con Chrome abierto) y por qué el sidecar
+  hace todo no-destructivo.
+
 ## [0.3.6] — 2026-06-22
 
 ### Changed

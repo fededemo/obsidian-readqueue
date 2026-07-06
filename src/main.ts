@@ -71,6 +71,30 @@ import {
   type ExtractedHighlight,
 } from "./highlights-data";
 import { HighlightUI } from "./highlight-ui";
+import {
+  buildBookCardMarkdown,
+  parseBookCard,
+  reconcileLibrary,
+  reconcileWishlist,
+  type BookCard,
+  type DesiredBook,
+  type ReconcileAction,
+} from "./books-data";
+import {
+  collectWishlist,
+  parseWishlistId,
+  wishlistItemToDesired,
+  type FetchResult,
+} from "./wishlist";
+import {
+  generateRecommendations,
+  renderRecommendationNote,
+  type ContextPack,
+  type HighlightItem,
+  type OwnedBook,
+  type ReadItem,
+  type WishlistBook,
+} from "./recommend";
 
 export interface VaultFileHighlights {
   file: TFile;
@@ -292,6 +316,41 @@ export default class ReadQueuePlugin extends Plugin {
       name: "Repasar highlights de hoy",
       callback: () => {
         void this.reviewTodayHighlights();
+      },
+    });
+
+    this.addCommand({
+      id: "sync-wishlist",
+      name: "Sincronizar wishlist de Amazon",
+      callback: () => {
+        void this.syncWishlist();
+      },
+    });
+
+    this.addCommand({
+      id: "recommend-books",
+      name: "¿Qué leo ahora? (recomendar libros)",
+      callback: () => {
+        void this.recommendBooks();
+      },
+    });
+
+    this.addCommand({
+      id: "reconcile-kindle-library",
+      name: "Reconciliar biblioteca Kindle",
+      callback: () => {
+        void this.reconcileKindleLibrary();
+      },
+    });
+
+    this.addCommand({
+      id: "start-reading-book",
+      name: "Empezar este libro (readingStatus: reading)",
+      checkCallback: (checking) => {
+        const file = this.app.workspace.getActiveFile();
+        if (!file || !file.path.startsWith(this.booksPrefix())) return false;
+        if (!checking) void this.startReadingBook(file);
+        return true;
       },
     });
 
@@ -827,36 +886,37 @@ export default class ReadQueuePlugin extends Plugin {
     body.classList.toggle("readqueue-reader-active", shouldApply);
   }
 
+  /** requestUrl-backed fetchJson shared by classify + recommend (bypasses CORS). */
+  private anthropicFetchJson = async (
+    url: string,
+    init: { method: string; headers: Record<string, string>; body: string },
+  ): Promise<{ status: number; json: unknown }> => {
+    try {
+      const res = await requestUrl({
+        url,
+        method: init.method,
+        headers: init.headers,
+        body: init.body,
+        throw: false,
+      });
+      let json: unknown;
+      try {
+        json = JSON.parse(res.text);
+      } catch {
+        json = undefined;
+      }
+      if (res.status >= 400) {
+        console.warn(`ReadQueue Claude API ${res.status}:`, res.text.slice(0, 500));
+      }
+      return { status: res.status, json };
+    } catch (err) {
+      console.error("ReadQueue Claude API request failed", err);
+      throw err;
+    }
+  };
+
   private classifyDeps(): ClassifyDeps {
-    return {
-      fetchJson: async (url, init) => {
-        try {
-          const res = await requestUrl({
-            url,
-            method: init.method,
-            headers: init.headers,
-            body: init.body,
-            throw: false,
-          });
-          let json: unknown;
-          try {
-            json = JSON.parse(res.text);
-          } catch {
-            json = undefined;
-          }
-          if (res.status >= 400) {
-            console.warn(
-              `ReadQueue Claude API ${res.status}:`,
-              res.text.slice(0, 500),
-            );
-          }
-          return { status: res.status, json };
-        } catch (err) {
-          console.error("ReadQueue Claude API request failed", err);
-          throw err;
-        }
-      },
-    };
+    return { fetchJson: this.anthropicFetchJson };
   }
 
   private async reclassifyCurrentTopic(file: TFile): Promise<void> {
@@ -973,6 +1033,7 @@ export default class ReadQueuePlugin extends Plugin {
     const webPrefix = `${webFolder}/`;
     const pendingPrefix = `${stripTrailingSlash(this.settings.pendingFolder)}/`;
     const readPrefix = `${stripTrailingSlash(this.settings.readFolder)}/`;
+    const booksPrefix = `${stripTrailingSlash(this.settings.booksFolder)}/`;
     const protectedPrefixes = [
       "Inbox/",
       webPrefix,
@@ -980,6 +1041,7 @@ export default class ReadQueuePlugin extends Plugin {
       readPrefix,
       "Inbox/Legacy/",
       "Diario/",
+      booksPrefix,
     ];
 
     const candidates = this.app.vault.getMarkdownFiles().filter((f) => {
@@ -1035,6 +1097,302 @@ export default class ReadQueuePlugin extends Plugin {
     } else if (moved > 0) {
       console.log(`ReadQueue: auto-moved ${moved} orphan(s) to ${webFolder}`);
     }
+  }
+
+  // --- Books, wishlist & recommender (F5) ---
+
+  booksPrefix(): string {
+    return `${stripTrailingSlash(this.settings.booksFolder)}/`;
+  }
+
+  /** Reads every `Books/` note that is a book card (has asin + shelf). */
+  loadBookCards(): BookCard[] {
+    const prefix = this.booksPrefix();
+    const out: BookCard[] = [];
+    for (const file of this.app.vault.getMarkdownFiles()) {
+      if (!file.path.startsWith(prefix)) continue;
+      const fm = this.app.metadataCache.getFileCache(file)?.frontmatter as
+        | Record<string, unknown>
+        | undefined;
+      const card = parseBookCard(fm, file.path);
+      if (card) out.push(card);
+    }
+    return out;
+  }
+
+  private wishlistFetchText = async (url: string): Promise<FetchResult> => {
+    try {
+      const res = await requestUrl({
+        url,
+        headers: { "Accept-Language": "en-US,en;q=0.9" },
+        throw: false,
+      });
+      return { status: res.status, text: res.text };
+    } catch {
+      return { status: 0, text: "" };
+    }
+  };
+
+  async syncWishlist(): Promise<void> {
+    const listId = parseWishlistId(this.settings.wishlistUrl);
+    if (!listId) {
+      new Notice(
+        "ReadQueue: pegá la URL de tu wishlist de Amazon en settings (Books y recomendaciones).",
+      );
+      return;
+    }
+    new Notice("ReadQueue: sincronizando wishlist…");
+    const result = await collectWishlist(listId, this.wishlistFetchText);
+    if (result.items.length === 0) {
+      new Notice(
+        result.error
+          ? `ReadQueue: no pude leer la wishlist (${result.error}). ¿Está compartida por link?`
+          : "ReadQueue: la wishlist se vio vacía. ¿Está compartida por link?",
+      );
+      return;
+    }
+    const desired = result.items.map(wishlistItemToDesired);
+    const actions = reconcileWishlist(desired, this.loadBookCards());
+    const applied = await this.applyBookActions(actions);
+    new Notice(
+      `ReadQueue: wishlist — ${applied.created} nuevos, ${applied.updated} actualizados (${result.items.length} ítems${result.truncated ? ", parcial" : ""}).`,
+    );
+    await this.refreshQueueView();
+  }
+
+  /** Applies reconcile actions: create new fichas, patch machine fields on
+   * existing ones via processFrontMatter (never touching user fields). */
+  private async applyBookActions(
+    actions: readonly ReconcileAction[],
+  ): Promise<{ created: number; updated: number }> {
+    let created = 0;
+    let updated = 0;
+    const base = stripTrailingSlash(this.settings.booksFolder);
+    const now = new Date().toISOString();
+    for (const action of actions) {
+      if (action.type === "create") {
+        await ensureFolder(this.app, base);
+        const md = buildBookCardMarkdown(action.book, {
+          source: action.source,
+          firstSeenAt: now,
+        });
+        const dest = `${base}/${md.slug}.md`;
+        if (this.app.vault.getAbstractFileByPath(dest)) continue;
+        try {
+          await this.app.vault.create(dest, md.content);
+          created++;
+        } catch (err) {
+          console.error("ReadQueue: failed to create book card", dest, err);
+        }
+      } else if (action.type === "update-machine") {
+        const file = this.app.vault.getAbstractFileByPath(action.sourcePath);
+        if (!(file instanceof TFile)) continue;
+        await this.app.fileManager.processFrontMatter(file, (fm) => {
+          const obj = fm as Record<string, unknown>;
+          if (action.changes.shelf) obj["shelf"] = action.changes.shelf;
+          if (action.changes.acquiredAt) obj["acquiredAt"] = action.changes.acquiredAt;
+          if (action.changes.wishlistRemoved === null) delete obj["wishlistRemoved"];
+          else if (action.changes.wishlistRemoved === true) obj["wishlistRemoved"] = true;
+        });
+        updated++;
+      }
+    }
+    return { created, updated };
+  }
+
+  /** Reconciles owned books from a `.kindle-library.json` manifest deposited by
+   * the extension in Books/. The manifest producer is MX23 (Cloud Reader spike);
+   * until it exists this reports that library sync isn't set up yet. */
+  async reconcileKindleLibrary(): Promise<void> {
+    const base = stripTrailingSlash(this.settings.booksFolder);
+    const manifestPath = `${base}/.kindle-library.json`;
+    const adapter = this.app.vault.adapter;
+    if (!(await adapter.exists(manifestPath))) {
+      new Notice(
+        "ReadQueue: no encontré Books/.kindle-library.json. El sync de biblioteca Kindle (MX23) todavía no corrió.",
+      );
+      return;
+    }
+    let desired: DesiredBook[];
+    try {
+      const raw = await adapter.read(manifestPath);
+      const parsed = JSON.parse(raw) as {
+        books?: Array<Partial<DesiredBook> & { asin?: string; title?: string }>;
+      };
+      desired = (parsed.books ?? [])
+        .filter((b): b is DesiredBook & { asin: string; title: string } =>
+          typeof b.asin === "string" && typeof b.title === "string",
+        )
+        .map((b) => ({
+          asin: b.asin,
+          title: b.title,
+          author: b.author,
+          cover: b.cover,
+          url: b.url,
+          shelf: b.shelf ?? "owned",
+          acquiredAt: b.acquiredAt,
+        }));
+    } catch (err) {
+      new Notice(`ReadQueue: manifiesto de biblioteca inválido (${err instanceof Error ? err.message : err}).`);
+      return;
+    }
+    const actions = reconcileLibrary(desired, this.loadBookCards());
+    const applied = await this.applyBookActions(actions);
+    new Notice(
+      `ReadQueue: biblioteca — ${applied.created} fichas nuevas, ${applied.updated} actualizadas.`,
+    );
+    await this.refreshQueueView();
+  }
+
+  async startReadingBook(file: TFile): Promise<void> {
+    await this.app.fileManager.processFrontMatter(file, (fm) => {
+      (fm as Record<string, unknown>)["readingStatus"] = "reading";
+    });
+    new Notice(`ReadQueue: «${file.basename}» marcado como en lectura.`);
+  }
+
+  async recommendBooks(): Promise<void> {
+    if (!this.settings.anthropicApiKey?.trim()) {
+      new Notice("ReadQueue: configurá tu Anthropic API key para recomendar.");
+      return;
+    }
+    new Notice("ReadQueue: pensando qué te conviene leer…");
+    const pack = await this.buildContextPack();
+    const res = await generateRecommendations(
+      pack,
+      {
+        anthropicApiKey: this.settings.anthropicApiKey,
+        recommendModel: this.settings.recommendModel,
+      },
+      { fetchJson: this.anthropicFetchJson },
+    );
+    if (res.status !== 200) {
+      new Notice(
+        `ReadQueue: el recomendador falló (${res.status || "sin red"}). Probá «Test Claude API».`,
+      );
+      return;
+    }
+    const date = localDateSlug();
+    const base = stripTrailingSlash(this.settings.booksFolder);
+    const dest = `${base}/Recomendaciones/${date}.md`;
+    const existing = this.app.vault.getAbstractFileByPath(dest);
+    if (existing instanceof TFile) {
+      new Notice(`ReadQueue: ya existe ${dest} (una por día).`);
+      await this.app.workspace.getLeaf(false).openFile(existing);
+      return;
+    }
+    const content = renderRecommendationNote(res.recommendations, {
+      date,
+      model: this.settings.recommendModel,
+      pack,
+      generatedAt: new Date().toISOString(),
+    });
+    await ensureFolder(this.app, base);
+    await ensureFolder(this.app, `${base}/Recomendaciones`);
+    await this.app.vault.create(dest, content);
+    const file = this.app.vault.getAbstractFileByPath(dest);
+    if (file instanceof TFile) await this.app.workspace.getLeaf(false).openFile(file);
+    new Notice(`ReadQueue: ${res.recommendations.length} recomendaciones en ${dest}.`);
+  }
+
+  /** Assembles the context pack from vault signals (read history, highlights,
+   * queue, book cards, prior recommendations). No network. */
+  private async buildContextPack(): Promise<ContextPack> {
+    const webPrefix = `${stripTrailingSlash(this.settings.webFolder)}/`;
+    const readPrefix = `${stripTrailingSlash(this.settings.readFolder)}/`;
+
+    const read: ReadItem[] = [];
+    for (const file of this.app.vault.getMarkdownFiles()) {
+      if (!file.path.startsWith(webPrefix) && !file.path.startsWith(readPrefix)) continue;
+      const fm = this.app.metadataCache.getFileCache(file)?.frontmatter as
+        | ReadFrontmatter
+        | undefined;
+      if (fm?.status !== "read") continue;
+      const item: ReadItem = { title: fm?.title ?? file.basename, link: file.basename };
+      if (typeof fm?.topic === "string" && fm.topic) item.topic = fm.topic;
+      if (typeof fm?.readAt === "string") item.readAt = fm.readAt;
+      read.push(item);
+    }
+    read.sort((a, b) => (b.readAt ?? "").localeCompare(a.readAt ?? ""));
+    const recentRead = read.slice(0, 30);
+
+    const topicCounts = new Map<string, number>();
+    for (const a of recentRead) {
+      if (a.topic) topicCounts.set(a.topic, (topicCounts.get(a.topic) ?? 0) + 1);
+    }
+    const topicDistribution = [...topicCounts.entries()]
+      .map(([topic, count]) => ({ topic, count }))
+      .sort((a, b) => b.count - a.count);
+
+    const groups = await this.collectHighlights();
+    const highlights: HighlightItem[] = [];
+    for (const g of groups) {
+      for (const h of g.highlights) {
+        const item: HighlightItem = {
+          text: h.text,
+          source: g.articleSource,
+          title: g.title,
+          link: g.file.basename,
+        };
+        if (h.note) item.note = h.note;
+        highlights.push(item);
+        if (highlights.length >= 40) break;
+      }
+      if (highlights.length >= 40) break;
+    }
+
+    const queue = filterByStatus(this.loadQueueArticles(), "unread").map((a) => {
+      const item: { title: string; topic?: string } = { title: a.title };
+      if (a.topic) item.topic = a.topic;
+      return item;
+    });
+
+    const cards = this.loadBookCards();
+    const owned: OwnedBook[] = cards
+      .filter((c) => c.shelf !== "wishlist" && c.readingStatus !== "read")
+      .map((c) => {
+        const b: OwnedBook = { asin: c.asin, title: c.title, readingStatus: c.readingStatus };
+        if (c.author) b.author = c.author;
+        if (c.topic) b.topic = c.topic;
+        return b;
+      });
+    const wishlist: WishlistBook[] = cards
+      .filter((c) => c.shelf === "wishlist")
+      .map((c) => {
+        const b: WishlistBook = { asin: c.asin, title: c.title };
+        if (c.author) b.author = c.author;
+        if (c.wishlistRemoved) b.wishlistRemoved = true;
+        return b;
+      });
+
+    const recPrefix = `${stripTrailingSlash(this.settings.booksFolder)}/Recomendaciones/`;
+    const priorRecommendations = this.app.vault
+      .getMarkdownFiles()
+      .filter((f) => f.path.startsWith(recPrefix))
+      .sort((a, b) => b.basename.localeCompare(a.basename))
+      .slice(0, 4)
+      .map((f) => {
+        const fm = this.app.metadataCache.getFileCache(f)?.frontmatter as
+          | Record<string, unknown>
+          | undefined;
+        const asins = Array.isArray(fm?.["recommendedAsins"])
+          ? (fm!["recommendedAsins"] as unknown[]).filter(
+              (x): x is string => typeof x === "string",
+            )
+          : [];
+        return { date: f.basename, asins };
+      })
+      .filter((p) => p.asins.length > 0);
+
+    return {
+      read: recentRead,
+      topicDistribution,
+      highlights,
+      queue,
+      owned,
+      wishlist,
+      priorRecommendations,
+    };
   }
 }
 

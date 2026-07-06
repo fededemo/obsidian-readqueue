@@ -1,27 +1,26 @@
 import {
   LIBRARY_URL,
   bookUrl,
-  buildBookMarkdown,
-  parseBookHighlights,
-  parseLibrary,
+  type KindleBook,
   type KindleHighlight,
 } from "../../src/kindle";
 import {
-  diffNewHighlights,
-  highlightKey,
-  uniqueHighlightKeys,
-} from "../../src/kindle-merge";
+  mergeDeliveredState,
+  planLibrarySync,
+  type DeliveredByAsin,
+  type MergeRequest,
+  type ScrapedBook,
+} from "../../src/kindle-sync-plan";
 
 const ALARM = "kindle-sync";
 const SYNC_INTERVAL_MIN = 24 * 60;
-const NEW_BOOK_DELAY_MS = 300;
-// Re-checking known books hits Amazon once per book on every sync — be polite.
-const KNOWN_BOOK_DELAY_MS = 1200;
+// One Amazon request per book on every sync — be polite.
+const BOOK_DELAY_MS = 800;
 
 interface StoredState {
   knownAsins?: string[];
-  /** asin → highlight keys EVER delivered to the vault (MX12). Missing entry for a known asin = imported pre-MX12 → migration path. */
-  bookStates?: Record<string, string[]>;
+  /** asin → highlight keys EVER delivered (cache of the vault sidecar, MX22-b). */
+  bookStates?: DeliveredByAsin;
   lastSync?: string;
   lastError?: string;
   lastResult?: {
@@ -58,13 +57,29 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     return true;
   }
   if (msg && msg.type === "reset-known") {
-    void setState({ knownAsins: [], bookStates: {}, lastSync: undefined }).then(
-      () => sendResponse({ ok: true }),
-    );
+    void resetKnown().then(() => sendResponse({ ok: true }));
     return true;
   }
   return false;
 });
+
+/**
+ * "Reset libros": forget all delivered-key state (cache + vault sidecar) and
+ * re-scan from scratch. Non-destructive thanks to MX22-b — the next sync
+ * re-adopts existing notes via `init-state` (never rewriting the user's edits)
+ * and only recreates notes that were actually deleted from the vault.
+ */
+async function resetKnown(): Promise<void> {
+  await setState({ knownAsins: [], bookStates: {}, lastSync: undefined });
+  await ensureOffscreen();
+  try {
+    await sendToOffscreen({ type: "write-sync-state", delivered: {} });
+  } catch {
+    // No folder/permission yet — the empty cache alone still resets state.
+  } finally {
+    await closeOffscreen();
+  }
+}
 
 async function fetchHtml(url: string): Promise<{ status: number; text: string }> {
   const res = await fetch(url, {
@@ -74,9 +89,6 @@ async function fetchHtml(url: string): Promise<{ status: number; text: string }>
   const text = await res.text();
   return { status: res.status, text };
 }
-
-const parseDom = (html: string): Document =>
-  new DOMParser().parseFromString(html, "text/html");
 
 async function notify(title: string, message: string): Promise<void> {
   try {
@@ -99,80 +111,58 @@ async function ensureOffscreen(): Promise<void> {
   if (ctxes.length > 0) return;
   await chrome.offscreen.createDocument({
     url: "offscreen.html",
-    reasons: ["DOM_PARSER" as chrome.offscreen.Reason, "BLOBS" as chrome.offscreen.Reason],
-    justification: "File System Access API requires DOM context to write files to the vault",
+    reasons: [
+      "DOM_PARSER" as chrome.offscreen.Reason,
+      "BLOBS" as chrome.offscreen.Reason,
+    ],
+    justification:
+      "Parse Amazon HTML (DOMParser) and write files to the vault (File System Access) — neither exists in the MV3 service worker.",
   });
 }
 
-interface MergeRequest {
-  slug: string;
-  asin: string;
-  /** Full rebuild used when the file was deleted from the vault. */
-  fullContent: string;
-  newHighlights: KindleHighlight[];
-  highlightCount: number;
-  deliveredKeys: string[];
+async function closeOffscreen(): Promise<void> {
+  try {
+    await chrome.offscreen.closeDocument();
+  } catch {
+    // already closed
+  }
+}
+
+async function sendToOffscreen<T>(msg: Record<string, unknown>): Promise<T> {
+  return (await chrome.runtime.sendMessage(msg)) as T;
+}
+
+// --- Offscreen-delegated parsing (MX22-a: no DOMParser in the SW) ---
+
+async function parseLibraryViaOffscreen(html: string): Promise<KindleBook[]> {
+  const reply = await sendToOffscreen<{ books?: KindleBook[] }>({
+    type: "parse-library",
+    html,
+  });
+  return reply?.books ?? [];
+}
+
+async function parseBookViaOffscreen(
+  html: string,
+  book: KindleBook,
+): Promise<KindleHighlight[]> {
+  const reply = await sendToOffscreen<{ highlights?: KindleHighlight[] }>({
+    type: "parse-book",
+    html,
+    book,
+  });
+  return reply?.highlights ?? [];
+}
+
+interface VaultStateReply {
+  delivered: DeliveredByAsin;
+  existingSlugs: string[];
+  error?: string;
 }
 
 interface MergeReply {
   results: Array<{ slug: string; ok: boolean; recreated: boolean; error?: string }>;
   fatal?: string;
-}
-
-interface VaultOutcome {
-  written: number;
-  mergeResults: MergeReply["results"];
-  errors: string[];
-}
-
-async function applyToVault(
-  files: { slug: string; content: string }[],
-  merges: MergeRequest[],
-): Promise<VaultOutcome> {
-  await ensureOffscreen();
-  try {
-    let written = 0;
-    const errors: string[] = [];
-    if (files.length > 0) {
-      const reply = (await chrome.runtime.sendMessage({
-        type: "write-kindle-books",
-        books: files,
-      })) as { written: number; errors: string[]; error?: string } | undefined;
-      if (!reply) errors.push("no-reply-from-offscreen");
-      else if (reply.error) errors.push(reply.error);
-      else {
-        written = reply.written;
-        errors.push(...reply.errors);
-      }
-    }
-    let mergeResults: MergeReply["results"] = [];
-    if (merges.length > 0) {
-      const reply = (await chrome.runtime.sendMessage({
-        type: "merge-kindle-books",
-        books: merges.map(({ slug, fullContent, newHighlights, highlightCount }) => ({
-          slug,
-          fullContent,
-          newHighlights,
-          highlightCount,
-        })),
-      })) as MergeReply | undefined;
-      if (!reply) errors.push("no-reply-from-offscreen");
-      else if (reply.fatal) errors.push(reply.fatal);
-      else {
-        mergeResults = reply.results;
-        errors.push(
-          ...reply.results.filter((r) => !r.ok).map((r) => `${r.slug}: ${r.error ?? "write-failed"}`),
-        );
-      }
-    }
-    return { written, mergeResults, errors };
-  } finally {
-    try {
-      await chrome.offscreen.closeDocument();
-    } catch {
-      // already closed
-    }
-  }
 }
 
 export type SyncTrigger = "manual" | "alarm" | "test";
@@ -187,195 +177,188 @@ export interface SyncResult {
   errors: string[];
 }
 
+function emptyResult(status: SyncResult["status"], errors: string[]): SyncResult {
+  return {
+    status,
+    newBooks: 0,
+    totalBooks: 0,
+    written: 0,
+    mergedBooks: 0,
+    newHighlights: 0,
+    errors,
+  };
+}
+
 export async function syncOnce(trigger: SyncTrigger): Promise<SyncResult> {
+  await ensureOffscreen();
+  try {
+    return await runSync(trigger);
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : String(err);
+    await setState({ lastError: reason });
+    await notify("ReadQueue Kindle", `Error inesperado: ${reason}`);
+    return emptyResult("error", [reason]);
+  } finally {
+    await closeOffscreen();
+  }
+}
+
+async function runSync(trigger: SyncTrigger): Promise<SyncResult> {
   const lib = await fetchHtml(LIBRARY_URL);
   if (lib.status !== 200) {
     await setState({ lastError: `library-http-${lib.status}` });
     await notify(
       "ReadQueue Kindle",
-      `Sesión expirada o sin acceso (HTTP ${lib.status}). Abrí read.amazon.com/notebook en Chrome y volvé a intentar.`,
+      lib.status === 401 || lib.status === 403 || lib.status === 302
+        ? `Sesión de Amazon expirada (HTTP ${lib.status}). Abrí read.amazon.com/notebook y logueate; después reintentá.`
+        : `No pude leer tu biblioteca (HTTP ${lib.status}). ¿Amazon caído o cambió?`,
     );
-    return {
-      status: "session-expired",
-      newBooks: 0,
-      totalBooks: 0,
-      written: 0,
-      mergedBooks: 0,
-      newHighlights: 0,
-      errors: [`library-http-${lib.status}`],
-    };
+    return emptyResult("session-expired", [`library-http-${lib.status}`]);
   }
 
-  const books = parseLibrary(lib.text, parseDom);
-  const state = await getState();
-  const knownAsins = new Set(state.knownAsins ?? []);
-  const bookStates: Record<string, string[]> = { ...(state.bookStates ?? {}) };
-  const newBooks = books.filter((b) => !knownAsins.has(b.asin));
-  const knownBooks = books.filter((b) => knownAsins.has(b.asin));
-
-  const fetchErrors: string[] = [];
-
-  // --- New books: full import ---
-  const files: { slug: string; content: string; asin: string; keys: string[] }[] = [];
-  for (const book of newBooks) {
-    try {
-      const detail = await fetchHtml(bookUrl(book.asin));
-      if (detail.status !== 200) {
-        fetchErrors.push(`${book.asin}: HTTP ${detail.status}`);
-        continue;
-      }
-      const data = parseBookHighlights(detail.text, book, parseDom);
-      const md = buildBookMarkdown(data, "otros");
-      files.push({
-        slug: md.slug,
-        content: md.content,
-        asin: book.asin,
-        keys: uniqueHighlightKeys(data.highlights),
-      });
-      await sleep(NEW_BOOK_DELAY_MS);
-    } catch (err) {
-      const reason = err instanceof Error ? err.message : String(err);
-      fetchErrors.push(`${book.asin}: ${reason}`);
-    }
-  }
-
-  // --- Known books: incremental re-sync (MX12) ---
-  const merges: MergeRequest[] = [];
-  for (const book of knownBooks) {
-    try {
-      const detail = await fetchHtml(bookUrl(book.asin));
-      if (detail.status !== 200) {
-        fetchErrors.push(`${book.asin}: HTTP ${detail.status}`);
-        continue;
-      }
-      const data = parseBookHighlights(detail.text, book, parseDom);
-      const delivered = bookStates[book.asin];
-      if (!delivered) {
-        // Migration: book imported pre-MX12. Mark what's scraped today as already
-        // delivered WITHOUT touching the file — avoids duplicating everything.
-        bookStates[book.asin] = uniqueHighlightKeys(data.highlights);
-        continue;
-      }
-      const fresh = diffNewHighlights(data.highlights, delivered);
-      if (fresh.length === 0) continue;
-      const deliveredKeys = [...delivered, ...fresh.map(highlightKey)];
-      const md = buildBookMarkdown(data, "otros");
-      merges.push({
-        slug: md.slug,
-        asin: book.asin,
-        fullContent: md.content,
-        newHighlights: fresh,
-        highlightCount: deliveredKeys.length,
-        deliveredKeys,
-      });
-    } catch (err) {
-      const reason = err instanceof Error ? err.message : String(err);
-      fetchErrors.push(`${book.asin}: ${reason}`);
-    } finally {
-      await sleep(KNOWN_BOOK_DELAY_MS);
-    }
-  }
-
-  if (files.length === 0 && merges.length === 0) {
-    await setState({
-      bookStates,
-      lastSync: new Date().toISOString(),
-      lastError: fetchErrors.length > 0 ? fetchErrors[0] : undefined,
-    });
-    if (trigger === "manual") {
-      await notify("ReadQueue Kindle", "Sin novedades.");
-    }
-    return {
-      status: fetchErrors.length > 0 && newBooks.length > 0 ? "error" : "ok",
-      newBooks: newBooks.length,
-      totalBooks: books.length,
-      written: 0,
-      mergedBooks: 0,
-      newHighlights: 0,
-      errors: fetchErrors,
-    };
-  }
-
-  const outcome = await applyToVault(
-    files.map(({ slug, content }) => ({ slug, content })),
-    merges,
-  );
-
-  if (
-    outcome.errors.includes("permission-denied") ||
-    outcome.errors.includes("no-handle")
-  ) {
-    await setState({ lastError: outcome.errors[0] });
+  const books = await parseLibraryViaOffscreen(lib.text);
+  if (books.length === 0) {
+    // 200 but zero books usually means a login/interstitial page, not an empty
+    // library — surface it instead of silently "succeeding".
+    await setState({ lastSync: new Date().toISOString(), lastError: "no-books-parsed" });
     await notify(
       "ReadQueue Kindle",
-      "Carpeta no configurada o sin permiso. Abrí el popup y elegí la carpeta de la vault.",
+      "No encontré libros en el notebook. Puede ser sesión expirada o que Amazon cambió el HTML. Abrí read.amazon.com/notebook y verificá que ves tus libros.",
     );
-    return {
-      status: "no-folder",
-      newBooks: newBooks.length,
-      totalBooks: books.length,
-      written: 0,
-      mergedBooks: 0,
-      newHighlights: 0,
-      errors: outcome.errors,
-    };
+    return emptyResult("session-expired", ["no-books-parsed"]);
   }
 
-  // Track only the asins that actually got written
-  const writtenFiles = files.slice(0, outcome.written);
-  for (const f of writtenFiles) {
-    knownAsins.add(f.asin);
-    bookStates[f.asin] = f.keys;
+  const vault = await sendToOffscreen<VaultStateReply>({ type: "get-vault-state" });
+  if (vault?.error === "no-handle" || vault?.error === "permission-denied") {
+    await setState({ lastError: vault.error });
+    await notify(
+      "ReadQueue Kindle",
+      vault.error === "no-handle"
+        ? "No hay carpeta de la vault configurada. Abrí el popup y elegí la carpeta Inbox/Kindle."
+        : "Perdí el permiso sobre la carpeta. Abrí el popup y volvé a autorizarla.",
+    );
+    return { ...emptyResult("no-folder", [vault.error]), totalBooks: books.length };
+  }
+  const existingSlugs = new Set(vault?.existingSlugs ?? []);
+  const storage = await getState();
+  const deliveredByAsin = mergeDeliveredState(vault?.delivered, storage.bookStates);
+  const knownBefore = new Set(Object.keys(deliveredByAsin));
+
+  // Fetch + parse each book (fetch in SW, parse in offscreen).
+  const scraped: ScrapedBook[] = [];
+  const fetchErrors: string[] = [];
+  for (let i = 0; i < books.length; i++) {
+    const book = books[i];
+    if (!book) continue;
+    try {
+      const detail = await fetchHtml(bookUrl(book.asin));
+      if (detail.status !== 200) {
+        fetchErrors.push(`${book.asin}: HTTP ${detail.status}`);
+        continue;
+      }
+      const highlights = await parseBookViaOffscreen(detail.text, book);
+      scraped.push({ book, highlights });
+    } catch (err) {
+      fetchErrors.push(`${book.asin}: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      if (i < books.length - 1) await sleep(BOOK_DELAY_MS);
+    }
   }
 
+  const plan = planLibrarySync({ scraped, deliveredByAsin, existingSlugs });
+
+  // Dispatch file writes (recreate + append) to the offscreen document.
+  let written = 0;
   let mergedBooks = 0;
   let newHighlights = 0;
-  const mergeBySlug = new Map(merges.map((m) => [m.slug, m]));
-  for (const result of outcome.mergeResults) {
-    if (!result.ok) continue;
-    const req = mergeBySlug.get(result.slug);
-    if (!req) continue;
-    bookStates[req.asin] = req.deliveredKeys;
-    mergedBooks++;
-    newHighlights += req.newHighlights.length;
+  const writeErrors: string[] = [];
+  const okBySlug = new Map<string, boolean>();
+  if (plan.writes.length > 0) {
+    const reply = await sendToOffscreen<MergeReply>({
+      type: "merge-kindle-books",
+      books: plan.writes.map(({ slug, fullContent, newHighlights: nh, highlightCount }) => ({
+        slug,
+        fullContent,
+        newHighlights: nh,
+        highlightCount,
+      })),
+    });
+    if (!reply) {
+      writeErrors.push("no-reply-from-offscreen");
+    } else if (reply.fatal) {
+      // Lost folder/permission mid-run — report as no-folder, don't advance state.
+      await setState({ lastError: reply.fatal });
+      await notify(
+        "ReadQueue Kindle",
+        "No pude escribir en la carpeta (permiso o carpeta perdida). Abrí el popup y reautorizá.",
+      );
+      return { ...emptyResult("no-folder", [reply.fatal]), totalBooks: books.length };
+    } else {
+      for (const r of reply.results) okBySlug.set(r.slug, r.ok);
+      for (const r of reply.results.filter((x) => !x.ok)) {
+        writeErrors.push(`${r.slug}: ${r.error ?? "write-failed"}`);
+      }
+    }
   }
 
-  const allErrors = [...fetchErrors, ...outcome.errors];
+  // Advance delivered state ONLY for books whose write succeeded (or that needed
+  // no write). A failed write keeps its old state so the next sync retries it.
+  const newDelivered: DeliveredByAsin = { ...deliveredByAsin };
+  const writeMetaBySlug = new Map<string, MergeRequest>(
+    plan.writes.map((w) => [w.slug, w]),
+  );
+  for (const item of plan.items) {
+    if (item.action === "init-state" || item.action === "none") {
+      newDelivered[item.asin] = item.deliveredKeys;
+      continue;
+    }
+    const ok = okBySlug.get(item.slug);
+    if (ok) {
+      newDelivered[item.asin] = item.deliveredKeys;
+      const meta = writeMetaBySlug.get(item.slug);
+      if (item.action === "recreate") written++;
+      if (item.action === "append") {
+        mergedBooks++;
+        newHighlights += meta?.newHighlights.length ?? 0;
+      }
+    }
+  }
+
+  const errors = [...fetchErrors, ...writeErrors];
+  await sendToOffscreen({ type: "write-sync-state", delivered: newDelivered });
   await setState({
-    knownAsins: [...knownAsins],
-    bookStates,
+    knownAsins: Object.keys(newDelivered),
+    bookStates: newDelivered,
     lastSync: new Date().toISOString(),
-    lastError: allErrors.length > 0 ? allErrors[0] : undefined,
-    lastResult: {
-      written: outcome.written,
-      failed: allErrors.length,
-      newHighlights,
-      mergedBooks,
-    },
+    lastError: errors.length > 0 ? errors[0] : undefined,
+    lastResult: { written, failed: errors.length, newHighlights, mergedBooks },
   });
 
-  if (outcome.written > 0 || newHighlights > 0) {
+  const newBooks = books.filter((b) => !knownBefore.has(b.asin)).length;
+  if (written > 0 || newHighlights > 0) {
     const parts: string[] = [];
-    if (outcome.written > 0) parts.push(`${outcome.written} libros nuevos importados`);
+    if (written > 0) parts.push(`${written} libros nuevos`);
     if (newHighlights > 0) {
       parts.push(
         `${newHighlights} highlights nuevos en ${mergedBooks} ${mergedBooks === 1 ? "libro" : "libros"}`,
       );
     }
-    if (allErrors.length > 0) parts.push(`${allErrors.length} fallos`);
+    if (errors.length > 0) parts.push(`${errors.length} fallos`);
     await notify("ReadQueue Kindle", `${parts.join(" · ")}.`);
-  } else if (allErrors.length > 0) {
-    await notify("ReadQueue Kindle", "Ningún cambio pudo escribirse.");
+  } else if (errors.length > 0) {
+    await notify("ReadQueue Kindle", `Sin cambios escritos · ${errors.length} fallos.`);
+  } else if (trigger === "manual") {
+    await notify("ReadQueue Kindle", "Sin novedades.");
   }
 
   return {
-    status: "ok",
-    newBooks: newBooks.length,
+    status: errors.length > 0 && written === 0 && newHighlights === 0 ? "error" : "ok",
+    newBooks,
     totalBooks: books.length,
-    written: outcome.written,
+    written,
     mergedBooks,
     newHighlights,
-    errors: allErrors,
+    errors,
   };
 }
 

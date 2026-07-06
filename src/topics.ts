@@ -1,3 +1,9 @@
+import {
+  extractTextFromMessage,
+  postMessagesWithRetry,
+  type RetryOpts,
+} from "./anthropic";
+
 export const DEFAULT_TOPIC_LIST: readonly string[] = [
   "tech",
   "producto",
@@ -76,6 +82,7 @@ export interface ClassifyDeps {
     url: string,
     init: { method: string; headers: Record<string, string>; body: string },
   ) => Promise<{ status: number; json: unknown }>;
+  retry?: RetryOpts;
 }
 
 export const FALLBACK_TOPIC = "otros";
@@ -187,10 +194,6 @@ function parseClassifyReply(
   return { topic, tags };
 }
 
-interface AnthropicResponse {
-  content?: Array<{ type: string; text?: string }>;
-}
-
 const defaultFetchJson: NonNullable<ClassifyDeps["fetchJson"]> = async (
   url,
   init,
@@ -225,31 +228,19 @@ export async function classifyWithClaude(
   });
   const fetchJson = deps.fetchJson ?? defaultFetchJson;
 
-  const body = JSON.stringify({
-    model: settings.classifyModel ?? DEFAULT_MODEL,
-    max_tokens: 80,
-    messages: [{ role: "user", content: prompt }],
-  });
-
-  let response: { status: number; json: unknown };
-  try {
-    response = await fetchJson("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": key,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true",
-        "content-type": "application/json",
-      },
-      body,
-    });
-  } catch {
-    return undefined;
-  }
+  const response = await postMessagesWithRetry(
+    fetchJson,
+    key,
+    {
+      model: settings.classifyModel ?? DEFAULT_MODEL,
+      max_tokens: 80,
+      messages: [{ role: "user", content: prompt }],
+    },
+    deps.retry,
+  );
 
   if (response.status !== 200) return undefined;
-  const data = response.json as AnthropicResponse | undefined;
-  const text = data?.content?.[0]?.text?.trim();
+  const text = extractTextFromMessage(response.json);
   if (!text) return undefined;
 
   return parseClassifyReply(text, topics);

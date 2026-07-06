@@ -221,7 +221,7 @@ describe("classifyWithClaude", () => {
     const result = await classifyWithClaude(
       makeInput(),
       makeSettings({ anthropicApiKey: "sk" }),
-      { fetchJson },
+      { fetchJson, retry: { retries: 0 } },
     );
     expect(result).toBeUndefined();
   });
@@ -246,7 +246,7 @@ describe("classifyWithClaude", () => {
     const result = await classifyWithClaude(
       makeInput(),
       makeSettings({ anthropicApiKey: "sk" }),
-      { fetchJson },
+      { fetchJson, retry: { retries: 0 } },
     );
     expect(result).toBeUndefined();
   });

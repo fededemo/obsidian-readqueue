@@ -6,7 +6,7 @@
 
 **obsidian-readqueue** es un plugin de Obsidian que reemplaza la UX de Matter (read-it-later) dentro de la vault. Resuelve la pieza floja de Obsidian Web Clipper: gestionar la cola de lectura.
 
-- **Estado**: **v0.3.0 publicado** (GitHub Release con artefactos BRAT). MVP (F1) + polish (F2) shipped; Kindle highlights integrado con **solución propia** (extensión Chrome + CLI, no plugin ajeno); highlights como producto (F4) shipped. Último: MX11–MX15 (subrayado por selección, re-sync incremental Kindle, vista unificada de highlights + repaso diario, polish de lectura, fix búsqueda mobile). MX15 está en `main` pero **sin release** todavía → pendiente cortar v0.3.1 para que BRAT lo propague. Detalle por hito en `docs/ROADMAP.md` + `CHANGELOG.md`.
+- **Estado**: **v0.3.0 publicado** (GitHub Release con artefactos BRAT). MVP (F1) + polish (F2) shipped; Kindle highlights integrado con **solución propia** (extensión Chrome + CLI, no plugin ajeno); highlights como producto (F4) shipped. Último: MX11–MX15 (subrayado por selección, re-sync incremental Kindle, vista unificada de highlights + repaso diario, polish de lectura, fix búsqueda mobile). **F5 en curso** (MX22–MX25 en `[Unreleased]`): sync Kindle confiable (fix `DOMParser` + sidecar en vault), wishlist de Amazon → `Books/`, recomendador "¿Qué leo ahora?". MX15+F5 están en `main`/working tree pero **sin release** todavía. Detalle por hito en `docs/ROADMAP.md` + `CHANGELOG.md`.
 - **Plan original**: `~/.claude/plans/imperative-sparking-dusk.md`
 - **Vault target del user**: `fedenotes` (iCloud Drive). El plugin debe funcionar con iCloud-backed vaults.
 
@@ -169,4 +169,10 @@ Cobertura prioritaria:
 
 ## Última actualización
 
-2026-06-18 — v0.3.0 publicado (MX11–MX14). MX15 (fix: la búsqueda de la Reading Queue era inusable en mobile porque `oninput` recreaba el `<input>` en cada tecla; ahora `renderList()` re-renderiza solo la lista) en `main`, [Unreleased], pendiente de verificación mobile + corte de v0.3.1. 337 tests verdes, TS estricto pasa, CI verde. Bitácora por hito en `docs/ROADMAP.md`; bootstrap original en `~/.claude/plans/imperative-sparking-dusk.md`.
+2026-07-05 — **F5 en curso** (plan: `docs/plans/f5-libros-y-recomendaciones.md`). Shipped en código, en `[Unreleased]`:
+- **MX22** — confiabilidad del sync Kindle: fix del bug fatal `DOMParser` en el service worker (parseo movido al offscreen document), sidecar `.kindle-sync-state.json` en la vault como fuente de verdad (módulo puro `src/kindle-sync-plan.ts`, "Reset libros" ya no pisa ediciones), permisos/errores visibles en el popup, `extension/README.md` reescrito.
+- **MX24** — wishlist de Amazon: `src/wishlist.ts` trae la lista pública con `requestUrl()` (verificado contra la wishlist real de Fede) → fichas `shelf: wishlist` en `Books/`. Comando "Sincronizar wishlist de Amazon".
+- **MX25** — recomendador `src/recommend.ts` (context pack → Claude → nota en `Books/Recomendaciones/`), helper compartido `src/anthropic.ts` con retry (classify lo usa también). Comandos `recommend-books` + "Empezar este libro". Default `recommendModel: claude-sonnet-5`.
+- **MX23 (modelo)** — `Books/` en la raíz, `src/books-data.ts` (fichas + reconcile), setting `booksFolder`, orphan-mover lo protege.
+
+Pendiente de Fede (no lo puede hacer un agente): **F5.0** (correr el primer sync Kindle real — instructivo en `docs/obsidian-readqueue-builder/F5-INSTRUCTIVO.md`) y el **spike de endpoints del Cloud Reader** para la biblioteca completa (MX23, necesita sesión autenticada en DevTools). 438 tests verdes, TS estricto pasa, extensión buildea. **Sin release hasta OK explícito de Fede.** MX15 sigue sin cortar v0.3.1. Bitácora por hito en `docs/ROADMAP.md`.

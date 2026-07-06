@@ -54,6 +54,23 @@ export async function clearHandle(): Promise<void> {
 
 export type PermissionState = "granted" | "denied" | "prompt";
 
+/** Query-only permission check — never prompts, so it is safe to call on popup
+ * open (where there is no user gesture to satisfy requestPermission). */
+export async function queryHandlePermission(
+  handle: FileSystemDirectoryHandle,
+  mode: "read" | "readwrite" = "readwrite",
+): Promise<PermissionState> {
+  return (await handle.queryPermission({ mode })) as PermissionState;
+}
+
+/** Request permission — must be called from within a user gesture (a click). */
+export async function requestHandlePermission(
+  handle: FileSystemDirectoryHandle,
+  mode: "read" | "readwrite" = "readwrite",
+): Promise<PermissionState> {
+  return (await handle.requestPermission({ mode })) as PermissionState;
+}
+
 export async function verifyPermission(
   handle: FileSystemDirectoryHandle,
   mode: "read" | "readwrite" = "readwrite",

@@ -26,6 +26,9 @@ export interface ReadQueueSettings {
   openOnStartup: boolean;
   kindleFolder: string;
   matterFolder: string;
+  booksFolder: string;
+  wishlistUrl: string;
+  recommendModel: string;
   dailyHighlightsCount: number;
   includeHighlightsInDigest: boolean;
   showMarkReadAtEnd: boolean;
@@ -56,6 +59,9 @@ export const DEFAULT_SETTINGS: ReadQueueSettings = {
   openOnStartup: true,
   kindleFolder: "Inbox/Kindle/",
   matterFolder: "Inbox/Legacy/",
+  booksFolder: "Books/",
+  wishlistUrl: "",
+  recommendModel: "claude-sonnet-5",
   dailyHighlightsCount: 5,
   includeHighlightsInDigest: true,
   showMarkReadAtEnd: true,
@@ -442,6 +448,58 @@ export class ReadQueueSettingsTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           }),
       );
+
+    containerEl.createEl("h3", { text: "Books y recomendaciones" });
+
+    new Setting(containerEl)
+      .setName("Carpeta de libros")
+      .setDesc(
+        'Fichas de libros (comprados, wishlist) en la raíz de la vault. Es un catálogo, no bandeja de entrada. Ej: "Books/".',
+      )
+      .addText((text) =>
+        text
+          .setPlaceholder("Books/")
+          .setValue(this.plugin.settings.booksFolder)
+          .onChange(async (value) => {
+            this.plugin.settings.booksFolder = ensureTrailingSlash(value);
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("URL de la wishlist de Amazon")
+      .setDesc(
+        "Link de tu lista pública de Amazon (compartida por link). El comando «Sincronizar wishlist» la trae a fichas en Books/. Ej: https://www.amazon.com/hz/wishlist/ls/XXXXXXXX",
+      )
+      .addText((text) =>
+        text
+          .setPlaceholder("https://www.amazon.com/hz/wishlist/ls/...")
+          .setValue(this.plugin.settings.wishlistUrl)
+          .onChange(async (value) => {
+            this.plugin.settings.wishlistUrl = value.trim();
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    const recModelSetting = new Setting(containerEl)
+      .setName("Modelo del recomendador")
+      .setDesc(
+        "ID del modelo Anthropic para «¿Qué leo ahora?». Sonnet por defecto (1 llamada por semana, razonamiento cruzado).",
+      );
+    recModelSetting.descEl.createEl("div", {
+      cls: "readqueue-settings__warn",
+      text: "El recomendador envía a la API de Anthropic títulos, topics y fragmentos de tus highlights (mismo destino que la clasificación, mayor volumen por llamada). Decisión consciente.",
+    });
+    recModelSetting.addText((text) =>
+      text
+        .setPlaceholder("claude-sonnet-5")
+        .setValue(this.plugin.settings.recommendModel)
+        .onChange(async (value) => {
+          const v = value.trim();
+          this.plugin.settings.recommendModel = v || "claude-sonnet-5";
+          await this.plugin.saveSettings();
+        }),
+    );
 
     containerEl.createEl("h3", { text: "Vista" });
 

@@ -158,6 +158,22 @@ El bloque que cierra el ciclo lectura → subrayar → encontrar → repasar:
 
 ---
 
+## Phase F5 — Kindle en marcha + Biblioteca + Recomendaciones (EN CURSO)
+
+Plan completo en `docs/plans/f5-libros-y-recomendaciones.md`. La vault como sistema
+de conocimiento: capturar (artículos + libros) → leer → subrayar → repasar → decidir
+qué leer después. Todo markdown + frontmatter; la inteligencia son llamadas a Claude.
+
+- ✅ **MX22 — Confiabilidad de lo shipped** (código): fix del **bug fatal `DOMParser` en el service worker** (el parseo se movió al offscreen document, que sí tiene DOM); **sidecar `.kindle-sync-state.json` en la vault** como fuente de verdad (mismo formato que el CLI) vía `planLibrarySync` puro y testeado → "Reset libros" ya no pisa ediciones (archivos existentes → `init-state`); permisos/errores visibles en el popup (reautorización con gesto, errores legibles); docs de setup completas (`extension/README.md`). Módulo nuevo `src/kindle-sync-plan.ts`.
+- ⏳ **F5.0 — Puesta en marcha real** (Fede): instalar la extensión, correr el primer sync, una semana de repaso diario. Checklist en el plan §2.2 + instructivo en `docs/obsidian-readqueue-builder/`.
+- ✅ **MX24 — Wishlist de Amazon** (código): la lista pública se trae con `requestUrl()` server-side (verificado contra la wishlist real de Fede, HTTP 200 sin sesión). `src/wishlist.ts` (parse + paginación `showMoreUrl`, fixtures reales) + fichas `shelf: wishlist` en `Books/` vía `reconcileWishlist`. Comando "Sincronizar wishlist de Amazon".
+- ✅ **MX25 — Recomendador "¿Qué leo ahora?"** (código): `src/recommend.ts` puro (context pack de la vault → Claude → nota en `Books/Recomendaciones/AAAA-MM-DD.md`), parser anti-alucinación (descarta ASINs inventados), regla de oro owned-unread → wishlist → nuevo. Helper compartido `src/anthropic.ts` con retry/backoff (classify también lo usa ahora). Comandos `recommend-books` + "Empezar este libro". Default `recommendModel: claude-sonnet-5`.
+- ✅ **MX23 — Modelo de libros** (código): `Books/` en la raíz, setting `booksFolder`, `src/books-data.ts` (fichas + `reconcileWishlist`/`reconcileLibrary`), orphan-mover protege `booksFolder`, comando "Reconciliar biblioteca Kindle" (lee manifiesto `.kindle-library.json`).
+- 🔴 **MX23 — Biblioteca Kindle completa** (BLOQUEADO en Fede): el sync de la biblioteca *que tenés* (no solo libros con highlights) necesita descubrir los endpoints JSON del Cloud Reader con la sesión autenticada de Fede en DevTools. Todo lo downstream (fichas, reconcile, manifiesto) está listo; falta el spike (plan §3.1).
+- ⏳ **F5.4** — spaced repetition real + notas de síntesis: visión escrita, diseño aparte tras validar F5.3.
+
+---
+
 ## Última actualización
 
-2026-06-18 — v0.3.0 publicado (MX11–MX14). MX15 (fix búsqueda mobile) en `main`, pendiente de verificación mobile + corte de v0.3.1. 337 tests verdes, TypeScript estricto pasa, CI verde. Estado por fase: F1 (MVP) ✅ · F2 (polish) ✅ · F3 (multi-source: Kindle + Twitter propios) ✅ parcial · F4 (highlights como producto) ✅. Único pendiente operativo: F1.6 (uso real sostenido) + release v0.3.1.
+2026-07-05 — **F5 en curso.** MX22 (confiabilidad Kindle: fix DOMParser, sidecar en vault, permisos/errores, docs) + MX24 (wishlist → `Books/`) + MX25 (recomendador + helper retry) + MX23 modelo de libros: **shipped en código**, en `[Unreleased]`. 438 tests verdes (+59), TypeScript estricto pasa, extensión buildea. Pendiente de Fede: F5.0 (correr el primer sync real) y el spike de endpoints del Cloud Reader (MX23 biblioteca). Sin release hasta OK explícito. Estado por fase: F1 ✅ · F2 ✅ · F3 ✅ parcial · F4 ✅ · F5 🚧. (Nota: MX15 sigue sin cortar v0.3.1.)
