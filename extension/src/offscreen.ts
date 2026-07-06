@@ -12,7 +12,15 @@ import {
   syncStateToDelivered,
   type DeliveredByAsin,
 } from "../../src/kindle-sync-plan";
-import { loadHandle, verifyPermission } from "./handle-store";
+import { loadHandle, queryHandlePermission } from "./handle-store";
+
+// The offscreen document is a background context with NO user activation, so it
+// must NEVER call requestPermission (that throws SecurityError: "User activation
+// is required"). It only QUERIES the persisted permission; re-granting a lapsed
+// permission happens in the popup ("Reautorizar carpeta"), which has a gesture.
+const hasPermission = async (
+  handle: FileSystemDirectoryHandle,
+): Promise<boolean> => (await queryHandlePermission(handle)) === "granted";
 
 // The offscreen document is the ONLY extension context with a real DOM, so all
 // HTML parsing (MX22-a) and all File System Access writes happen here. The MV3
@@ -70,7 +78,7 @@ async function handleGetVaultState(): Promise<VaultState> {
   if (!handle) {
     return { syncState: empty, delivered: {}, existingSlugs: [], error: "no-handle" };
   }
-  if (!(await verifyPermission(handle))) {
+  if (!(await hasPermission(handle))) {
     return {
       syncState: empty,
       delivered: {},
@@ -114,7 +122,7 @@ async function handleWriteSyncState(
 ): Promise<{ ok: boolean; error?: string }> {
   const handle = await loadHandle();
   if (!handle) return { ok: false, error: "no-handle" };
-  if (!(await verifyPermission(handle))) {
+  if (!(await hasPermission(handle))) {
     return { ok: false, error: "permission-denied" };
   }
   try {
@@ -131,7 +139,7 @@ async function handleWrite(
 ): Promise<{ written: number; errors: string[] }> {
   const handle = await loadHandle();
   if (!handle) return { written: 0, errors: ["no-handle"] };
-  if (!(await verifyPermission(handle))) {
+  if (!(await hasPermission(handle))) {
     return { written: 0, errors: ["permission-denied"] };
   }
   let written = 0;
@@ -166,7 +174,7 @@ async function handleMerge(
 ): Promise<{ results: MergeResult[]; fatal?: string }> {
   const handle = await loadHandle();
   if (!handle) return { results: [], fatal: "no-handle" };
-  if (!(await verifyPermission(handle))) {
+  if (!(await hasPermission(handle))) {
     return { results: [], fatal: "permission-denied" };
   }
   const results: MergeResult[] = [];
