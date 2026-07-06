@@ -6,6 +6,14 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-07-06
+
+> F5: puesta en marcha del ecosistema de libros. Kindle sync confiable + wishlist
+> de Amazon + catálogo de libros + recomendador "¿Qué leo ahora?". Nota: el código
+> de esta versión pasa typecheck + 438 tests + builds, pero se publica como beta
+> (BRAT) sin haber corrido dentro de Obsidian/Chrome. La biblioteca Kindle
+> *completa* (MX23) queda pendiente de un spike de endpoints del Cloud Reader.
+
 ### Fixed
 
 - **Kindle sync: bug fatal del `DOMParser` en el service worker (MX22-a).** La
