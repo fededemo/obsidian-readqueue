@@ -6,6 +6,17 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.4.7] — 2026-07-06
+
+### Fixed
+
+- **El scoring de wishlist se cortaba a la mitad** (p. ej. 90/244): una tanda que
+  fallaba (rate limit / red) abortaba TODA la corrida con un `break`. Ahora una
+  tanda fallida se saltea y sigue con las demás; hay un respiro de 1.2s entre
+  tandas para no chocar con el límite por minuto; tandas más chicas (30). Como los
+  scores quedan cacheados por ficha, **volver a correr el comando completa lo que
+  falta** (no re-scorea lo ya hecho). Si algo falló, la notificación lo dice.
+
 ## [0.4.6] — 2026-07-06
 
 ### Changed

@@ -1311,7 +1311,7 @@ export default class ReadQueuePlugin extends Plugin {
     pack: ContextPack,
     opts: { force?: boolean } = {},
   ): Promise<Map<string, ScoredBook>> {
-    const BATCH = 40;
+    const BATCH = 30;
     const fresh = new Map<string, ScoredBook>();
     const todo = opts.force ? [...cards] : cards.filter((c) => c.matchScore === undefined);
     if (todo.length === 0) return fresh;
@@ -1321,7 +1321,11 @@ export default class ReadQueuePlugin extends Plugin {
       recommendModel: this.settings.recommendModel,
     };
     const deps = { fetchJson: this.anthropicFetchJson };
+    let failedBatches = 0;
     for (let i = 0; i < todo.length; i += BATCH) {
+      // A short breather between batches keeps us under the per-minute token
+      // limit on a burst of ~8 calls.
+      if (i > 0) await sleep(1200);
       const slice = todo.slice(i, i + BATCH);
       new Notice(
         `ReadQueue: scoreando ${Math.min(i + BATCH, todo.length)}/${todo.length} libros…`,
@@ -1337,8 +1341,11 @@ export default class ReadQueuePlugin extends Plugin {
         deps,
       );
       if (res.status !== 200) {
-        new Notice(`ReadQueue: el scoring falló (HTTP ${res.status || "sin red"}).`);
-        break;
+        // Don't abort the whole run on one bad batch — skip it (its books stay
+        // unscored and are picked up on the next run, since scores are cached).
+        failedBatches++;
+        console.warn("ReadQueue score batch failed:", res.status);
+        continue;
       }
       const byAsin = new Map(res.scores.map((s) => [s.asin, s]));
       for (const c of slice) {
@@ -1356,6 +1363,11 @@ export default class ReadQueuePlugin extends Plugin {
           });
         }
       }
+    }
+    if (failedBatches > 0) {
+      new Notice(
+        `ReadQueue: ${failedBatches} tanda(s) fallaron (rate limit / red). Volvé a correr el comando: lo ya scoreado queda cacheado y solo se completan los que faltan.`,
+      );
     }
     return fresh;
   }
@@ -1566,6 +1578,10 @@ export default class ReadQueuePlugin extends Plugin {
 
 function stripTrailingSlash(path: string): string {
   return path.replace(/\/+$/, "");
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
 function localDateSlug(now: Date = new Date()): string {
