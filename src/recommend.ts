@@ -511,6 +511,123 @@ export async function rankWishlist(
   return { ranked: parseWishlistRanking(text, pack), status: response.status, raw: text };
 }
 
+// --- Batched per-book scoring (cache in each ficha) --------------------------
+// Ranking a 244-book wishlist in one call truncates. Instead we score EVERY book
+// in batches, cache the score in its ficha frontmatter, and build the ranking
+// from the cache — complete (every book judged), cheap to re-run (only new books
+// get scored), and each book carries its own matchScore.
+
+export interface ScoredBook {
+  asin: string;
+  score: number;
+  tier: RankTier;
+  reason: string;
+}
+
+export function tierFromScore(score: number): RankTier {
+  return score >= 70 ? "now" : score >= 40 ? "soon" : "someday";
+}
+
+export function buildScoreBatchPrompt(
+  pack: ContextPack,
+  batch: readonly { asin: string; title: string; author?: string }[],
+): string {
+  const lines: string[] = [
+    "You are a discerning reading advisor. Score EACH wishlist book below on 0-100 for how much it deserves this person's next hours of reading, judged against what they actually read and — more tellingly — highlight.",
+    "",
+    "Signal priority: 1) HIGHLIGHTS (what resonated — weigh most), 2) recently-read topics and trajectory, 3) anti-backlog: penalize a topic they already have a big unread pile of.",
+    "Calibrate honestly — do NOT inflate: 90-100 uncanny (rare), 70-89 strong, 40-69 plausible, 0-39 weak / off-trajectory / redundant.",
+    "",
+  ];
+  if (pack.topicDistribution.length > 0) {
+    lines.push(`Recent topic mix: ${pack.topicDistribution.map((t) => `${t.topic}(${t.count})`).join(", ")}`, "");
+  }
+  if (pack.read.length > 0) {
+    lines.push("Recently read:");
+    for (const a of pack.read.slice(0, 15)) lines.push(`- ${a.title}${a.topic ? ` [${a.topic}]` : ""}`);
+    lines.push("");
+  }
+  if (pack.highlights.length > 0) {
+    lines.push("Highlights (what resonated):");
+    for (const h of pack.highlights.slice(0, 20)) lines.push(`- «${truncate(h.text, 160)}»`);
+    lines.push("");
+  }
+  if (pack.queue.length > 0) {
+    lines.push(
+      `Already queued unread (anti-backlog): ${pack.queue.slice(0, 30).map((q) => (q.topic ? `${q.title} [${q.topic}]` : q.title)).join("; ")}`,
+      "",
+    );
+  }
+  lines.push("Books to score (asin — title — author):");
+  for (const b of batch) lines.push(`- ${b.asin} — ${b.title}${b.author ? ` by ${b.author}` : ""}`);
+  lines.push(
+    "",
+    'Reply ONLY JSON: {"scores":[{"asin":"<from the list above>","score":<0-100>,"reason":"one short sentence citing a concrete highlight or read title"}]}',
+    "Score EVERY book in the list above, exactly once each.",
+  );
+  return lines.join("\n");
+}
+
+export function parseScoreBatch(
+  text: string,
+  validAsins: ReadonlySet<string>,
+): ScoredBook[] {
+  const m = text.match(/\{[\s\S]*\}/);
+  if (!m) return [];
+  let parsed: { scores?: unknown } | undefined;
+  try {
+    parsed = JSON.parse(m[0]) as { scores?: unknown };
+  } catch {
+    return [];
+  }
+  const rawList = Array.isArray(parsed?.scores) ? (parsed.scores as Array<Record<string, unknown>>) : [];
+  const seen = new Set<string>();
+  const out: ScoredBook[] = [];
+  for (const r of rawList) {
+    const asin = asStr(r["asin"]);
+    if (!asin || !validAsins.has(asin) || seen.has(asin)) continue;
+    seen.add(asin);
+    const score = typeof r["score"] === "number" ? Math.max(0, Math.min(100, Math.round(r["score"] as number))) : 0;
+    out.push({ asin, score, tier: tierFromScore(score), reason: asStr(r["reason"]) ?? "" });
+  }
+  return out;
+}
+
+export interface ScoreBatchResult {
+  scores: ScoredBook[];
+  status: number;
+  raw?: string;
+}
+
+export async function scoreWishlistBatch(
+  pack: ContextPack,
+  batch: readonly { asin: string; title: string; author?: string }[],
+  settings: RecommendSettings,
+  deps: RecommendDeps,
+): Promise<ScoreBatchResult> {
+  const key = settings.anthropicApiKey?.trim();
+  if (!key) return { scores: [], status: 0 };
+  const response = await postMessagesWithRetry(
+    deps.fetchJson,
+    key,
+    {
+      model: settings.recommendModel || "claude-sonnet-5",
+      max_tokens: deps.maxTokens ?? 4000,
+      thinking: { type: "disabled" },
+      messages: [{ role: "user", content: buildScoreBatchPrompt(pack, batch) }],
+    },
+    deps.retry,
+  );
+  if (response.status !== 200) return { scores: [], status: response.status };
+  const text = extractTextFromMessage(response.json);
+  if (!text) return { scores: [], status: response.status };
+  return {
+    scores: parseScoreBatch(text, new Set(batch.map((b) => b.asin))),
+    status: response.status,
+    raw: text,
+  };
+}
+
 export async function generateRecommendations(
   pack: ContextPack,
   settings: RecommendSettings,

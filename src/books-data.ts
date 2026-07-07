@@ -35,6 +35,11 @@ export interface BookCard {
   firstSeenAt?: string;
   /** Wishlist item that disappeared without being purchased — negative signal. */
   wishlistRemoved?: boolean;
+  /** Cached recommender match score (0-100) + its tier/reason, per book. */
+  matchScore?: number;
+  matchTier?: string;
+  matchReason?: string;
+  matchScoredAt?: string;
   /** vault-relative path of the note. */
   sourcePath: string;
 }
@@ -163,6 +168,13 @@ export function parseBookCard(
   if (firstSeenAt) card.firstSeenAt = firstSeenAt;
   if (fm["hasHighlights"] === true) card.hasHighlights = true;
   if (fm["wishlistRemoved"] === true) card.wishlistRemoved = true;
+  if (typeof fm["matchScore"] === "number") card.matchScore = fm["matchScore"];
+  const matchTier = asString(fm["matchTier"]);
+  if (matchTier) card.matchTier = matchTier;
+  const matchReason = asString(fm["matchReason"]);
+  if (matchReason) card.matchReason = matchReason;
+  const matchScoredAt = asString(fm["matchScoredAt"]);
+  if (matchScoredAt) card.matchScoredAt = matchScoredAt;
   return card;
 }
 

@@ -88,13 +88,16 @@ import {
 } from "./wishlist";
 import {
   generateRecommendations,
-  rankWishlist,
   renderRecommendationNote,
   renderWishlistRankNote,
+  scoreWishlistBatch,
+  tierFromScore,
   type ContextPack,
   type HighlightItem,
   type OwnedBook,
+  type RankedBook,
   type ReadItem,
+  type ScoredBook,
   type WishlistBook,
 } from "./recommend";
 
@@ -342,6 +345,14 @@ export default class ReadQueuePlugin extends Plugin {
       name: "Rankear mi wishlist (¿cuál leer?)",
       callback: () => {
         void this.rankMyWishlist();
+      },
+    });
+
+    this.addCommand({
+      id: "rerank-wishlist",
+      name: "Re-scorear wishlist entera (forzar, ignora cache)",
+      callback: () => {
+        void this.rankMyWishlist({ force: true });
       },
     });
 
@@ -1289,54 +1300,114 @@ export default class ReadQueuePlugin extends Plugin {
     new Notice(`ReadQueue: «${file.basename}» marcado como en lectura.`);
   }
 
-  /** Ranks the whole wishlist by match with reading history/highlights (Opción A). */
-  async rankMyWishlist(): Promise<void> {
+  /**
+   * Scores every wishlist book against the reading context in batches, caching
+   * each score in its ficha frontmatter (matchScore/matchTier/matchReason), then
+   * builds the ranking from the cache. Complete (every book judged) and cheap to
+   * re-run (only unscored books hit the API). Returns fresh scores by asin.
+   */
+  private async scoreWishlistCards(
+    cards: readonly BookCard[],
+    pack: ContextPack,
+    opts: { force?: boolean } = {},
+  ): Promise<Map<string, ScoredBook>> {
+    const BATCH = 40;
+    const fresh = new Map<string, ScoredBook>();
+    const todo = opts.force ? [...cards] : cards.filter((c) => c.matchScore === undefined);
+    if (todo.length === 0) return fresh;
+    const now = new Date().toISOString();
+    const settings = {
+      anthropicApiKey: this.settings.anthropicApiKey,
+      recommendModel: this.settings.recommendModel,
+    };
+    const deps = { fetchJson: this.anthropicFetchJson };
+    for (let i = 0; i < todo.length; i += BATCH) {
+      const slice = todo.slice(i, i + BATCH);
+      new Notice(
+        `ReadQueue: scoreando ${Math.min(i + BATCH, todo.length)}/${todo.length} libros…`,
+      );
+      const res = await scoreWishlistBatch(
+        pack,
+        slice.map((c) => {
+          const b: { asin: string; title: string; author?: string } = { asin: c.asin, title: c.title };
+          if (c.author) b.author = c.author;
+          return b;
+        }),
+        settings,
+        deps,
+      );
+      if (res.status !== 200) {
+        new Notice(`ReadQueue: el scoring falló (HTTP ${res.status || "sin red"}).`);
+        break;
+      }
+      const byAsin = new Map(res.scores.map((s) => [s.asin, s]));
+      for (const c of slice) {
+        const s = byAsin.get(c.asin);
+        if (!s) continue;
+        fresh.set(c.asin, s);
+        const file = this.app.vault.getAbstractFileByPath(c.sourcePath);
+        if (file instanceof TFile) {
+          await this.app.fileManager.processFrontMatter(file, (fm) => {
+            const o = fm as Record<string, unknown>;
+            o["matchScore"] = s.score;
+            o["matchTier"] = s.tier;
+            o["matchReason"] = s.reason;
+            o["matchScoredAt"] = now;
+          });
+        }
+      }
+    }
+    return fresh;
+  }
+
+  /** Ranks the whole wishlist: scores every book (cached per ficha), then renders. */
+  async rankMyWishlist(opts: { force?: boolean } = {}): Promise<void> {
     if (!this.settings.anthropicApiKey?.trim()) {
       new Notice("ReadQueue: configurá tu Anthropic API key para rankear.");
       return;
     }
     await this.syncWishlist();
     const pack = await this.buildContextPack();
-    if (pack.wishlist.length === 0) {
-      new Notice(
-        "ReadQueue: no hay libros en tu wishlist (configurá la URL en settings y sincronizá).",
-      );
+    const cards = this.loadBookCards().filter((c) => c.shelf === "wishlist");
+    if (cards.length === 0) {
+      new Notice("ReadQueue: no hay libros en tu wishlist (configurá la URL y sincronizá).");
       return;
     }
-    new Notice(`ReadQueue: rankeando ${pack.wishlist.length} libros de tu wishlist…`);
-    const res = await rankWishlist(
-      pack,
-      {
-        anthropicApiKey: this.settings.anthropicApiKey,
-        recommendModel: this.settings.recommendModel,
-      },
-      { fetchJson: this.anthropicFetchJson },
+    const pending = opts.force ? cards.length : cards.filter((c) => c.matchScore === undefined).length;
+    new Notice(
+      pending > 0
+        ? `ReadQueue: scoreando ${pending} libros de tu wishlist (los cacheados no se re-scorean)…`
+        : `ReadQueue: rankeando ${cards.length} libros (todo cacheado)…`,
     );
-    if (res.status !== 200) {
-      new Notice(`ReadQueue: el ranking falló (HTTP ${res.status || "sin red"}). Revisá tu API key.`);
+    const freshScores = await this.scoreWishlistCards(cards, pack, opts);
+
+    const ranked: RankedBook[] = [];
+    for (const c of cards) {
+      const s = freshScores.get(c.asin);
+      if (s) {
+        ranked.push({ asin: c.asin, title: c.title, score: s.score, tier: s.tier, reason: s.reason });
+      } else if (c.matchScore !== undefined) {
+        const tier =
+          c.matchTier === "now" || c.matchTier === "soon" || c.matchTier === "someday"
+            ? c.matchTier
+            : tierFromScore(c.matchScore);
+        ranked.push({ asin: c.asin, title: c.title, score: c.matchScore, tier, reason: c.matchReason ?? "" });
+      }
+    }
+    if (ranked.length === 0) {
+      new Notice("ReadQueue: no pude scorear ningún libro. Abrí la consola (Cmd+Opt+I) y revisá.");
       return;
     }
-    if (res.ranked.length === 0) {
-      console.error(
-        "ReadQueue rank: 200 OK but 0 parsed.",
-        "wishlist:",
-        pack.wishlist.length,
-        "raw:",
-        res.raw?.slice(0, 3000),
-      );
-      new Notice(
-        "ReadQueue: el modelo respondió pero no pude parsear el ranking. Abrí la consola (Cmd+Opt+I) y pegame lo que dice, o reintentá.",
-      );
-      return;
-    }
+    ranked.sort((a, b) => b.score - a.score);
+
     const date = localDateSlug();
     const base = stripTrailingSlash(this.settings.booksFolder);
     const dest = `${base}/Rankings/${date}.md`;
-    const content = renderWishlistRankNote(res.ranked, {
+    const content = renderWishlistRankNote(ranked, {
       date,
       model: this.settings.recommendModel,
       generatedAt: new Date().toISOString(),
-      total: pack.wishlist.length,
+      total: cards.length,
     });
     await ensureFolder(this.app, base);
     await ensureFolder(this.app, `${base}/Rankings`);
@@ -1345,7 +1416,7 @@ export default class ReadQueuePlugin extends Plugin {
     else await this.app.vault.create(dest, content);
     const file = this.app.vault.getAbstractFileByPath(dest);
     if (file instanceof TFile) await this.app.workspace.getLeaf(false).openFile(file);
-    new Notice(`ReadQueue: wishlist rankeada (${res.ranked.length} libros) en ${dest}.`);
+    new Notice(`ReadQueue: wishlist rankeada (${ranked.length} libros) en ${dest}.`);
   }
 
   async recommendBooks(): Promise<void> {

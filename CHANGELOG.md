@@ -6,6 +6,19 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.4.6] — 2026-07-06
+
+### Changed
+
+- **El ranking ahora scorea TODOS los libros y cachea el score en cada ficha.**
+  En vez de elegir 30 a ojo, scorea cada libro de la wishlist (en tandas de 40
+  para no truncar) y guarda `matchScore`/`matchTier`/`matchReason` en el
+  frontmatter de su ficha. El ranking se arma desde ese cache: completo (cada
+  libro evaluado), y **re-correr es barato — solo scorea los libros nuevos**.
+  La 1ra corrida de 244 libros son ~7 llamadas (~US$0.18); después, centavos.
+- Comando nuevo **"Re-scorear wishlist entera (forzar, ignora cache)"** para
+  refrescar todos los scores cuando cambie lo que venís leyendo.
+
 ## [0.4.5] — 2026-07-06
 
 ### Changed

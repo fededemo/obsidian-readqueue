@@ -4,10 +4,13 @@ import {
   buildRecommendPrompt,
   generateRecommendations,
   parseRecommendations,
+  parseScoreBatch,
   parseWishlistRanking,
   rankWishlist,
   renderRecommendationNote,
   renderWishlistRankNote,
+  scoreWishlistBatch,
+  tierFromScore,
   type ContextPack,
 } from "../src/recommend";
 
@@ -185,6 +188,44 @@ describe("wishlist ranking", () => {
     );
     expect(res.status).toBe(200);
     expect(res.ranked[0]?.asin).toBe("B0WISH");
+  });
+});
+
+describe("batched scoring", () => {
+  it("tierFromScore thresholds", () => {
+    expect(tierFromScore(90)).toBe("now");
+    expect(tierFromScore(70)).toBe("now");
+    expect(tierFromScore(55)).toBe("soon");
+    expect(tierFromScore(10)).toBe("someday");
+  });
+
+  it("parseScoreBatch keeps only asins in the batch, clamps, derives tier", () => {
+    const valid = new Set(["A", "B"]);
+    const text = JSON.stringify({
+      scores: [
+        { asin: "A", score: 250, reason: "x" },
+        { asin: "B", score: 30, reason: "y" },
+        { asin: "GHOST", score: 99, reason: "no" },
+      ],
+    });
+    const scored = parseScoreBatch(text, valid);
+    expect(scored.map((s) => s.asin)).toEqual(["A", "B"]);
+    expect(scored[0]).toMatchObject({ score: 100, tier: "now" });
+    expect(scored[1]).toMatchObject({ score: 30, tier: "someday" });
+  });
+
+  it("scoreWishlistBatch calls the API and scores the batch", async () => {
+    const reply = {
+      content: [{ type: "text", text: JSON.stringify({ scores: [{ asin: "A", score: 80, reason: "r" }] }) }],
+    };
+    const res = await scoreWishlistBatch(
+      pack(),
+      [{ asin: "A", title: "Book A" }],
+      { anthropicApiKey: "sk", recommendModel: "claude-sonnet-5" },
+      { fetchJson: async () => ({ status: 200, json: reply }), retry: { retries: 0 } },
+    );
+    expect(res.status).toBe(200);
+    expect(res.scores[0]).toMatchObject({ asin: "A", score: 80, tier: "now" });
   });
 });
 
