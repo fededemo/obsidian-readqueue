@@ -6,6 +6,21 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.4.1] — 2026-07-06
+
+### Fixed
+
+- **Frontmatter YAML inválido → "Invalid properties" en Obsidian.** Un valor con
+  `: ` (dos puntos + espacio), típicamente un autor tipo `By: Ayn Rand`, YAML lo
+  lee como un mapping. El serializador ahora entrecomilla cualquier valor que no
+  sea un escalar plano seguro (las URLs `https://…` siguen sin comillas). Aplica a
+  las notas de Kindle y a las fichas de `Books/`. Además, el prefijo `By:`/`Por:`
+  del autor ahora se limpia bien.
+- **Nombres de nota legibles.** Las notas de libros usan el título tal cual
+  (`Atomic Habits.md`) en vez del slug en minúsculas con el ASIN pegado
+  (`atomic-habits-b07jthxnxx.md`). El ASIN queda en el frontmatter como identidad;
+  los `[[links]]` del recomendador siguen el mismo esquema.
+
 ## [0.4.0] — 2026-07-06
 
 > F5: puesta en marcha del ecosistema de libros. Kindle sync confiable + wishlist
