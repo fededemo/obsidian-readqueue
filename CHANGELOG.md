@@ -6,6 +6,24 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.4.2] — 2026-07-06
+
+### Added
+
+- **Comando "Rankear mi wishlist (¿cuál leer?)".** Sincroniza tu wishlist y le
+  pide a Claude que rankee **todos** tus libros de la lista por match con lo que
+  venís leyendo y subrayando, en 3 tiers accionables (Leé ya / Para pronto /
+  Algún día) con un score 0-100 y un porqué de una línea. Reusa el context pack
+  del recomendador; pesa fuerte los highlights y aplica anti-compra-compulsiva.
+  Nota en `Books/Rankings/<fecha>.md`. Default `claude-sonnet-5` (~5-8 ¢/corrida).
+
+### Fixed
+
+- **Highlights de Kindle duplicados.** Cuando un highlight no tenía nota tuya, el
+  markup de Amazon exponía el texto del highlight dentro del elemento de nota →
+  se generaba un "📝 Note: <el mismo highlight>" duplicado. Ahora se descarta la
+  nota cuando solo repite el highlight (se conservan las notas reales).
+
 ## [0.4.1] — 2026-07-06
 
 ### Fixed
