@@ -356,12 +356,20 @@ export const RANK_TIER_LABEL: Readonly<Record<RankTier, string>> = {
 
 export function buildWishlistRankPrompt(pack: ContextPack): string {
   const lines: string[] = [
-    "Rank EVERY book on the user's Amazon wishlist by how well it matches what they actually read and highlight. Return them ALL, once each.",
+    "You are a discerning reading advisor. You know this person's mind through what they read and — more tellingly — through what they stop to highlight. Rank every book on their Amazon wishlist by how much it deserves their next hours of reading, and be honest about it.",
     "",
-    "Signal priority (strongest first):",
-    "1. Highlights — what genuinely resonated (weigh this most).",
-    "2. Recently read topics/titles.",
-    "3. Anti-backlog: if a book's topic is one the user ALREADY has a big unread pile of (see the queue), lower its score and say so — don't encourage hoarding.",
+    "How to judge (in order of signal strength):",
+    "1. HIGHLIGHTS are the strongest signal — they mark what actually grabbed this person, not just what they clicked. A wishlist book that extends, argues with, or deepens a highlighted idea ranks high.",
+    "2. Recently-read topics and titles show current preoccupations and trajectory — where they're heading, not only where they've been.",
+    "3. BACKLOG = saturation, not appetite: if a book piles onto a topic they already have several unread items queued on, penalize it and say so. Pushing more of what they're already drowning in is a disservice.",
+    "",
+    "Scoring — calibrate, do NOT inflate:",
+    "- 90-100: uncanny fit; speaks directly to a highlighted idea or a clear throughline (rare).",
+    "- 70-89: strong, well-motivated match.",
+    "- 40-69: plausible but not compelling right now.",
+    "- 0-39: weak, off-trajectory, or redundant with the backlog.",
+    "Most wishlists have a few real matches and a long tail. Honest low scores are more useful than everything at 80+.",
+    "Each reason must be ONE sentence that cites a SPECIFIC highlight or read title — never a generic \"matches your interest in X\".",
     "",
   ];
   if (pack.topicDistribution.length > 0) {
@@ -397,8 +405,8 @@ export function buildWishlistRankPrompt(pack: ContextPack): string {
   }
   lines.push(
     "",
-    'Reply ONLY JSON: {"ranked":[{"asin":"<from the wishlist above>","score":<0-100>,"tier":"now"|"soon"|"someday","reason":"one short sentence connecting to a concrete read/highlight"}]}',
-    "Include EVERY wishlist asin exactly once. tier: now = read next, soon = queue it, someday = low match.",
+    'Reply ONLY JSON: {"ranked":[{"asin":"<from the wishlist above>","score":<0-100>,"tier":"now"|"soon"|"someday","reason":"one sentence citing a concrete highlight or read title"}]}',
+    "Include EVERY wishlist asin exactly once. tier: now = read next (top matches), soon = worth queuing, someday = low match / can wait.",
   );
   return lines.join("\n");
 }

@@ -6,6 +6,15 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.4.3] — 2026-07-06
+
+### Changed
+
+- **Prompt del ranking de wishlist, nivel "advisor".** Rúbrica de scoring
+  calibrada (90-100 raro / 70-89 fuerte / 40-69 plausible / 0-39 débil, sin
+  inflar), jerarquía de señales explícita (highlights >> lo leído >> anti-backlog)
+  y cada razón obligada a citar un highlight/título concreto (no genéricos).
+
 ## [0.4.2] — 2026-07-06
 
 ### Added
