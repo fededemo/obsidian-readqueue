@@ -356,7 +356,7 @@ export const RANK_TIER_LABEL: Readonly<Record<RankTier, string>> = {
 
 export function buildWishlistRankPrompt(pack: ContextPack): string {
   const lines: string[] = [
-    "You are a discerning reading advisor. You know this person's mind through what they read and — more tellingly — through what they stop to highlight. Rank every book on their Amazon wishlist by how much it deserves their next hours of reading, and be honest about it.",
+    "You are a discerning reading advisor. You know this person's mind through what they read and — more tellingly — through what they stop to highlight. Their wishlist is long; your job is to surface the books that most deserve their next hours of reading — a focused shortlist, NOT a scored catalogue of everything.",
     "",
     "How to judge (in order of signal strength):",
     "1. HIGHLIGHTS are the strongest signal — they mark what actually grabbed this person, not just what they clicked. A wishlist book that extends, argues with, or deepens a highlighted idea ranks high.",
@@ -406,7 +406,7 @@ export function buildWishlistRankPrompt(pack: ContextPack): string {
   lines.push(
     "",
     'Reply ONLY JSON: {"ranked":[{"asin":"<from the wishlist above>","score":<0-100>,"tier":"now"|"soon"|"someday","reason":"one sentence citing a concrete highlight or read title"}]}',
-    "Include EVERY wishlist asin exactly once. tier: now = read next (top matches), soon = worth queuing, someday = low match / can wait.",
+    "Return ONLY the strongest matches, best-first — AT MOST 30 books. Skip the long tail entirely; a sharp shortlist beats scoring all of them. tier: now = read next, soon = worth queuing, someday = a decent match still worth noting.",
   );
   return lines.join("\n");
 }
@@ -444,12 +444,12 @@ export function parseWishlistRanking(text: string, pack: ContextPack): RankedBoo
     out.push({ asin, title: book.title, score, tier, reason: asStr(r["reason"]) ?? "" });
   }
   out.sort((a, b) => b.score - a.score);
-  return out;
+  return out.slice(0, 30); // shortlist safety cap
 }
 
 export function renderWishlistRankNote(
   ranked: readonly RankedBook[],
-  opts: { date: string; model: string; generatedAt: string },
+  opts: { date: string; model: string; generatedAt: string; total?: number },
 ): string {
   const fm = [
     "source: readqueue-wishlist-rank",
@@ -459,6 +459,9 @@ export function renderWishlistRankNote(
     "tags: [ranking]",
   ];
   const body: string[] = [`# Ranking de wishlist · ${opts.date}`, ""];
+  if (opts.total && opts.total > ranked.length) {
+    body.push(`> Las ${ranked.length} mejores de ${opts.total} en tu wishlist.`, "");
+  }
   if (ranked.length === 0) {
     body.push("No pude rankear (revisá la API key / que la wishlist tenga libros).");
   }

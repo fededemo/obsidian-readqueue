@@ -1336,6 +1336,7 @@ export default class ReadQueuePlugin extends Plugin {
       date,
       model: this.settings.recommendModel,
       generatedAt: new Date().toISOString(),
+      total: pack.wishlist.length,
     });
     await ensureFolder(this.app, base);
     await ensureFolder(this.app, `${base}/Rankings`);

@@ -6,6 +6,16 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.4.5] — 2026-07-06
+
+### Changed
+
+- **El ranking devuelve una shortlist, no la lista entera.** Con wishlists grandes
+  (p. ej. 244 libros) pedir que rankee todo generaba ~10k tokens de salida →
+  truncaba el JSON → nota vacía. Ahora el prompt pide **los ~30 mejores** (tope
+  30, resto ignorado): más útil, más barato (~4 ¢), rápido y sin truncar. La nota
+  aclara "las N mejores de M".
+
 ## [0.4.4] — 2026-07-06
 
 ### Fixed
