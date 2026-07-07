@@ -1311,7 +1311,7 @@ export default class ReadQueuePlugin extends Plugin {
     pack: ContextPack,
     opts: { force?: boolean } = {},
   ): Promise<Map<string, ScoredBook>> {
-    const BATCH = 30;
+    const BATCH = 50;
     const fresh = new Map<string, ScoredBook>();
     const todo = opts.force ? [...cards] : cards.filter((c) => c.matchScore === undefined);
     if (todo.length === 0) return fresh;
@@ -1327,10 +1327,11 @@ export default class ReadQueuePlugin extends Plugin {
       retry: { retries: 4, baseDelayMs: 3000 },
     };
     let failedBatches = 0;
+    let lastFailStatus = 0;
     for (let i = 0; i < todo.length; i += BATCH) {
       // A short breather between batches keeps us under the per-minute token
-      // limit on a burst of ~8 calls.
-      if (i > 0) await sleep(1200);
+      // limit on a burst of calls.
+      if (i > 0) await sleep(1500);
       const slice = todo.slice(i, i + BATCH);
       new Notice(
         `ReadQueue: scoreando ${Math.min(i + BATCH, todo.length)}/${todo.length} libros…`,
@@ -1349,7 +1350,8 @@ export default class ReadQueuePlugin extends Plugin {
         // Don't abort the whole run on one bad batch — skip it (its books stay
         // unscored and are picked up on the next run, since scores are cached).
         failedBatches++;
-        console.warn("ReadQueue score batch failed:", res.status);
+        lastFailStatus = res.status;
+        console.warn("ReadQueue score batch failed, HTTP", res.status);
         continue;
       }
       const byAsin = new Map(res.scores.map((s) => [s.asin, s]));
@@ -1370,8 +1372,19 @@ export default class ReadQueuePlugin extends Plugin {
       }
     }
     if (failedBatches > 0) {
+      const diag =
+        lastFailStatus === 429
+          ? "HTTP 429 — rate limit de Anthropic (esperá unos minutos y reintentá)."
+          : lastFailStatus === 400 || lastFailStatus === 401 || lastFailStatus === 403
+            ? `HTTP ${lastFailStatus} — problema con la API key o créditos (revisá tu cuenta de Anthropic).`
+            : lastFailStatus === 0
+              ? "sin conexión / bloqueo de red."
+              : `HTTP ${lastFailStatus}.`;
       new Notice(
-        `ReadQueue: ${failedBatches} tanda(s) fallaron (rate limit / red). Volvé a correr el comando: lo ya scoreado queda cacheado y solo se completan los que faltan.`,
+        fresh.size === 0
+          ? `ReadQueue: no se scoreó ningún libro — todas las tandas fallaron: ${diag}`
+          : `ReadQueue: ${failedBatches} tanda(s) fallaron (${diag}). Reintentá; lo scoreado queda cacheado.`,
+        12000,
       );
     }
     return fresh;
