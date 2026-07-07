@@ -53,7 +53,15 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg && msg.type === "sync-now") {
-    void syncOnce("manual").then((res) => sendResponse(res));
+    // Always answer, even if syncOnce rejects — otherwise the popup hangs on
+    // "Sincronizando…" forever (the message port never closes).
+    void syncOnce("manual")
+      .then((res) => sendResponse(res))
+      .catch((err) =>
+        sendResponse(
+          emptyResult("error", [err instanceof Error ? err.message : String(err)]),
+        ),
+      );
     return true;
   }
   if (msg && msg.type === "reset-known") {
@@ -105,19 +113,38 @@ async function notify(title: string, message: string): Promise<void> {
 }
 
 async function ensureOffscreen(): Promise<void> {
-  const ctxes = await chrome.runtime.getContexts({
-    contextTypes: ["OFFSCREEN_DOCUMENT" as chrome.runtime.ContextType],
-  });
-  if (ctxes.length > 0) return;
-  await chrome.offscreen.createDocument({
-    url: "offscreen.html",
-    reasons: [
-      "DOM_PARSER" as chrome.offscreen.Reason,
-      "BLOBS" as chrome.offscreen.Reason,
-    ],
-    justification:
-      "Parse Amazon HTML (DOMParser) and write files to the vault (File System Access) — neither exists in the MV3 service worker.",
-  });
+  // Fast path: reuse an existing offscreen doc if getContexts is available
+  // (Chrome 116+). If it's missing/throws, fall through to create-and-tolerate.
+  try {
+    const getContexts = (
+      chrome.runtime as unknown as {
+        getContexts?: (f: { contextTypes: string[] }) => Promise<unknown[]>;
+      }
+    ).getContexts;
+    if (typeof getContexts === "function") {
+      const ctxes = await getContexts.call(chrome.runtime, {
+        contextTypes: ["OFFSCREEN_DOCUMENT"],
+      });
+      if (ctxes.length > 0) return;
+    }
+  } catch {
+    // ignore — try to create instead
+  }
+  try {
+    await chrome.offscreen.createDocument({
+      url: "offscreen.html",
+      reasons: [
+        "DOM_PARSER" as chrome.offscreen.Reason,
+        "BLOBS" as chrome.offscreen.Reason,
+      ],
+      justification:
+        "Parse Amazon HTML (DOMParser) and write files to the vault (File System Access) — neither exists in the MV3 service worker.",
+    });
+  } catch (err) {
+    // A document already exists (raced, or a prior run left it open) → fine.
+    const msg = err instanceof Error ? err.message : String(err);
+    if (!/single offscreen document/i.test(msg)) throw err;
+  }
 }
 
 async function closeOffscreen(): Promise<void> {
@@ -190,8 +217,8 @@ function emptyResult(status: SyncResult["status"], errors: string[]): SyncResult
 }
 
 export async function syncOnce(trigger: SyncTrigger): Promise<SyncResult> {
-  await ensureOffscreen();
   try {
+    await ensureOffscreen();
     return await runSync(trigger);
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
