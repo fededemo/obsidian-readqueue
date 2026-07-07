@@ -1,4 +1,4 @@
-import { slugifyForFilename } from "./slugify";
+import { titleToFilename } from "./slugify";
 
 export interface KindleBook {
   asin: string;
@@ -32,7 +32,7 @@ const LIBRARY_ITEM_RE =
   /<div[^>]*class="[^"]*kp-notebook-library-each-book[^"]*"[^>]*data-asin="([^"]+)"[\s\S]*?<\/div>\s*<\/div>/g;
 const TITLE_RE =
   /class="[^"]*kp-notebook-searchable[^"]*"[^>]*>\s*([\s\S]*?)\s*</;
-const AUTHOR_RE = />\s*(?:Por|By)\s+([^<]+)</i;
+const AUTHOR_RE = />\s*(?:Por|By)[:\s]\s*([^<]+)</i;
 const COVER_RE = /<img[^>]*src="([^"]+)"/;
 
 export function parseLibrary(
@@ -58,7 +58,7 @@ export function parseLibrary(
     if (!title) continue;
     const authorRaw = (authorEl?.textContent ?? "").trim();
     const author = authorRaw
-      ? authorRaw.replace(/^(?:Por|By)\s+/i, "").trim() || undefined
+      ? authorRaw.replace(/^\s*(?:Por|By)\b[:\s]+/i, "").trim() || undefined
       : undefined;
     const coverUrl = coverEl?.getAttribute("src") ?? undefined;
     out.push({ asin, title, author, coverUrl });
@@ -115,10 +115,19 @@ export function parseBookHighlights(
   return { book, highlights };
 }
 
-const YAML_ESCAPE_RE = /["\\\n]/;
-
 function yamlScalar(value: string): string {
-  if (!YAML_ESCAPE_RE.test(value) && !/^[\s-]|[:\s]$/.test(value)) return value;
+  // Quote whenever the value would be invalid or ambiguous as a plain YAML
+  // scalar. Notably `: ` (colon+space, e.g. "By: Ayn Rand") makes it a mapping —
+  // that's what triggered Obsidian's "Invalid properties". URLs like
+  // `https://…` stay unquoted (the colon isn't followed by a space).
+  const unsafe =
+    value === "" ||
+    /["\\\n]/.test(value) ||
+    /:\s|:$/.test(value) ||
+    /\s#/.test(value) ||
+    /^\s|\s$/.test(value) ||
+    /^[-?:,[\]{}#&*!|>'"%@`]/.test(value);
+  if (!unsafe) return value;
   return `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n")}"`;
 }
 
@@ -179,6 +188,6 @@ export function buildBookMarkdown(
   }
 
   const content = `---\n${fmLines.join("\n")}\n---\n\n${bodyLines.join("\n")}`;
-  const slug = slugifyForFilename(`${book.title}-${book.asin}`);
+  const slug = titleToFilename(book.title);
   return { content, slug };
 }

@@ -19,7 +19,7 @@ import {
   type KindleHighlight,
 } from "../src/kindle";
 import { mergeHighlightsIntoMarkdown, planMerge } from "../src/kindle-merge";
-import { slugifyForFilename } from "../src/slugify";
+import { titleToFilename } from "../src/slugify";
 
 export {
   buildBookMarkdown,
@@ -256,7 +256,7 @@ export async function run(args: CliArgs, deps: RunDeps = {}): Promise<RunSummary
         continue;
       }
       const data = parseBookHighlights(bookRes.text, book, parseDom);
-      const slug = slugifyForFilename(`${book.title}-${book.asin}`);
+      const slug = titleToFilename(book.title);
       const destPath = path.join(args.dest, `${slug}.md`);
       const tag = `[${i + 1}/${books.length}]`;
 

@@ -108,8 +108,8 @@ describe("renderRecommendationNote", () => {
     expect(note).toContain("source: readqueue-recommend");
     expect(note).toContain("recommendedAsins: [B0OWNED]");
     expect(note).toContain("model: claude-sonnet-5");
-    // book link resolves to the ficha slug
-    expect(note).toMatch(/\[\[the-dictator-s-handbook-b0owned\|The Dictator's Handbook\]\]/);
+    // book link resolves to the readable ficha filename
+    expect(note).toContain("[[The Dictator's Handbook|The Dictator's Handbook]]");
     // connects_to link resolves to the read-article basename
     expect(note).toContain("[[why-nations-fail|Why nations fail]]");
     expect(note).toContain("Empezá por lo que ya tenés");

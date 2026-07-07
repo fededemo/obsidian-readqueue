@@ -5,7 +5,7 @@
 // the recommender needs. No Obsidian imports here — vault I/O lives in main.ts;
 // this module only handles data shapes, markdown building, and reconciliation.
 
-import { slugifyForFilename } from "./slugify";
+import { titleToFilename } from "./slugify";
 
 export type Shelf = "owned" | "sample" | "borrowed" | "wishlist";
 export type ReadingStatus = "unread" | "reading" | "read" | "abandoned";
@@ -57,10 +57,17 @@ export const BOOK_CARD_SOURCE = {
 
 // --- Markdown building -------------------------------------------------------
 
-const YAML_ESCAPE_RE = /["\\\n]/;
-
 function yamlScalar(value: string): string {
-  if (!YAML_ESCAPE_RE.test(value) && !/^[\s-]|[:\s]$/.test(value)) return value;
+  // See kindle.ts — quote anything that isn't a safe plain YAML scalar so a
+  // ": " in a value (e.g. "By: Author") can't produce "Invalid properties".
+  const unsafe =
+    value === "" ||
+    /["\\\n]/.test(value) ||
+    /:\s|:$/.test(value) ||
+    /\s#/.test(value) ||
+    /^\s|\s$/.test(value) ||
+    /^[-?:,[\]{}#&*!|>'"%@`]/.test(value);
+  if (!unsafe) return value;
   return `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n")}"`;
 }
 
@@ -71,8 +78,10 @@ export interface BookCardMarkdown {
 
 /** Same slug scheme as Kindle highlight notes (`title-asin`), so a card and its
  * highlight note match trivially. */
-export function bookCardSlug(title: string, asin: string): string {
-  return slugifyForFilename(`${title}-${asin}`);
+// asin kept in the signature for call-site stability; the readable title is
+// unique enough for a personal library and reads far better as a filename.
+export function bookCardSlug(title: string, _asin?: string): string {
+  return titleToFilename(title);
 }
 
 export function buildBookCardMarkdown(

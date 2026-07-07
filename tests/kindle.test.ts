@@ -117,14 +117,26 @@ describe("buildBookMarkdown", () => {
     expect(md.content).toContain("📝 Important framing");
   });
 
-  it("slug is filesystem-safe", () => {
+  it("slug is a readable, filesystem-safe filename", () => {
     const data = parseBookHighlights(
       fixture("kindle-book-highlights.html"),
       book,
       parseDom,
     );
     const md = buildBookMarkdown(data, "personal");
-    expect(md.slug).toMatch(/^atomic-habits-b07jthxnxx$/);
+    expect(md.slug).toBe("Atomic Habits");
+    expect(md.slug).not.toMatch(/[\\/:*?"<>|#^[\]]/);
+  });
+
+  it("quotes a colon-bearing author so the YAML stays valid", () => {
+    const md = buildBookMarkdown(
+      { book: { asin: "B1", title: "T", author: "By: Ayn Rand", coverUrl: undefined }, highlights: [] },
+      "otros",
+    );
+    // must be quoted (": " would otherwise be invalid YAML → "Invalid properties")
+    expect(md.content).toContain('author: "By: Ayn Rand"');
+    // a plain URL stays unquoted
+    expect(md.content).toMatch(/url: https:\/\/read\.amazon\.com/);
   });
 });
 
