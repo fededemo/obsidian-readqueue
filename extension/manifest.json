@@ -13,6 +13,7 @@
     "default_popup": "popup.html",
     "default_title": "ReadQueue Kindle Sync"
   },
+  "options_page": "setup.html",
   "icons": {
     "128": "icon-128.png"
   }

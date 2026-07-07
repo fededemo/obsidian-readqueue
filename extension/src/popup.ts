@@ -1,11 +1,4 @@
-import {
-  clearHandle,
-  loadHandle,
-  queryHandlePermission,
-  requestHandlePermission,
-  saveHandle,
-  verifyPermission,
-} from "./handle-store";
+import { clearHandle, loadHandle, queryHandlePermission } from "./handle-store";
 import type { DeliveredByAsin } from "../../src/kindle-sync-plan";
 
 interface StoredState {
@@ -46,11 +39,6 @@ function friendlyError(code: string): string {
   return `⚠ ${code}`;
 }
 
-/** Tracks whether the saved handle currently has write permission, so the
- * folder button can offer "Reautorizar" (a gesture that can call
- * requestPermission) instead of re-opening the picker. */
-let needsReauth = false;
-
 async function refresh(): Promise<void> {
   const folderStatus = $<HTMLDivElement>("folder-status");
   const folderBtn = $<HTMLButtonElement>("choose-folder");
@@ -58,23 +46,21 @@ async function refresh(): Promise<void> {
   const errorEl = $<HTMLDivElement>("error");
 
   const handle = await loadHandle();
-  needsReauth = false;
   if (handle) {
     const perm = await queryHandlePermission(handle);
     if (perm === "granted") {
       folderStatus.textContent = `Carpeta: ${handle.name}`;
       folderStatus.classList.remove("warn");
-      folderBtn.textContent = "Cambiar carpeta";
+      folderBtn.textContent = "Cambiar carpeta (config) →";
     } else {
-      needsReauth = true;
-      folderStatus.textContent = `⚠ Sin permiso sobre «${handle.name}». El auto-sync está pausado.`;
+      folderStatus.textContent = `⚠ Sin permiso sobre «${handle.name}». Tocá el botón para reautorizar en la página de config.`;
       folderStatus.classList.add("warn");
-      folderBtn.textContent = "Reautorizar carpeta";
+      folderBtn.textContent = "Reautorizar carpeta →";
     }
   } else {
     folderStatus.textContent = "Sin carpeta configurada.";
     folderStatus.classList.remove("warn");
-    folderBtn.textContent = "Elegir carpeta de la vault";
+    folderBtn.textContent = "Configurar carpeta de la vault →";
   }
 
   const state = (await new Promise<StoredState>((resolve) =>
@@ -91,34 +77,11 @@ async function refresh(): Promise<void> {
   }
 }
 
-$<HTMLButtonElement>("choose-folder").addEventListener("click", async () => {
-  try {
-    // Re-grant path: an existing handle whose permission lapsed only needs a
-    // requestPermission gesture — no need to re-pick the folder.
-    if (needsReauth) {
-      const handle = await loadHandle();
-      if (handle) {
-        const granted = await requestHandlePermission(handle);
-        if (granted === "granted") {
-          await refresh();
-          return;
-        }
-      }
-    }
-    const handle = await (window as unknown as {
-      showDirectoryPicker: (opts: { mode: "read" | "readwrite" }) => Promise<FileSystemDirectoryHandle>;
-    }).showDirectoryPicker({ mode: "readwrite" });
-    if (!(await verifyPermission(handle))) {
-      alert("Permiso denegado. Probá de nuevo.");
-      return;
-    }
-    await saveHandle(handle);
-    await refresh();
-  } catch (err) {
-    if (err instanceof Error && err.name !== "AbortError") {
-      alert(`Error eligiendo carpeta: ${err.message}`);
-    }
-  }
+$<HTMLButtonElement>("choose-folder").addEventListener("click", () => {
+  // File System Access from a popup is unreliable — the popup is dismissed when
+  // the directory picker / permission prompt opens, so the grant never lands.
+  // Do folder setup on a full page (setup.html, the options page) instead.
+  void chrome.runtime.openOptionsPage();
 });
 
 $<HTMLButtonElement>("sync-now").addEventListener("click", async () => {

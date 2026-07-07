@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>ReadQueue Kindle Sync — Configuración</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      max-width: 560px;
+      margin: 40px auto;
+      padding: 0 20px;
+      font-size: 15px;
+      line-height: 1.6;
+      color: #1f1f1f;
+    }
+    h1 { font-size: 20px; margin-bottom: 4px; }
+    .sub { color: #666; margin-top: 0; }
+    #status {
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-weight: 600;
+      margin: 20px 0 6px;
+    }
+    #status.ok { background: #dcfce7; color: #166534; }
+    #status.warn { background: #fef3c7; color: #92400e; }
+    #detail { color: #555; margin: 0 0 20px; }
+    button {
+      display: block;
+      width: 100%;
+      padding: 12px 16px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 15px;
+    }
+    button:hover { background: #f5f5f5; }
+    button.primary { background: #2563eb; color: #fff; border-color: #2563eb; }
+    button.primary:hover { background: #1d4ed8; }
+    button.danger { color: #b91c1c; }
+    ol { color: #444; padding-left: 22px; }
+    code { background: #f1f1f1; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+    .note { font-size: 13px; color: #777; border-top: 1px solid #eee; margin-top: 24px; padding-top: 14px; }
+  </style>
+</head>
+<body>
+  <h1>ReadQueue Kindle Sync</h1>
+  <p class="sub">Configuración de la carpeta de la vault</p>
+
+  <div id="status">Cargando…</div>
+  <p id="detail"></p>
+
+  <button id="choose" class="primary">Elegir carpeta de la vault</button>
+  <button id="reauth">Reautorizar carpeta</button>
+  <button id="forget" class="danger">Olvidar carpeta</button>
+
+  <ol>
+    <li>Tocá <b>"Elegir carpeta de la vault"</b>.</li>
+    <li>Navegá a <code>…/fedenotes/Inbox/Kindle</code> y seleccionala.</li>
+    <li>En el cartel de Chrome, elegí <b>"Edit files" / "Editar archivos"</b> (y "on every visit" si aparece).</li>
+    <li>Cuando el recuadro de arriba diga <b>✅ permiso OK</b>, volvé al popup de la extensión y tocá <b>"Sincronizar ahora"</b>.</li>
+  </ol>
+
+  <p class="note">Esta pestaña es una página completa (no el popup) a propósito: el
+    permiso de la File System Access API se otorga y persiste de forma confiable
+    acá, cosa que en el popup se rompe cuando se abre el diálogo del sistema.</p>
+
+  <script type="module" src="setup.js"></script>
+</body>
+</html>

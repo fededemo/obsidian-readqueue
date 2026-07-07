@@ -16,6 +16,7 @@ const entryPoints = {
   background: "src/background.ts",
   popup: "src/popup.ts",
   offscreen: "src/offscreen.ts",
+  setup: "src/setup.ts",
 };
 
 for (const [name, entry] of Object.entries(entryPoints)) {
