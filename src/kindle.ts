@@ -108,11 +108,30 @@ export function parseBookHighlights(
     const noteEl = block.querySelector(
       "#note, .kp-notebook-note, .kp-notebook-note-text",
     );
-    const noteText = (noteEl?.textContent ?? "").trim();
-    const note = noteText && noteText !== "[Add a note]" ? noteText : undefined;
+    const note = cleanHighlightNote(noteEl?.textContent ?? undefined, text);
     highlights.push({ text, location, note });
   }
   return { book, highlights };
+}
+
+/**
+ * Amazon's notebook markup sometimes surfaces the highlight text itself (or a
+ * "Note:" placeholder) inside the note element when there is no real user note,
+ * which produced duplicated "📝 Note: <same highlight>" blocks. Drop the note
+ * when, after stripping a leading "Note:" label and blockquote markers, it just
+ * repeats the highlight; keep genuine notes.
+ */
+export function cleanHighlightNote(
+  rawNote: string | undefined,
+  text: string,
+): string | undefined {
+  if (!rawNote) return undefined;
+  const cleaned = rawNote.replace(/^\s*note:\s*/i, "").trim();
+  if (!cleaned || cleaned === "[Add a note]") return undefined;
+  const norm = (s: string): string =>
+    s.replace(/^>\s?/gm, "").replace(/\s+/g, " ").trim().toLowerCase();
+  if (norm(cleaned) === norm(text)) return undefined;
+  return cleaned;
 }
 
 function yamlScalar(value: string): string {

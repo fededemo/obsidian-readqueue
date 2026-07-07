@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   buildBookMarkdown,
+  cleanHighlightNote,
   parseBookHighlights,
   parseLibrary,
   type KindleBook,
@@ -126,6 +127,18 @@ describe("buildBookMarkdown", () => {
     const md = buildBookMarkdown(data, "personal");
     expect(md.slug).toBe("Atomic Habits");
     expect(md.slug).not.toMatch(/[\\/:*?"<>|#^[\]]/);
+  });
+
+  it("drops a fake note that just repeats the highlight (no duplicates)", () => {
+    const text = "say hunger is the greatest seasoning";
+    // note element surfaced the highlight itself → must be dropped
+    expect(cleanHighlightNote(text, text)).toBeUndefined();
+    expect(cleanHighlightNote(`Note:\n\n> ${text}`, text)).toBeUndefined();
+    expect(cleanHighlightNote("[Add a note]", text)).toBeUndefined();
+    expect(cleanHighlightNote(undefined, text)).toBeUndefined();
+    // a genuine, different note is kept (and its "Note:" label stripped)
+    expect(cleanHighlightNote("Note: my own thought", text)).toBe("my own thought");
+    expect(cleanHighlightNote("connects to Attia", text)).toBe("connects to Attia");
   });
 
   it("quotes a colon-bearing author so the YAML stays valid", () => {

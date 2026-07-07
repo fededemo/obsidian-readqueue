@@ -4,7 +4,10 @@ import {
   buildRecommendPrompt,
   generateRecommendations,
   parseRecommendations,
+  parseWishlistRanking,
+  rankWishlist,
   renderRecommendationNote,
+  renderWishlistRankNote,
   type ContextPack,
 } from "../src/recommend";
 
@@ -123,6 +126,65 @@ describe("renderRecommendationNote", () => {
       generatedAt: "t",
     });
     expect(note).toContain("No pude generar recomendaciones");
+  });
+});
+
+describe("wishlist ranking", () => {
+  const p = pack({
+    wishlist: [
+      { asin: "B0WISH", title: "The Narrow Corridor" },
+      { asin: "B0TWO", title: "Second Book" },
+    ],
+  });
+
+  it("parses ranked books, keeps only real asins, sorts by score", () => {
+    const text = JSON.stringify({
+      ranked: [
+        { asin: "B0TWO", score: 55, tier: "soon", reason: "b" },
+        { asin: "B0WISH", score: 90, tier: "now", reason: "a" },
+        { asin: "B0FAKE", score: 99, tier: "now", reason: "hallucinated" },
+      ],
+    });
+    const ranked = parseWishlistRanking(text, p);
+    expect(ranked.map((r) => r.asin)).toEqual(["B0WISH", "B0TWO"]); // fake dropped, sorted
+    expect(ranked[0]).toMatchObject({ title: "The Narrow Corridor", score: 90, tier: "now" });
+  });
+
+  it("clamps score and falls back to a tier from the score", () => {
+    const text = JSON.stringify({ ranked: [{ asin: "B0WISH", score: 250, reason: "x" }] });
+    const ranked = parseWishlistRanking(text, p);
+    expect(ranked[0]?.score).toBe(100);
+    expect(ranked[0]?.tier).toBe("now"); // 100 >= 70
+  });
+
+  it("renders tiers with resolvable links", () => {
+    const note = renderWishlistRankNote(
+      [
+        { asin: "B0WISH", title: "The Narrow Corridor", score: 90, tier: "now", reason: "matches macro" },
+        { asin: "B0TWO", title: "Second Book", score: 30, tier: "someday", reason: "" },
+      ],
+      { date: "2026-07-06", model: "claude-sonnet-5", generatedAt: "t" },
+    );
+    expect(note).toContain("source: readqueue-wishlist-rank");
+    expect(note).toContain("📗 Leé ya");
+    expect(note).toContain("[[The Narrow Corridor|The Narrow Corridor]]");
+    expect(note).toContain("90/100 — matches macro");
+    expect(note).toContain("📙 Algún día");
+  });
+
+  it("rankWishlist calls the API and parses", async () => {
+    const reply = {
+      content: [
+        { type: "text", text: JSON.stringify({ ranked: [{ asin: "B0WISH", score: 80, tier: "now", reason: "r" }] }) },
+      ],
+    };
+    const res = await rankWishlist(
+      p,
+      { anthropicApiKey: "sk", recommendModel: "claude-sonnet-5" },
+      { fetchJson: async () => ({ status: 200, json: reply }), retry: { retries: 0 } },
+    );
+    expect(res.status).toBe(200);
+    expect(res.ranked[0]?.asin).toBe("B0WISH");
   });
 });
 

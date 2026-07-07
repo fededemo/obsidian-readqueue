@@ -88,7 +88,9 @@ import {
 } from "./wishlist";
 import {
   generateRecommendations,
+  rankWishlist,
   renderRecommendationNote,
+  renderWishlistRankNote,
   type ContextPack,
   type HighlightItem,
   type OwnedBook,
@@ -332,6 +334,14 @@ export default class ReadQueuePlugin extends Plugin {
       name: "¿Qué leo ahora? (recomendar libros)",
       callback: () => {
         void this.recommendBooks();
+      },
+    });
+
+    this.addCommand({
+      id: "rank-wishlist",
+      name: "Rankear mi wishlist (¿cuál leer?)",
+      callback: () => {
+        void this.rankMyWishlist();
       },
     });
 
@@ -1249,6 +1259,51 @@ export default class ReadQueuePlugin extends Plugin {
       (fm as Record<string, unknown>)["readingStatus"] = "reading";
     });
     new Notice(`ReadQueue: «${file.basename}» marcado como en lectura.`);
+  }
+
+  /** Ranks the whole wishlist by match with reading history/highlights (Opción A). */
+  async rankMyWishlist(): Promise<void> {
+    if (!this.settings.anthropicApiKey?.trim()) {
+      new Notice("ReadQueue: configurá tu Anthropic API key para rankear.");
+      return;
+    }
+    await this.syncWishlist();
+    const pack = await this.buildContextPack();
+    if (pack.wishlist.length === 0) {
+      new Notice(
+        "ReadQueue: no hay libros en tu wishlist (configurá la URL en settings y sincronizá).",
+      );
+      return;
+    }
+    new Notice(`ReadQueue: rankeando ${pack.wishlist.length} libros de tu wishlist…`);
+    const res = await rankWishlist(
+      pack,
+      {
+        anthropicApiKey: this.settings.anthropicApiKey,
+        recommendModel: this.settings.recommendModel,
+      },
+      { fetchJson: this.anthropicFetchJson },
+    );
+    if (res.status !== 200) {
+      new Notice(`ReadQueue: el ranking falló (${res.status || "sin red"}).`);
+      return;
+    }
+    const date = localDateSlug();
+    const base = stripTrailingSlash(this.settings.booksFolder);
+    const dest = `${base}/Rankings/${date}.md`;
+    const content = renderWishlistRankNote(res.ranked, {
+      date,
+      model: this.settings.recommendModel,
+      generatedAt: new Date().toISOString(),
+    });
+    await ensureFolder(this.app, base);
+    await ensureFolder(this.app, `${base}/Rankings`);
+    const existing = this.app.vault.getAbstractFileByPath(dest);
+    if (existing instanceof TFile) await this.app.vault.modify(existing, content);
+    else await this.app.vault.create(dest, content);
+    const file = this.app.vault.getAbstractFileByPath(dest);
+    if (file instanceof TFile) await this.app.workspace.getLeaf(false).openFile(file);
+    new Notice(`ReadQueue: wishlist rankeada (${res.ranked.length} libros) en ${dest}.`);
   }
 
   async recommendBooks(): Promise<void> {

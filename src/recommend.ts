@@ -332,6 +332,172 @@ export interface RecommendResult {
   raw?: string;
 }
 
+// --- Wishlist ranking (Opción A) --------------------------------------------
+// Reuses the ContextPack + anthropic helper. Ranks EVERY wishlist book by match
+// with what the user reads/highlights, into 3 actionable tiers. Cheaper output
+// than free-form recs: asks only for asin+score+tier+reason (title comes from
+// the pack, so the model can't hallucinate a title and we save output tokens).
+
+export type RankTier = "now" | "soon" | "someday";
+
+export interface RankedBook {
+  asin: string;
+  title: string;
+  score: number; // 0-100
+  tier: RankTier;
+  reason: string;
+}
+
+export const RANK_TIER_LABEL: Readonly<Record<RankTier, string>> = {
+  now: "📗 Leé ya",
+  soon: "📘 Para pronto",
+  someday: "📙 Algún día",
+};
+
+export function buildWishlistRankPrompt(pack: ContextPack): string {
+  const lines: string[] = [
+    "Rank EVERY book on the user's Amazon wishlist by how well it matches what they actually read and highlight. Return them ALL, once each.",
+    "",
+    "Signal priority (strongest first):",
+    "1. Highlights — what genuinely resonated (weigh this most).",
+    "2. Recently read topics/titles.",
+    "3. Anti-backlog: if a book's topic is one the user ALREADY has a big unread pile of (see the queue), lower its score and say so — don't encourage hoarding.",
+    "",
+  ];
+  if (pack.topicDistribution.length > 0) {
+    lines.push(
+      `Recent topic mix: ${pack.topicDistribution.map((t) => `${t.topic}(${t.count})`).join(", ")}`,
+      "",
+    );
+  }
+  if (pack.read.length > 0) {
+    lines.push("Recently read:");
+    for (const a of pack.read.slice(0, 25)) lines.push(`- ${a.title}${a.topic ? ` [${a.topic}]` : ""}`);
+    lines.push("");
+  }
+  if (pack.highlights.length > 0) {
+    lines.push("Highlights (what resonated):");
+    for (const h of pack.highlights.slice(0, 30)) lines.push(`- «${truncate(h.text, 180)}» (${h.title})`);
+    lines.push("");
+  }
+  if (pack.queue.length > 0) {
+    lines.push(
+      `Already queued unread (anti-backlog): ${pack.queue
+        .slice(0, 40)
+        .map((q) => (q.topic ? `${q.title} [${q.topic}]` : q.title))
+        .join("; ")}`,
+      "",
+    );
+  }
+  lines.push("Wishlist to rank (asin — title — author):");
+  for (const b of pack.wishlist) {
+    lines.push(
+      `- ${b.asin} — ${b.title}${b.author ? ` by ${b.author}` : ""}${b.wishlistRemoved ? " (removed — weak)" : ""}`,
+    );
+  }
+  lines.push(
+    "",
+    'Reply ONLY JSON: {"ranked":[{"asin":"<from the wishlist above>","score":<0-100>,"tier":"now"|"soon"|"someday","reason":"one short sentence connecting to a concrete read/highlight"}]}',
+    "Include EVERY wishlist asin exactly once. tier: now = read next, soon = queue it, someday = low match.",
+  );
+  return lines.join("\n");
+}
+
+export function parseWishlistRanking(text: string, pack: ContextPack): RankedBook[] {
+  const match = text.match(/\{[\s\S]*\}/);
+  if (!match) return [];
+  let parsed: { ranked?: unknown } | undefined;
+  try {
+    parsed = JSON.parse(match[0]) as { ranked?: unknown };
+  } catch {
+    return [];
+  }
+  const rawList = Array.isArray(parsed?.ranked) ? (parsed.ranked as Array<Record<string, unknown>>) : [];
+  const byAsin = new Map(pack.wishlist.map((b) => [b.asin, b]));
+  const seen = new Set<string>();
+  const out: RankedBook[] = [];
+  for (const r of rawList) {
+    const asin = asStr(r["asin"]);
+    if (!asin) continue;
+    const book = byAsin.get(asin);
+    if (!book || seen.has(asin)) continue; // anti-hallucination: asin must be real
+    seen.add(asin);
+    const score =
+      typeof r["score"] === "number" ? Math.max(0, Math.min(100, Math.round(r["score"] as number))) : 0;
+    const t = r["tier"];
+    const tier: RankTier =
+      t === "now" || t === "soon" || t === "someday"
+        ? t
+        : score >= 70
+          ? "now"
+          : score >= 40
+            ? "soon"
+            : "someday";
+    out.push({ asin, title: book.title, score, tier, reason: asStr(r["reason"]) ?? "" });
+  }
+  out.sort((a, b) => b.score - a.score);
+  return out;
+}
+
+export function renderWishlistRankNote(
+  ranked: readonly RankedBook[],
+  opts: { date: string; model: string; generatedAt: string },
+): string {
+  const fm = [
+    "source: readqueue-wishlist-rank",
+    `model: ${opts.model}`,
+    `generatedAt: ${opts.generatedAt}`,
+    `count: ${ranked.length}`,
+    "tags: [ranking]",
+  ];
+  const body: string[] = [`# Ranking de wishlist · ${opts.date}`, ""];
+  if (ranked.length === 0) {
+    body.push("No pude rankear (revisá la API key / que la wishlist tenga libros).");
+  }
+  for (const tier of ["now", "soon", "someday"] as const) {
+    const items = ranked.filter((r) => r.tier === tier);
+    if (items.length === 0) continue;
+    body.push(`## ${RANK_TIER_LABEL[tier]}`, "");
+    for (const r of items) {
+      body.push(
+        `- **[[${bookCardSlug(r.title)}|${r.title}]]** · ${r.score}/100${r.reason ? ` — ${r.reason}` : ""}`,
+      );
+    }
+    body.push("");
+  }
+  return `---\n${fm.join("\n")}\n---\n\n${body.join("\n")}`;
+}
+
+export interface WishlistRankResult {
+  ranked: RankedBook[];
+  status: number;
+  raw?: string;
+}
+
+export async function rankWishlist(
+  pack: ContextPack,
+  settings: RecommendSettings,
+  deps: RecommendDeps,
+): Promise<WishlistRankResult> {
+  const key = settings.anthropicApiKey?.trim();
+  if (!key) return { ranked: [], status: 0 };
+  const response = await postMessagesWithRetry(
+    deps.fetchJson,
+    key,
+    {
+      model: settings.recommendModel || "claude-sonnet-5",
+      max_tokens: deps.maxTokens ?? 3000,
+      thinking: { type: "disabled" },
+      messages: [{ role: "user", content: buildWishlistRankPrompt(pack) }],
+    },
+    deps.retry,
+  );
+  if (response.status !== 200) return { ranked: [], status: response.status };
+  const text = extractTextFromMessage(response.json);
+  if (!text) return { ranked: [], status: response.status };
+  return { ranked: parseWishlistRanking(text, pack), status: response.status, raw: text };
+}
+
 export async function generateRecommendations(
   pack: ContextPack,
   settings: RecommendSettings,
