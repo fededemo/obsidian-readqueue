@@ -1164,10 +1164,36 @@ export default class ReadQueuePlugin extends Plugin {
     const desired = result.items.map(wishlistItemToDesired);
     const actions = reconcileWishlist(desired, this.loadBookCards());
     const applied = await this.applyBookActions(actions);
+    const moved = await this.relocateWishlistCards();
+    const movedTail = moved > 0 ? `, ${moved} reubicados` : "";
     new Notice(
-      `ReadQueue: wishlist — ${applied.created} nuevos, ${applied.updated} actualizados (${result.items.length} ítems${result.truncated ? ", parcial" : ""}).`,
+      `ReadQueue: wishlist — ${applied.created} nuevos, ${applied.updated} actualizados${movedTail} (${result.items.length} ítems${result.truncated ? ", parcial" : ""}).`,
     );
     await this.refreshQueueView();
+  }
+
+  /** Moves any wishlist ficha still sitting in Books/ root into Books/Wishlist/. */
+  private async relocateWishlistCards(): Promise<number> {
+    const base = stripTrailingSlash(this.settings.booksFolder);
+    const wishlistDir = `${base}/Wishlist`;
+    const cards = this.loadBookCards().filter((c) => c.shelf === "wishlist");
+    let moved = 0;
+    for (const card of cards) {
+      if (card.sourcePath.startsWith(`${wishlistDir}/`)) continue;
+      const file = this.app.vault.getAbstractFileByPath(card.sourcePath);
+      if (!(file instanceof TFile)) continue;
+      await ensureFolder(this.app, base);
+      await ensureFolder(this.app, wishlistDir);
+      const dest = `${wishlistDir}/${file.name}`;
+      if (this.app.vault.getAbstractFileByPath(dest)) continue;
+      try {
+        await this.app.fileManager.renameFile(file, dest);
+        moved++;
+      } catch (err) {
+        console.error("ReadQueue: failed to relocate wishlist card", card.sourcePath, err);
+      }
+    }
+    return moved;
   }
 
   /** Applies reconcile actions: create new fichas, patch machine fields on
@@ -1181,12 +1207,14 @@ export default class ReadQueuePlugin extends Plugin {
     const now = new Date().toISOString();
     for (const action of actions) {
       if (action.type === "create") {
+        const folder = action.book.shelf === "wishlist" ? `${base}/Wishlist` : base;
         await ensureFolder(this.app, base);
+        if (folder !== base) await ensureFolder(this.app, folder);
         const md = buildBookCardMarkdown(action.book, {
           source: action.source,
           firstSeenAt: now,
         });
-        const dest = `${base}/${md.slug}.md`;
+        const dest = `${folder}/${md.slug}.md`;
         if (this.app.vault.getAbstractFileByPath(dest)) continue;
         try {
           await this.app.vault.create(dest, md.content);
@@ -1285,7 +1313,20 @@ export default class ReadQueuePlugin extends Plugin {
       { fetchJson: this.anthropicFetchJson },
     );
     if (res.status !== 200) {
-      new Notice(`ReadQueue: el ranking falló (${res.status || "sin red"}).`);
+      new Notice(`ReadQueue: el ranking falló (HTTP ${res.status || "sin red"}). Revisá tu API key.`);
+      return;
+    }
+    if (res.ranked.length === 0) {
+      console.error(
+        "ReadQueue rank: 200 OK but 0 parsed.",
+        "wishlist:",
+        pack.wishlist.length,
+        "raw:",
+        res.raw?.slice(0, 3000),
+      );
+      new Notice(
+        "ReadQueue: el modelo respondió pero no pude parsear el ranking. Abrí la consola (Cmd+Opt+I) y pegame lo que dice, o reintentá.",
+      );
       return;
     }
     const date = localDateSlug();

@@ -6,6 +6,21 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.4.4] — 2026-07-06
+
+### Fixed
+
+- **Ranking de wishlist devolvía vacío** ("No pude rankear") con listas grandes:
+  el `max_tokens` (3000) truncaba el JSON del modelo a mitad de lista (200 OK pero
+  imposible de parsear). Subido a 8000 (es un techo, se factura por output real).
+  Además, si vuelve a fallar, ahora loguea la respuesta cruda a la consola.
+
+### Changed
+
+- **Fichas de wishlist en `Books/Wishlist/`** en vez de la raíz de `Books/`. Las
+  nuevas caen ahí; las que ya estaban en la raíz se reubican solas en el próximo
+  "Sincronizar wishlist".
+
 ## [0.4.3] — 2026-07-06
 
 ### Changed

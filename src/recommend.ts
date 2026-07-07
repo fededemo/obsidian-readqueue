@@ -494,7 +494,9 @@ export async function rankWishlist(
     key,
     {
       model: settings.recommendModel || "claude-sonnet-5",
-      max_tokens: deps.maxTokens ?? 3000,
+      // A big wishlist needs headroom — a low ceiling truncated the JSON mid-list
+      // (200 OK but unparseable). max_tokens is a ceiling billed on actual output.
+      max_tokens: deps.maxTokens ?? 8000,
       thinking: { type: "disabled" },
       messages: [{ role: "user", content: buildWishlistRankPrompt(pack) }],
     },
