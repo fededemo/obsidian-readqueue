@@ -59,6 +59,21 @@ describe("postMessagesWithRetry", () => {
     expect(fetchJson).toHaveBeenCalledTimes(2); // 1 + 1 retry
   });
 
+  it("obeys the retry-after header on a 429", async () => {
+    const sleeps: number[] = [];
+    const fetchJson = vi
+      .fn()
+      .mockResolvedValueOnce({ status: 429, json: undefined, headers: { "retry-after": "2" } })
+      .mockResolvedValueOnce({ status: 200, json: {} });
+    const res = await postMessagesWithRetry(fetchJson, "sk", {}, {
+      sleep: async (ms: number) => {
+        sleeps.push(ms);
+      },
+    });
+    expect(res.status).toBe(200);
+    expect(sleeps[0]).toBe(2000); // waited the retry-after 2s, not the shorter backoff
+  });
+
   it("respects retries: 0 (no retry, no sleep)", async () => {
     const fetchJson = vi.fn().mockResolvedValue({ status: 500, json: undefined });
     const res = await postMessagesWithRetry(fetchJson, "sk", {}, { retries: 0 });

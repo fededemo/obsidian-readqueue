@@ -911,7 +911,7 @@ export default class ReadQueuePlugin extends Plugin {
   private anthropicFetchJson = async (
     url: string,
     init: { method: string; headers: Record<string, string>; body: string },
-  ): Promise<{ status: number; json: unknown }> => {
+  ): Promise<{ status: number; json: unknown; headers?: Record<string, string> }> => {
     try {
       const res = await requestUrl({
         url,
@@ -929,7 +929,7 @@ export default class ReadQueuePlugin extends Plugin {
       if (res.status >= 400) {
         console.warn(`ReadQueue Claude API ${res.status}:`, res.text.slice(0, 500));
       }
-      return { status: res.status, json };
+      return { status: res.status, json, headers: res.headers };
     } catch (err) {
       console.error("ReadQueue Claude API request failed", err);
       throw err;
@@ -1320,7 +1320,12 @@ export default class ReadQueuePlugin extends Plugin {
       anthropicApiKey: this.settings.anthropicApiKey,
       recommendModel: this.settings.recommendModel,
     };
-    const deps = { fetchJson: this.anthropicFetchJson };
+    // Generous retries with backoff so a rate-limited batch waits (obeying
+    // retry-after) instead of being skipped.
+    const deps = {
+      fetchJson: this.anthropicFetchJson,
+      retry: { retries: 4, baseDelayMs: 3000 },
+    };
     let failedBatches = 0;
     for (let i = 0; i < todo.length; i += BATCH) {
       // A short breather between batches keeps us under the per-minute token

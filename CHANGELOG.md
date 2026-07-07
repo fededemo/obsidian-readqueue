@@ -6,6 +6,16 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.4.8] — 2026-07-06
+
+### Fixed
+
+- **El scoring se frenaba por rate limit** (se quedaba en ~90-96 de 244): las
+  tandas disparaban rápido, Anthropic devolvía 429 y se salteaban. Ahora la
+  llamada **respeta el header `retry-after`** de la API (espera lo que pide) con
+  hasta 4 reintentos y backoff exponencial, en vez de saltear. Una corrida drena
+  el rate limit y completa todos los libros (tarda un poco más si hay 429).
+
 ## [0.4.7] — 2026-07-06
 
 ### Fixed
