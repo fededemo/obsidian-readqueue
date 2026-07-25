@@ -6,6 +6,20 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Fixed
+
+- **El dedupe ahora también cubre al Web Clipper** (MX26). Guardar con el
+  clipper un artículo que ya estaba en la vault —en cola o ya leído— creaba un
+  duplicado silencioso («Nota 1.md»): el clipper escribe directo a la carpeta
+  web sin pasar por el intake, que era el único lugar donde corría el chequeo.
+  Ahora el plugin vigila la carpeta web y, cuando aparece una nota cuya URL
+  canónica ya existe, avisa con el notice de siempre («ya lo leíste (fecha)» /
+  «ya está en tu cola», con link a la original) y manda la copia nueva a la
+  papelera (recuperable). Un barrido al arranque caza además los duplicados
+  que llegaron con Obsidian cerrado (p. ej. sync de iCloud) y limpia los que
+  ya existían en la vault. Si dos copias llegan a la vez sobrevive exactamente
+  una (gana la leída; entre no leídas, la más vieja).
+
 ## [0.4.8] — 2026-07-06
 
 ### Fixed

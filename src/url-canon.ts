@@ -137,3 +137,36 @@ export function findDuplicate(
   if (!key) return undefined;
   return index.get(key);
 }
+
+/**
+ * Decides if a just-arrived note gets trashed as duplicate of `existing`.
+ * When BOTH notes landed in the same burst (both still in-flight — e.g. iCloud
+ * syncing two copies at once), only the lexicographically greater path yields,
+ * so exactly one copy survives instead of the two trashing each other.
+ */
+export function shouldTrashIncoming(
+  incomingPath: string,
+  existing: ExistingNote,
+  inFlight: ReadonlySet<string>,
+): boolean {
+  if (existing.path === incomingPath) return false;
+  if (inFlight.has(existing.path) && incomingPath < existing.path) return false;
+  return true;
+}
+
+/**
+ * Sweep rule for duplicates found at startup — files that arrived while the
+ * app was closed never fired a create event, so there is no "newcomer": the
+ * read copy always survives; between two queued copies the older one survives
+ * (it may carry highlights/edits); identical ctimes fall back to path order so
+ * exactly one of the pair is trashed.
+ */
+export function shouldTrashOnSweep(
+  incoming: { path: string; ctime: number },
+  existing: { path: string; ctime: number; status: string },
+): boolean {
+  if (existing.path === incoming.path) return false;
+  if (existing.status === "read") return true;
+  if (existing.ctime !== incoming.ctime) return existing.ctime < incoming.ctime;
+  return existing.path < incoming.path;
+}

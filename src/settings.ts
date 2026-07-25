@@ -162,7 +162,7 @@ export class ReadQueueSettingsTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("Evitar artículos duplicados")
       .setDesc(
-        "Al ingestar una URL (intake o «Agregar URL»), si ya existe una nota con la misma URL en la vault —incluso ya leída— no la agrega de nuevo y te avisa. Compara ignorando parámetros de tracking (utm, fbclid, etc).",
+        "Si una URL ya existe en la vault —incluso ya leída— no la agrega de nuevo y te avisa. Cubre el intake, «Agregar URL» y los clippings nuevos del Web Clipper (esos van a la papelera al detectarse). Compara ignorando parámetros de tracking (utm, fbclid, etc).",
       )
       .addToggle((toggle) =>
         toggle

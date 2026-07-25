@@ -6,6 +6,7 @@ import {
   TFile,
   TFolder,
   requestUrl,
+  type CachedMetadata,
   type WorkspaceLeaf,
 } from "obsidian";
 
@@ -41,6 +42,8 @@ import {
 import {
   addToUrlIndex,
   findDuplicate,
+  shouldTrashIncoming,
+  shouldTrashOnSweep,
   type ExistingNote,
   type UrlIndex,
 } from "./url-canon";
@@ -113,6 +116,10 @@ export default class ReadQueuePlugin extends Plugin {
   private highlightUI: HighlightUI | null = null;
   private readingFlow: ReadingFlowManager | null = null;
   private layoutReady = false;
+  // Paths de notas recién llegadas cuyo chequeo de duplicado sigue corriendo;
+  // shouldTrashIncoming lo usa para que dos copias simultáneas no se borren
+  // mutuamente.
+  private readonly dedupeInFlight = new Set<string>();
   // Clasifica artículos nuevos al llegar (Web Clipper escribe directo a webFolder
   // sin pasar por el intake). Debounced para coalescer ráfagas de sync de iCloud.
   private readonly classifyNewArticles = debounce(
@@ -406,6 +413,7 @@ export default class ReadQueuePlugin extends Plugin {
           file.extension === "md" &&
           inWebFolder(file.path)
         ) {
+          void this.dedupeIncomingWebFile(file);
           this.classifyNewArticles();
         }
       }),
@@ -419,6 +427,7 @@ export default class ReadQueuePlugin extends Plugin {
           inWebFolder(file.path) &&
           !inWebFolder(oldPath)
         ) {
+          void this.dedupeIncomingWebFile(file);
           this.classifyNewArticles();
         }
       }),
@@ -434,6 +443,7 @@ export default class ReadQueuePlugin extends Plugin {
         if (this.settings.autoMoveOrphans !== false) {
           await this.moveWebClipperOrphans({ silent: true });
         }
+        await this.dedupeWebFolderSweep();
         if (this.settings.classifyOnLoad) {
           await this.classifyAllWithoutTopic({ silent: true });
         }
@@ -544,13 +554,15 @@ export default class ReadQueuePlugin extends Plugin {
   /**
    * Maps every article in the vault (except raw pending URLs) by its canonical
    * URL, so intake can skip something already queued or read. Built fresh per
-   * intake run from `metadataCache` — cheap, no file reads.
+   * intake run from `metadataCache` — cheap, no file reads. `excludePath` keeps
+   * a just-created note out of the index so it never matches itself.
    */
-  buildUrlIndex(): UrlIndex {
+  buildUrlIndex(excludePath?: string): UrlIndex {
     const pendingPrefix = `${stripTrailingSlash(this.settings.pendingFolder)}/`;
     const index: UrlIndex = new Map();
     for (const file of this.app.vault.getMarkdownFiles()) {
       if (file.path.startsWith(pendingPrefix)) continue;
+      if (file.path === excludePath) continue;
       const fm = this.app.metadataCache.getFileCache(file)?.frontmatter as
         | ReadFrontmatter
         | undefined;
@@ -567,8 +579,119 @@ export default class ReadQueuePlugin extends Plugin {
   }
 
   /**
+   * MX26: el Web Clipper escribe directo a webFolder sin pasar por el intake,
+   * así que su dedupe corre acá, cuando la nota aparece en la vault. Si la URL
+   * canónica ya existe en otra nota (leída o en cola) avisa con el notice de
+   * siempre y manda la copia nueva a la papelera (recuperable — respeta la
+   * preferencia "Deleted files" del user).
+   */
+  private async dedupeIncomingWebFile(file: TFile): Promise<void> {
+    if (this.settings.dedupeOnIntake === false) return;
+    this.dedupeInFlight.add(file.path);
+    try {
+      const cache = await this.waitForFileCache(file);
+      const fm = cache?.frontmatter as ReadFrontmatter | undefined;
+      const article = articleFromFile(file, fm);
+      if (!article.url) return;
+      const existing = findDuplicate(
+        article.url,
+        this.buildUrlIndex(file.path),
+      );
+      if (!existing) return;
+      if (!shouldTrashIncoming(file.path, existing, this.dedupeInFlight)) {
+        return;
+      }
+      // Mientras esperábamos el cache cualquiera de los dos pudo moverse o
+      // borrarse; re-chequear antes de tirar nada.
+      const other = this.app.vault.getAbstractFileByPath(existing.path);
+      if (!(other instanceof TFile)) return;
+      if (this.app.vault.getAbstractFileByPath(file.path) !== file) return;
+      this.notifyDuplicate(existing);
+      await this.app.fileManager.trashFile(file);
+      await this.refreshQueueView();
+    } catch (err) {
+      console.error("ReadQueue: dedupe of incoming file failed", file.path, err);
+    } finally {
+      this.dedupeInFlight.delete(file.path);
+    }
+  }
+
+  /**
+   * MX26: barrido al arranque. Un clipping que llegó con la app cerrada (o
+   * que iCloud sincronizó después) nunca disparó el evento create, así que
+   * acá se caza el duplicado que el evento no vio. Solo trashea archivos de
+   * webFolder; con el metadataCache frío una nota sin URL resuelta se saltea
+   * (conservador — la caza el próximo arranque).
+   */
+  private async dedupeWebFolderSweep(): Promise<void> {
+    if (this.settings.dedupeOnIntake === false) return;
+    const prefix = `${stripTrailingSlash(this.settings.webFolder)}/`;
+    const files = this.app.vault
+      .getMarkdownFiles()
+      .filter((f) => f.path.startsWith(prefix));
+    let trashed = 0;
+    for (const file of files) {
+      if (this.app.vault.getAbstractFileByPath(file.path) !== file) continue;
+      const fm = this.app.metadataCache.getFileCache(file)?.frontmatter as
+        | ReadFrontmatter
+        | undefined;
+      const article = articleFromFile(file, fm);
+      if (!article.url) continue;
+      const existing = findDuplicate(
+        article.url,
+        this.buildUrlIndex(file.path),
+      );
+      if (!existing) continue;
+      const other = this.app.vault.getAbstractFileByPath(existing.path);
+      if (!(other instanceof TFile)) continue;
+      const trash = shouldTrashOnSweep(
+        { path: file.path, ctime: file.stat.ctime },
+        {
+          path: other.path,
+          ctime: other.stat.ctime,
+          status: existing.status,
+        },
+      );
+      if (!trash) continue;
+      this.notifyDuplicate(existing);
+      await this.app.fileManager.trashFile(file);
+      console.log("ReadQueue: swept duplicate to trash", file.path);
+      trashed++;
+    }
+    if (trashed > 0) await this.refreshQueueView();
+  }
+
+  /**
+   * Resolves when metadataCache has parsed the file — right at creation the
+   * frontmatter isn't indexed yet. Falls back to whatever cache exists after
+   * `timeoutMs` (e.g. a note that never gets frontmatter).
+   */
+  private waitForFileCache(
+    file: TFile,
+    timeoutMs = 15_000,
+  ): Promise<CachedMetadata | null> {
+    const cached = this.app.metadataCache.getFileCache(file);
+    if (cached) return Promise.resolve(cached);
+    return new Promise((resolve) => {
+      const done = (cache: CachedMetadata | null): void => {
+        this.app.metadataCache.offref(ref);
+        window.clearTimeout(timer);
+        resolve(cache);
+      };
+      const ref = this.app.metadataCache.on("changed", (f, _data, cache) => {
+        if (f.path === file.path) done(cache);
+      });
+      this.registerEvent(ref);
+      const timer = window.setTimeout(() => {
+        done(this.app.metadataCache.getFileCache(file));
+      }, timeoutMs);
+    });
+  }
+
+  /**
    * Non-blocking "you already have this" notice with a link to the existing
-   * note. Shared by the intake scan and the "Agregar URL" modal.
+   * note. Shared by the intake scan, the "Agregar URL" modal and the incoming
+   * Web Clipper dedupe.
    */
   notifyDuplicate(existing: ExistingNote | undefined): void {
     if (!existing) return;

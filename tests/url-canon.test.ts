@@ -4,6 +4,9 @@ import {
   addToUrlIndex,
   canonicalizeUrl,
   findDuplicate,
+  shouldTrashIncoming,
+  shouldTrashOnSweep,
+  type ExistingNote,
   type UrlIndex,
 } from "../src/url-canon";
 
@@ -128,5 +131,98 @@ describe("addToUrlIndex + findDuplicate", () => {
     const index: UrlIndex = new Map();
     addToUrlIndex(index, "", note("x.md", "read"));
     expect(index.size).toBe(0);
+  });
+});
+
+describe("shouldTrashIncoming", () => {
+  const existing = (path: string): ExistingNote => ({
+    path,
+    title: path,
+    status: "read",
+  });
+
+  it("trashes the newcomer when the duplicate is a settled note", () => {
+    const inFlight = new Set(["Inbox/Web/New 1.md"]);
+    expect(
+      shouldTrashIncoming(
+        "Inbox/Web/New 1.md",
+        existing("Inbox/Read/2026-07/New.md"),
+        inFlight,
+      ),
+    ).toBe(true);
+  });
+
+  it("never trashes a note that matched itself", () => {
+    expect(
+      shouldTrashIncoming(
+        "Inbox/Web/New.md",
+        existing("Inbox/Web/New.md"),
+        new Set(["Inbox/Web/New.md"]),
+      ),
+    ).toBe(false);
+  });
+
+  it("keeps exactly one copy when two arrive in the same burst", () => {
+    const a = "Inbox/Web/Note 1.md";
+    const b = "Inbox/Web/Note.md";
+    const inFlight = new Set([a, b]);
+    const aTrashes = shouldTrashIncoming(a, existing(b), inFlight);
+    const bTrashes = shouldTrashIncoming(b, existing(a), inFlight);
+    expect([aTrashes, bTrashes].filter(Boolean)).toHaveLength(1);
+  });
+
+  it("trashes normally when the other burst member already settled", () => {
+    // El chequeo del otro terminó (ya no está in-flight): gana el asentado.
+    expect(
+      shouldTrashIncoming(
+        "Inbox/Web/Note 1.md",
+        existing("Inbox/Web/Note.md"),
+        new Set(["Inbox/Web/Note 1.md"]),
+      ),
+    ).toBe(true);
+  });
+});
+
+describe("shouldTrashOnSweep", () => {
+  const f = (path: string, ctime: number): { path: string; ctime: number } => ({
+    path,
+    ctime,
+  });
+
+  it("the read copy always wins, even against an older queued copy", () => {
+    expect(
+      shouldTrashOnSweep(f("Inbox/Web/A 1.md", 100), {
+        ...f("Inbox/Read/2026-07/A.md", 900),
+        status: "read",
+      }),
+    ).toBe(true);
+  });
+
+  it("between two queued copies the older one survives", () => {
+    const oldNote = f("Inbox/Web/A.md", 100);
+    const newNote = f("Inbox/Web/A 1.md", 900);
+    expect(
+      shouldTrashOnSweep(newNote, { ...oldNote, status: "unread" }),
+    ).toBe(true);
+    expect(
+      shouldTrashOnSweep(oldNote, { ...newNote, status: "unread" }),
+    ).toBe(false);
+  });
+
+  it("breaks ctime ties by path so exactly one is trashed", () => {
+    const a = f("Inbox/Web/A 1.md", 500);
+    const b = f("Inbox/Web/A.md", 500);
+    const aTrashes = shouldTrashOnSweep(a, { ...b, status: "unread" });
+    const bTrashes = shouldTrashOnSweep(b, { ...a, status: "unread" });
+    expect([aTrashes, bTrashes].filter(Boolean)).toHaveLength(1);
+  });
+
+  it("never trashes a note that matched itself", () => {
+    expect(
+      shouldTrashOnSweep(f("Inbox/Web/A.md", 100), {
+        ...f("Inbox/Web/A.md", 100),
+        status: "read",
+      }),
+    ).toBe(false);
   });
 });
