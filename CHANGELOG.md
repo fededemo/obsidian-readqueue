@@ -6,6 +6,8 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.4.10] — 2026-07-27
+
 ### Fixed
 
 - **El dedupe ahora también cubre al Web Clipper** (MX26). Guardar con el
