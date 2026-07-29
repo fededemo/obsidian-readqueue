@@ -23,7 +23,7 @@
 ```
 obsidian-readqueue/
 ├── .claude/
-│   ├── agents/                # system-architect, builder, qa-tester
+│   ├── agents/                # system-architect, builder, qa-tester, vault-gardener (F6)
 │   ├── agent-memory/          # auto-creada por cada agente (gitignored)
 │   └── skills/                # symlinks al Core Management Bundle de gstack
 ├── docs/
@@ -143,7 +143,19 @@ Decisión actual: BRAT.
 - **GitHub**: `fededemo` (token con repo + workflow scopes)
 - **Repo privado**: `github.com/fededemo/obsidian-readqueue`
 
+## Acceso de Claude a la vault (`fedenotes`)
+
+> La vault del user es **base de conocimiento read-only** para los agentes. Diseño completo en `docs/architecture/ADR-001-acceso-vault-obsidian.md`.
+
+- **Lectura**: `Read`/`Grep`/`Glob` directo sobre `…/fedenotes` está permitido y es el camino canónico hoy (615 notas, todo materializado localmente vía iCloud). Claude puede buscar, citar y razonar sobre la KB.
+- **Si aparece un placeholder `.icloud`** (iCloud desalojó el contenido): avisar, no forzar descargas en masa. Hoy hay 0, es un riesgo latente.
+- **Escritura**: prohibida sin **OK explícito de Fede** (ya lo bloquea el classifier). Ninguna edición/borrado/movimiento de notas del user a mano.
+- **No confundir** la vault del user con el repo del plugin. Lo que el *plugin* escribe en runtime (`Inbox/`, `Books/`, `Inbox/Kindle/`) es otra cosa que Claude tocando la vault.
+- **headless Sync (`ob`) / Local REST API + MCP**: NO habilitados. Son para máquinas que *no tienen* la vault (agente cloud/CI) o para queries vivas grado dataview. En la Mac son redundantes con la lectura directa. Activar solo con el trigger del ADR-001.
+
 ## Decisiones arquitectónicas tomadas (referenciar ADRs cuando se escriban)
+
+- ✅ **ADR-001 — Claude lee la vault por filesystem directo (Path A), read-only, escrituras gated**. headless Sync (`ob`, requiere sub Obsidian Sync) queda en reserva para una 2da máquina (cloud/CI) sin la vault; Local REST API + MCP queda opcional para queries vivas. Costo no es blocker (Fede paga Obsidian) pero Path B **no aporta valor en la Mac** y arriesga doble-sync. Ver `docs/architecture/ADR-001-acceso-vault-obsidian.md`.
 
 - ✅ **No construir extensión de browser propia**. Web Clipper de Obsidian (Safari Mac/iOS + Chromium) cubre el flujo de save desde browsers; share extension nativa de Obsidian Mobile cubre apps no-Safari. Razón: cero duplicación, mantenimiento mínimo.
 - ✅ **Defuddle como parser único**. Es el mismo motor que usa Web Clipper internamente, open source MIT, mantenido por kepano. Evita divergencia entre el parsing del Web Clipper y del intake job.
@@ -176,3 +188,5 @@ Cobertura prioritaria:
 - **MX23 (modelo)** — `Books/` en la raíz, `src/books-data.ts` (fichas + reconcile), setting `booksFolder`, orphan-mover lo protege.
 
 Pendiente de Fede (no lo puede hacer un agente): **F5.0** (correr el primer sync Kindle real — instructivo en `docs/obsidian-readqueue-builder/F5-INSTRUCTIVO.md`) y el **spike de endpoints del Cloud Reader** para la biblioteca completa (MX23, necesita sesión autenticada en DevTools). 438 tests verdes, TS estricto pasa, extensión buildea. **Sin release hasta OK explícito de Fede.** MX15 sigue sin cortar v0.3.1. Bitácora por hito en `docs/ROADMAP.md`.
+
+2026-07-09 — **Meta-tooling / DX (no es feature del plugin)**: ADR-001 (`docs/architecture/ADR-001-acceso-vault-obsidian.md`) define cómo Claude usa la base de conocimiento de Obsidian. Decisión: **lectura directa del filesystem (Path A), read-only, escrituras gated**; headless Sync (`ob`) y Local REST API + MCP quedan en reserva. Sección de gobernanza nueva arriba ("Acceso de Claude a la vault"). Backlog B-401 DONE, B-402/403/404 en reserva.

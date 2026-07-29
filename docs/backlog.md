@@ -49,6 +49,31 @@
 | B-324 | MX23 — Biblioteca Kindle completa: **spike de endpoints Cloud Reader** + sync en la extensión | TODO | user + builder | B-321 | BLOQUEADO: requiere sesión autenticada de Fede en DevTools para descubrir el endpoint JSON. Reconcile + fichas ya listos (`reconcileLibrary`, manifiesto `.kindle-library.json`) |
 | B-325 | F5.4 — Spaced repetition real + notas de síntesis | TODO | — | B-321 (uso real) | Diseño aparte tras validar F5.3 |
 
+## F6 — Knowledge graph / segundo cerebro (ADR-002 + vision doc)
+
+> De colección a red neuronal. Diseño en `docs/architecture/knowledge-graph-vision.md` + `ADR-002`. Decisiones: casa = readqueue-F6, escritura = suggestion-only, arranque = Fase 1.
+
+| ID | Descripción | Status | Agent | Dependencies | Acceptance |
+|----|-------------|--------|-------|--------------|------------|
+| B-501 | F6.0 — Vision doc + ADR-002 (modelo de nodos/aristas, fases, decisiones) | DONE | system-architect | — | ✅ `knowledge-graph-vision.md` + `ADR-002` (2026-07-13) |
+| B-502 | F6.1 — Fase 1 suggestion-only: Ask-your-vault + descubrimiento de conexiones. Demo real sobre un cluster + `docs/vault-gardener/proposals/` | IN_PROGRESS (1er demo entregado) | system-architect | B-501 | 1er pase `producto`/`tech`: 10 conexiones + 3 notas-concepto + Q&A en `proposals/2026-07-13-producto-tech-connections.md`. **Pendiente: validación de Fede** |
+| B-503 | F6.2 — Agente `vault-gardener` (modos `/vault-ask` + `/vault-link`), read-only, suggestion-only, cost-min (Sonnet default) | IN_PROGRESS | system-architect | B-502 | ✅ Agente creado `.claude/agents/vault-gardener.md`. Pendiente: 1ra query real de Fede para validar |
+| B-503b | F6.2b — Contrato de extracción de conceptos (ADR-003) | DONE | system-architect | — | ✅ `ADR-003` (identidad, home registro, canon 2-pasadas, gates, cost-min Haiku) |
+| B-504 | F6.3 — Plomería determinística `src/graph-data.ts` (huérfanos, salud del grafo, bidireccionalidad) + git en la vault | TODO | builder | B-502 validado | Módulo puro + vitest (patrón `books-data.ts`); git como backbone de undo antes de mutar |
+| B-505 | F6.4 — Enrichment + construcción del grafo (notas-concepto, 8 MOCs de dominio, Canvas) — primera mutación real | TODO | builder + vault-gardener | B-504 + postura batches-on-git | Batches revisados sobre git; preserva ediciones humanas |
+| B-506 | **Fix clase de error "identidad de libros" (highlights = verdad de terreno).** (1) Clasificar libros Kindle desde una muestra de sus highlights, no del título/metadata → arregla `topic: otros`; (2) guard de desambiguación de títulos near-duplicate en el matching de wishlist/recommender (autor + ASIN exacto + confidence); (3) coherence-check que flaggea fichas cuyo subject no matchea los highlights | TODO | builder | — | Repro: *Infinity Machine* (Mallaby/Hassabis, leído) confundido con *Infinite Machine* (Russo/Ethereum, wishlist). Corre en Haiku (cost-min). Converge con la extracción de conceptos de F6 (contenido = verdad) |
+
+## Meta-tooling / DX (acceso de Claude a la vault — ADR-001)
+
+> No es feature del plugin ni entra en el roadmap F. Es cómo Claude consume la base de conocimiento de Obsidian. Diseño en `docs/architecture/ADR-001-acceso-vault-obsidian.md`.
+
+| ID | Descripción | Status | Agent | Dependencies | Acceptance |
+|----|-------------|--------|-------|--------------|------------|
+| B-401 | Sección "Acceso de Claude a la vault" en CLAUDE.md (read-only por defecto, escrituras gated) | DONE | system-architect | ADR-001 Accepted | ✅ Sección aplicada en CLAUDE.md + ADR-001 Accepted (2026-07-09) |
+| B-402 | Skill `vault` — método de consulta segura de la KB (carpetas, grep de frontmatter, gate de escritura) | TODO (diferido) | — | B-401 | Diferido por decisión governance-first. Invocable; encapsula gobernanza de lectura |
+| B-403 | Path B headless Sync mirror (`ob` pull-only) — SOLO si hay agentes cloud/cron o dolor iCloud activo | TODO | user + builder | 2da máquina sin la vault + confirmar add-on **Sync** en el plan de Fede | Mirror materializado en dir separado; no doble-sync |
+| B-404 | Path C Local REST API + MCP — opcional, queries vivas (dataview/backlinks/search) | TODO | user + builder | Fede quiere instalar plugin + Obsidian abierto | MCP server registrado en Claude Code |
+
 ## Archivo
 
 | ID | Descripción | Closed | Commit |
