@@ -171,11 +171,14 @@ qué leer después. Todo markdown + frontmatter; la inteligencia son llamadas a 
 - ✅ **MX26 — Dedupe de clippings del Web Clipper** (código, 2026-07-25): el clipper escribe directo a webFolder sin pasar por el intake, así que re-guardar un artículo ya en la vault (en cola o leído) creaba un duplicado silencioso «Nota 1.md» — reproducido con la vault real de Fede. Ahora un watcher en create/rename espera el metadataCache, compara la URL canónica y si ya existe avisa («ya lo leíste (fecha)» con link) y manda la copia nueva a la papelera; un barrido al arranque caza los que llegaron con la app cerrada (iCloud) y limpia los preexistentes. Helpers puros `shouldTrashIncoming` / `shouldTrashOnSweep` en `src/url-canon.ts` con tie-break de ráfaga (sobrevive exactamente una copia).
 - ✅ **MX23 — Modelo de libros** (código): `Books/` en la raíz, setting `booksFolder`, `src/books-data.ts` (fichas + `reconcileWishlist`/`reconcileLibrary`), orphan-mover protege `booksFolder`, comando "Reconciliar biblioteca Kindle" (lee manifiesto `.kindle-library.json`).
 - 🔴 **MX23 — Biblioteca Kindle completa** (BLOQUEADO en Fede): el sync de la biblioteca *que tenés* (no solo libros con highlights) necesita descubrir los endpoints JSON del Cloud Reader con la sesión autenticada de Fede en DevTools. Todo lo downstream (fichas, reconcile, manifiesto) está listo; falta el spike (plan §3.1).
+- ✅ **MX27 — Reconciliar leídos de Kindle** (código, 2026-07-28): las notas de `Inbox/Kindle/` se cruzan con las fichas de `Books/` — la ficha matcheada pasa a `owned`+`read` (upgrade-only) y queda linkeada a su nota (`highlightsNote`); los libros anotados sin ficha generan fichas `owned`+`read` (semilla del catálogo hasta MX23). Matcher conservador en `src/kindle-books-reconcile.ts` puro: ASIN exacto → título normalizado → título principal con guard de autor (implementa el ítem 2 de B-506 para este camino); ambiguos se reportan, nunca se adivina. Corre al arranque (gate en metadataCache "resolved", toggle `reconcileKindleOnLoad`) + comando a demanda. Nota: los ASINs difieren entre wishlist (edición impresa) y Kindle (ebook), por eso el match por título era obligatorio.
 - ⏳ **F5.4** — spaced repetition real + notas de síntesis: visión escrita, diseño aparte tras validar F5.3.
 
 ---
 
 ## Última actualización
+
+2026-07-28 — **MX27 shipped en código**: reconcile de leídos de Kindle contra las fichas de `Books/` (módulo puro `kindle-books-reconcile.ts`, matcher título+autor conservador, startup sweep + comando). 484 tests verdes (+28), TS estricto pasa, build de producción OK. En `[Unreleased]`.
 
 2026-07-25 — **MX26 shipped en código**: dedupe para clippings del Web Clipper (watcher create/rename + barrido al arranque). 456 tests verdes, TS estricto pasa, build de producción OK. En `[Unreleased]` — necesita cortar release para llegar a la vault vía BRAT.
 

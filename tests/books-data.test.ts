@@ -61,6 +61,36 @@ describe("buildBookCardMarkdown", () => {
     expect(parsed?.readingStatus).toBe("unread");
     void md;
   });
+
+  it("seeds hasHighlights + quoted highlightsNote when given (MX27)", () => {
+    const md = buildBookCardMarkdown(
+      { asin: "K1", title: "Read on Kindle", shelf: "owned" },
+      {
+        source: BOOK_CARD_SOURCE.kindleNotebook,
+        firstSeenAt: "2026-07-28T00:00:00.000Z",
+        readingStatus: "read",
+        hasHighlights: true,
+        highlightsNote: "[[Inbox/Kindle/Read on Kindle]]",
+      },
+    );
+    expect(md.content).toContain("source: kindle-notebook");
+    expect(md.content).toContain("readingStatus: read");
+    expect(md.content).toContain("hasHighlights: true");
+    expect(md.content).toContain('highlightsNote: "[[Inbox/Kindle/Read on Kindle]]"');
+
+    const parsed = parseBookCard(
+      {
+        asin: "K1",
+        shelf: "owned",
+        readingStatus: "read",
+        hasHighlights: true,
+        highlightsNote: "[[Inbox/Kindle/Read on Kindle]]",
+      },
+      "Books/Read on Kindle.md",
+    );
+    expect(parsed?.hasHighlights).toBe(true);
+    expect(parsed?.highlightsNote).toBe("[[Inbox/Kindle/Read on Kindle]]");
+  });
 });
 
 describe("parseBookCard", () => {

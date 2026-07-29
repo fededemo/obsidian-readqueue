@@ -58,6 +58,7 @@ export interface DesiredBook {
 export const BOOK_CARD_SOURCE = {
   library: "kindle-library",
   wishlist: "readqueue-wishlist",
+  kindleNotebook: "kindle-notebook",
 } as const;
 
 // --- Markdown building -------------------------------------------------------
@@ -91,7 +92,13 @@ export function bookCardSlug(title: string, _asin?: string): string {
 
 export function buildBookCardMarkdown(
   book: DesiredBook,
-  opts: { source: string; firstSeenAt: string; readingStatus?: ReadingStatus },
+  opts: {
+    source: string;
+    firstSeenAt: string;
+    readingStatus?: ReadingStatus;
+    hasHighlights?: boolean;
+    highlightsNote?: string;
+  },
 ): BookCardMarkdown {
   const fm: string[] = [
     `source: ${opts.source}`,
@@ -105,7 +112,8 @@ export function buildBookCardMarkdown(
   fm.push(`readingStatus: ${opts.readingStatus ?? "unread"}`);
   if (book.acquiredAt) fm.push(`acquiredAt: ${yamlScalar(book.acquiredAt)}`);
   fm.push(`firstSeenAt: ${opts.firstSeenAt}`);
-  fm.push(`hasHighlights: false`);
+  fm.push(`hasHighlights: ${opts.hasHighlights ?? false}`);
+  if (opts.highlightsNote) fm.push(`highlightsNote: ${yamlScalar(opts.highlightsNote)}`);
   fm.push(`topic:`);
   fm.push(`tags: [book]`);
 
@@ -180,16 +188,31 @@ export function parseBookCard(
 
 // --- Reconciliation ----------------------------------------------------------
 
-/** Only machine-owned fields may change on an existing card. `readingStatus`,
- * `topic`, tags and the body are the user's and are never in here. */
+/** Only machine-owned fields may change on an existing card. `topic`, tags and
+ * the body are the user's and are never in here. `readingStatus` is still
+ * user-owned with one deliberate exception: `reconcileKindleNotes` may emit the
+ * `unread → read` upgrade when a highlights note proves the book was read — the
+ * guard lives in that pure module, the applier stays dumb. */
 export interface MachineFieldChanges {
   shelf?: Shelf;
   wishlistRemoved?: boolean | null; // null = remove the field
   acquiredAt?: string;
+  hasHighlights?: boolean;
+  highlightsNote?: string; // full-path wikilink, e.g. "[[Inbox/Kindle/<basename>]]"
+  readingStatus?: ReadingStatus;
 }
 
 export type ReconcileAction =
-  | { type: "create"; book: DesiredBook; source: string }
+  | {
+      type: "create";
+      book: DesiredBook;
+      source: string;
+      seed?: {
+        readingStatus?: ReadingStatus;
+        hasHighlights?: boolean;
+        highlightsNote?: string;
+      };
+    }
   | { type: "update-machine"; sourcePath: string; asin: string; changes: MachineFieldChanges }
   | { type: "skip"; asin: string };
 

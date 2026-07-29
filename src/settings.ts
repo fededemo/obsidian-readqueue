@@ -28,6 +28,7 @@ export interface ReadQueueSettings {
   matterFolder: string;
   booksFolder: string;
   wishlistUrl: string;
+  reconcileKindleOnLoad: boolean;
   recommendModel: string;
   dailyHighlightsCount: number;
   includeHighlightsInDigest: boolean;
@@ -61,6 +62,7 @@ export const DEFAULT_SETTINGS: ReadQueueSettings = {
   matterFolder: "Inbox/Legacy/",
   booksFolder: "Books/",
   wishlistUrl: "",
+  reconcileKindleOnLoad: true,
   recommendModel: "claude-sonnet-5",
   dailyHighlightsCount: 5,
   includeHighlightsInDigest: true,
@@ -477,6 +479,20 @@ export class ReadQueueSettingsTab extends PluginSettingTab {
           .setValue(this.plugin.settings.wishlistUrl)
           .onChange(async (value) => {
             this.plugin.settings.wishlistUrl = value.trim();
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("Reconciliar leídos de Kindle al cargar")
+      .setDesc(
+        "Al cargar el plugin, cruza las notas de highlights de Kindle (Inbox/Kindle/) con las fichas de Books/: marca como leídos y owned los libros ya anotados y crea fichas para los que no tenían. El comando «Reconciliar leídos de Kindle» hace lo mismo a demanda.",
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.reconcileKindleOnLoad)
+          .onChange(async (value) => {
+            this.plugin.settings.reconcileKindleOnLoad = value;
             await this.plugin.saveSettings();
           }),
       );

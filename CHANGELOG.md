@@ -6,6 +6,27 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Added
+
+- **Reconciliar leídos de Kindle** (MX27). La wishlist ahora se entera de lo
+  que ya leíste: un reconcile cruza las notas de highlights de `Inbox/Kindle/`
+  con las fichas de `Books/` — la ficha matcheada pasa a `shelf: owned`,
+  `readingStatus: read` (solo si estaba `unread`; `reading`/`abandoned` no se
+  tocan) y queda linkeada a su nota de highlights (`hasHighlights` +
+  `highlightsNote`). Los libros anotados sin ficha generan una ficha
+  `owned`+`read` nueva (semilla del catálogo hasta que MX23 traiga la
+  biblioteca completa). El matching es conservador a propósito (lección
+  B-506, *Infinity* vs *Infinite Machine*): ASIN exacto → título completo
+  normalizado → título principal con guard de autor; sin fuzzy, y los casos
+  ambiguos (fichas duplicadas, ASINs repetidos) se reportan en consola en vez
+  de adivinar. Corre al cargar el plugin (toggle nuevo en settings, esperando
+  a que el metadataCache termine de indexar) y a demanda con el comando
+  «Reconciliar leídos de Kindle (notas → fichas)». Decisión de diseño:
+  `readingStatus` sigue siendo del usuario, con una única excepción de máquina
+  — el upgrade `unread → read` cuando una nota de highlights prueba lectura.
+  Las fichas flipeadas quedan físicamente en `Books/Wishlist/` (cosmético:
+  todos los consumidores filtran por `shelf`, no por carpeta).
+
 ## [0.4.10] — 2026-07-27
 
 ### Fixed

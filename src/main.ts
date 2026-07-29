@@ -84,6 +84,10 @@ import {
   type ReconcileAction,
 } from "./books-data";
 import {
+  reconcileKindleNotes,
+  type KindleNoteMeta,
+} from "./kindle-books-reconcile";
+import {
   collectWishlist,
   parseWishlistId,
   wishlistItemToDesired,
@@ -372,6 +376,14 @@ export default class ReadQueuePlugin extends Plugin {
     });
 
     this.addCommand({
+      id: "reconcile-kindle-read-books",
+      name: "Reconciliar leídos de Kindle (notas → fichas)",
+      callback: () => {
+        void this.reconcileKindleReadBooks();
+      },
+    });
+
+    this.addCommand({
       id: "start-reading-book",
       name: "Empezar este libro (readingStatus: reading)",
       checkCallback: (checking) => {
@@ -446,6 +458,11 @@ export default class ReadQueuePlugin extends Plugin {
         await this.dedupeWebFolderSweep();
         if (this.settings.classifyOnLoad) {
           await this.classifyAllWithoutTopic({ silent: true });
+        }
+        if (this.settings.reconcileKindleOnLoad) {
+          this.runWhenMetadataResolved(() => {
+            void this.reconcileKindleReadBooks({ silent: true });
+          });
         }
       })();
     });
@@ -1347,9 +1364,18 @@ export default class ReadQueuePlugin extends Plugin {
         const md = buildBookCardMarkdown(action.book, {
           source: action.source,
           firstSeenAt: now,
+          readingStatus: action.seed?.readingStatus,
+          hasHighlights: action.seed?.hasHighlights,
+          highlightsNote: action.seed?.highlightsNote,
         });
         const dest = `${folder}/${md.slug}.md`;
-        if (this.app.vault.getAbstractFileByPath(dest)) continue;
+        const existing = this.findExistingCardFile(base, md.slug);
+        if (existing) {
+          console.log(
+            `ReadQueue: ficha ya existente en ${existing.path}, no se crea ${dest}.`,
+          );
+          continue;
+        }
         try {
           await this.app.vault.create(dest, md.content);
           created++;
@@ -1365,11 +1391,107 @@ export default class ReadQueuePlugin extends Plugin {
           if (action.changes.acquiredAt) obj["acquiredAt"] = action.changes.acquiredAt;
           if (action.changes.wishlistRemoved === null) delete obj["wishlistRemoved"];
           else if (action.changes.wishlistRemoved === true) obj["wishlistRemoved"] = true;
+          if (action.changes.hasHighlights !== undefined)
+            obj["hasHighlights"] = action.changes.hasHighlights;
+          if (action.changes.highlightsNote)
+            obj["highlightsNote"] = action.changes.highlightsNote;
+          if (action.changes.readingStatus)
+            obj["readingStatus"] = action.changes.readingStatus;
         });
         updated++;
       }
     }
     return { created, updated };
+  }
+
+  /** Case-insensitive lookup of an existing ficha with this slug under Books/
+   * or Books/Wishlist/ — iCloud's filesystem is case-insensitive, so
+   * `vault.create` would throw on a case-differing duplicate that
+   * `getAbstractFileByPath` misses. */
+  private findExistingCardFile(base: string, slug: string): TFile | null {
+    const targets = new Set([
+      `${base}/${slug}.md`.toLowerCase(),
+      `${base}/Wishlist/${slug}.md`.toLowerCase(),
+    ]);
+    for (const file of this.app.vault.getMarkdownFiles()) {
+      if (targets.has(file.path.toLowerCase())) return file;
+    }
+    return null;
+  }
+
+  /** Reads the Kindle highlight notes (source: kindle-scrape) into matcher
+   * inputs for reconcileKindleNotes. */
+  private collectKindleNoteMetas(): KindleNoteMeta[] {
+    const folder = stripTrailingSlash(this.settings.kindleFolder);
+    if (!folder) return [];
+    const prefix = `${folder}/`;
+    const out: KindleNoteMeta[] = [];
+    for (const file of this.app.vault.getMarkdownFiles()) {
+      if (!file.path.startsWith(prefix)) continue;
+      const fm = this.app.metadataCache.getFileCache(file)?.frontmatter as
+        | Record<string, unknown>
+        | undefined;
+      if (!fm || fm["source"] !== "kindle-scrape") continue;
+      const asin = typeof fm["asin"] === "string" ? fm["asin"].trim() : "";
+      const title = typeof fm["title"] === "string" ? fm["title"].trim() : "";
+      if (!asin || !title) continue;
+      const meta: KindleNoteMeta = { asin, title, notePath: file.path };
+      if (typeof fm["author"] === "string" && fm["author"].trim())
+        meta.author = fm["author"].trim();
+      if (typeof fm["cover"] === "string" && fm["cover"].trim())
+        meta.cover = fm["cover"].trim();
+      if (typeof fm["url"] === "string" && fm["url"].trim()) meta.url = fm["url"].trim();
+      if (typeof fm["highlightCount"] === "number")
+        meta.highlightCount = fm["highlightCount"];
+      out.push(meta);
+    }
+    return out;
+  }
+
+  /** MX27: cruza las notas de highlights de Kindle con las fichas de Books/ —
+   * marca como leídos/owned los libros ya anotados, linkea la nota de
+   * highlights y crea fichas para los que no tenían. */
+  async reconcileKindleReadBooks(opts: { silent?: boolean } = {}): Promise<void> {
+    const notes = this.collectKindleNoteMetas();
+    if (notes.length === 0) {
+      if (!opts.silent) {
+        new Notice(
+          `ReadQueue: no encontré notas de Kindle en ${this.settings.kindleFolder}.`,
+        );
+      }
+      return;
+    }
+    const result = reconcileKindleNotes(notes, this.loadBookCards());
+    const applied = await this.applyBookActions(result.actions);
+    for (const amb of result.ambiguous) {
+      console.warn(
+        `ReadQueue: nota Kindle ambigua (${amb.tier}) ${amb.notePath} → candidatas: ${amb.candidatePaths.join(", ")}`,
+      );
+    }
+    const linked = result.matchedByAsin + result.matchedByTitle;
+    const ambTail =
+      result.ambiguous.length > 0
+        ? `, ${result.ambiguous.length} ambiguos (ver consola)`
+        : "";
+    const summary = `ReadQueue: Kindle leídos — ${linked} vinculados (${result.matchedByAsin} por ASIN, ${result.matchedByTitle} por título), ${applied.created} fichas nuevas, ${result.unchanged} sin cambios${ambTail}.`;
+    if (!opts.silent) new Notice(summary);
+    else if (applied.created + applied.updated > 0) console.log(summary);
+    if (!opts.silent || applied.created + applied.updated > 0) {
+      await this.refreshQueueView();
+    }
+  }
+
+  /** The startup reconcile must wait for the metadataCache to finish its
+   * initial index — with a cold cache loadBookCards() misses cards, notes look
+   * unmatched, and we'd seed duplicate fichas. "resolved" fires when the index
+   * completes (and again after later modifications, so a mid-session plugin
+   * enable catches the next one). */
+  private runWhenMetadataResolved(fn: () => void): void {
+    const ref = this.app.metadataCache.on("resolved", () => {
+      this.app.metadataCache.offref(ref);
+      fn();
+    });
+    this.registerEvent(ref);
   }
 
   /** Reconciles owned books from a `.kindle-library.json` manifest deposited by
