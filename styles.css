@@ -9,6 +9,23 @@
   gap: var(--size-2-2);
   margin-bottom: var(--size-4-2);
   align-items: center;
+  /* El panel lateral es angosto: los selects se achican antes de desbordar,
+     y si aun asi no entran, bajan de linea en vez de cortarse. */
+  flex-wrap: wrap;
+}
+
+.readqueue-view__toolbar select {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.readqueue-view__icon-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--size-2-1) var(--size-2-2);
 }
 
 .readqueue-view__list {

@@ -19,6 +19,11 @@ export function stringifyYaml(_value: unknown): string {
   throw new Error("obsidian-mock: stringifyYaml was called — inject a fake via deps");
 }
 
+/** En Obsidian inyecta un SVG de lucide; para los tests alcanza con marcar cuál. */
+export function setIcon(el: HTMLElement, icon: string): void {
+  el.setAttribute("data-icon", icon);
+}
+
 export class Plugin {}
 export class ItemView {}
 

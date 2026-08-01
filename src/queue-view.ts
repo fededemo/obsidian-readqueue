@@ -1,4 +1,4 @@
-import { ItemView, type WorkspaceLeaf } from "obsidian";
+import { ItemView, setIcon, type WorkspaceLeaf } from "obsidian";
 
 import {
   computeStats,
@@ -174,7 +174,13 @@ export class QueueView extends ItemView {
       this.renderList();
     };
 
-    const refresh = toolbar.createEl("button", { text: "Recargar" });
+    // Icono y no texto: en el panel lateral angosto los cuatro controles no
+    // entraban y "Recargar" quedaba cortado.
+    const refresh = toolbar.createEl("button", {
+      cls: "readqueue-view__icon-btn",
+      attr: { "aria-label": "Recargar", title: "Recargar" },
+    });
+    setIcon(refresh, "rotate-cw");
     refresh.onclick = () => {
       // Las ★ de "lectura de hoy" son una selección puntual: si siguen puestas
       // después de recargar, la cola parece congelada aunque el orden cambie.

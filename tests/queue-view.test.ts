@@ -344,12 +344,17 @@ describe("filtro por fuente en la vista", () => {
     expect(titles(container)).toEqual(["un video"]);
   });
 
-  it("Recargar limpia las ★ de lectura del día", async () => {
+  it("Recargar es un icono accesible y limpia las ★ de lectura del día", async () => {
     const { view, container } = makeView([article("a", "tech")]);
     view.todayPicks = new Set(["a.md"]);
     await (view as unknown as RenderableView).render();
-    // El botón es el único <button> de la toolbar.
-    const btn = container.querySelector(".readqueue-view__toolbar button");
+
+    const btn = container.querySelector(".readqueue-view__icon-btn");
+    // Sin texto no hay affordance: el aria-label es lo único que lo nombra.
+    expect(btn?.getAttribute("aria-label")).toBe("Recargar");
+    expect(btn?.getAttribute("data-icon")).toBe("rotate-cw");
+    expect(btn?.textContent).toBe("");
+
     (btn as HTMLElement).click();
     expect(view.todayPicks.size).toBe(0);
   });
