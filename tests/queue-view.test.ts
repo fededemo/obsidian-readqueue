@@ -231,3 +231,37 @@ describe("B2 — tldr y shelfLife en la card", () => {
     expect(badges[0]?.textContent).toBe("caduca");
   });
 });
+
+describe("C2 — orden por prioridad", () => {
+  beforeAll(installObsidianDom);
+  afterAll(() => {
+    uninstallObsidianDom();
+    document.body.innerHTML = "";
+  });
+
+  it("en modo 'Vale la pena' ordena por contexto previo y muestra el motivo", async () => {
+    const leidas = [1, 2, 3].map(() => ({
+      ...article("leida", "tech"),
+      status: "read",
+      readAt: new Date(),
+    }));
+    const { view, container } = makeView([
+      { ...article("noticia-sin-contexto", "cultura"), shelfLife: "perishable", published: "2020-01-01" },
+      { ...article("ensayo-con-contexto", "tech"), shelfLife: "evergreen", published: "2019-01-01" },
+      ...leidas,
+    ]);
+    (view as unknown as { sortBy: string }).sortBy = "priority";
+    await (view as unknown as RenderableView).render();
+    expect(titles(container)[0]).toBe("ensayo-con-contexto");
+    const whys = container.querySelectorAll(".readqueue-view__why");
+    expect(whys.length).toBeGreaterThan(0);
+    expect(whys[0]?.textContent).toContain("ya leíste");
+  });
+
+  it("en los otros modos no muestra motivo", async () => {
+    const { view, container } = makeView([article("a", "tech")]);
+    (view as unknown as { sortBy: string }).sortBy = "newest";
+    await (view as unknown as RenderableView).render();
+    expect(container.querySelectorAll(".readqueue-view__why")).toHaveLength(0);
+  });
+});

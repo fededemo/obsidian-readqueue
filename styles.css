@@ -490,3 +490,8 @@ body.readqueue-reader-active .markdown-preview-view blockquote {
     outline-offset: 1px;
   }
 }
+
+.readqueue-view__why {
+  font-style: italic;
+  opacity: 0.85;
+}

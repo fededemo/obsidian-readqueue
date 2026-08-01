@@ -16,6 +16,7 @@ import {
   type QueueArticle,
   type SortKey,
 } from "./queue-data";
+import { rankQueue } from "./priority";
 import {
   openInReadingView,
   postponeArticle,
@@ -35,6 +36,7 @@ const GROUP_OPTIONS: ReadonlyArray<readonly [GroupKey, string]> = [
 ];
 
 const SORT_OPTIONS: ReadonlyArray<readonly [SortKey, string]> = [
+  ["priority", "Vale la pena"],
   ["newest", "Más nuevos"],
   ["oldest", "Más viejos"],
   ["shuffle", "Al azar"],
@@ -52,6 +54,8 @@ export class QueueView extends ItemView {
   private searchInputEl: HTMLInputElement | undefined;
   private listEl: HTMLElement | undefined;
   private allArticles: QueueArticle[] = [];
+  /** Por qué cada artículo quedó donde quedó, en modo "Vale la pena". */
+  private priorityReasons = new Map<string, string>();
   todayPicks = new Set<string>();
 
   constructor(leaf: WorkspaceLeaf, plugin: ReadQueuePlugin) {
@@ -200,7 +204,19 @@ export class QueueView extends ItemView {
     this.unreadCount = active.length;
     const byQuery = filterByQuery(active, this.searchQuery);
     const byTopic = filterByTopic(byQuery, this.activeTopicFilter);
-    const sorted = sortArticles(byTopic, this.sortBy);
+    let sorted: QueueArticle[];
+    if (this.sortBy === "priority") {
+      // El orden sale de cuánto contexto previo tenés, no de la fecha.
+      const read = this.allArticles.filter((a) => a.status === "read");
+      const ranked = rankQueue(byTopic, { read });
+      this.priorityReasons = new Map(
+        ranked.map((r) => [r.article.file.path, r.reason]),
+      );
+      sorted = ranked.map((r) => r.article);
+    } else {
+      this.priorityReasons.clear();
+      sorted = sortArticles(byTopic, this.sortBy);
+    }
     const groups = groupArticles(sorted, this.groupBy);
     const visibleGroups = groups.filter((g) => g.articles.length > 0);
     this.refreshTabTitle();
@@ -324,6 +340,13 @@ export class QueueView extends ItemView {
         this.activeTopicFilter = article.topic;
         void this.render();
       };
+    }
+    const reason = this.priorityReasons.get(article.file.path);
+    if (reason) {
+      meta.createEl("span", {
+        cls: "readqueue-view__why",
+        text: reason,
+      });
     }
     const size = article.file.stat?.size ?? 0;
     if (size > 0) {

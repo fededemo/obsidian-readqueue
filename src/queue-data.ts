@@ -331,7 +331,7 @@ export function dateBucket(date: Date | undefined, now: Date = new Date()): stri
   return "Antes";
 }
 
-export type SortKey = "newest" | "oldest" | "shuffle";
+export type SortKey = "priority" | "newest" | "oldest" | "shuffle";
 
 export function sortArticles(
   articles: readonly QueueArticle[],
