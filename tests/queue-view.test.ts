@@ -1,6 +1,7 @@
 import type { WorkspaceLeaf } from "obsidian";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { emptyConceptIndex } from "../src/concept-graph";
 import type { QueueArticle } from "../src/queue-data";
 import { QueueView } from "../src/queue-view";
 
@@ -103,6 +104,10 @@ function makeView(articles: QueueArticle[]): {
     settings: { collapsedGroupsByGroupBy: {} },
     app: {},
     saveSettings: async (): Promise<void> => undefined,
+    // Sin notas-concepto el índice queda vacío y el orden cae al topic, que es
+    // el comportamiento que estos tests describen.
+    conceptIndex: emptyConceptIndex(),
+    refreshConceptIndex: async (): Promise<void> => undefined,
   } as unknown as ReadQueuePlugin;
 
   const leaf = {} as unknown as WorkspaceLeaf;

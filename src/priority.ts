@@ -1,3 +1,4 @@
+import type { ConceptIndex } from "./concept-graph";
 import type { QueueArticle } from "./queue-data";
 
 /**
@@ -20,6 +21,8 @@ export interface PriorityInput {
   ageDays: number | undefined;
   /** ¿El topic aparece en lo que Fede viene leyendo últimamente? */
   topicActive: boolean;
+  /** Concepto que produjo los vecinos, cuando viene del grafo y no del topic. */
+  via?: string | undefined;
 }
 
 export interface PriorityScore {
@@ -74,7 +77,11 @@ export function scoreArticle(input: PriorityInput): PriorityScore {
   let reason: string;
   if (input.readNeighbours > 0) {
     const n = input.readNeighbours;
-    reason = `conecta con ${n} ${n === 1 ? "nota que ya leíste" : "notas que ya leíste"}`;
+    // Con el concepto la razón deja de ser un número y pasa a ser un argumento:
+    // no "conecta con 12" sino "12 que leíste sobre esto en particular".
+    reason = input.via
+      ? `${n} ${n === 1 ? "nota que leíste" : "notas que leíste"} sobre ${input.via}`
+      : `conecta con ${n} ${n === 1 ? "nota que ya leíste" : "notas que ya leíste"}`;
   } else if (input.topicActive) {
     reason = "tema activo en lo que venís leyendo";
   } else {
@@ -92,6 +99,12 @@ export interface RankOptions {
   now?: Date;
   /** Cuántos días atrás cuentan como "lo que venís leyendo". */
   activeWindowDays?: number;
+  /**
+   * Grafo de conceptos, cuando existe. Es una señal estrictamente mejor que el
+   * topic: medido sobre la vault, el topic produce 7 valores de contexto para
+   * 284 notas (las 94 de `tech` reciben todas el mismo), el concepto produce 33.
+   */
+  conceptIndex?: ConceptIndex;
 }
 
 export interface RankedArticle {
@@ -131,6 +144,16 @@ export function rankQueue(
     readByTopic.set(k, (readByTopic.get(k) ?? 0) + 1);
   }
 
+  /**
+   * Con grafo, el topic deja de contar del todo — incluso para las notas que el
+   * grafo no cubre. Mezclarlos las pondría ARRIBA de las que sí tienen contexto
+   * real: el topic infla (48 vecinos por ser `tech`) donde el concepto es
+   * exigente (12 vecinos sobre el tema concreto). Un cero honesto es mejor que
+   * un número grande que no significa nada.
+   */
+  const graph = opts.conceptIndex;
+  const useGraph = (graph?.readNeighbours.size ?? 0) > 0;
+
   return articles
     .map((article) => {
       const topic = article.topic?.toLowerCase();
@@ -142,10 +165,15 @@ export function rankQueue(
           ? Math.max(0, (now.getTime() - published.getTime()) / DAY_MS)
           : undefined;
       const { score, reason } = scoreArticle({
-        readNeighbours: topic ? (readByTopic.get(topic) ?? 0) : 0,
+        readNeighbours: useGraph
+          ? (graph?.readNeighbours.get(article.title) ?? 0)
+          : topic
+            ? (readByTopic.get(topic) ?? 0)
+            : 0,
         shelfLife: article.shelfLife,
         ageDays,
         topicActive: topic ? active.has(topic) : false,
+        via: useGraph ? graph?.conceptsByNote.get(article.title)?.[0] : undefined,
       });
       return { article, score, reason };
     })

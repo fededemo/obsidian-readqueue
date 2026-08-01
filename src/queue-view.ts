@@ -121,6 +121,7 @@ export class QueueView extends ItemView {
     root.addClass("readqueue-view");
 
     this.allArticles = this.plugin.loadQueueArticles();
+    await this.plugin.refreshConceptIndex();
     const stats = computeStats(this.allArticles);
     const statsBar = root.createDiv({ cls: "readqueue-view__stats" });
     const statsBits: string[] = [`${stats.unread} unread`];
@@ -241,7 +242,10 @@ export class QueueView extends ItemView {
     if (this.sortBy === "priority") {
       // El orden sale de cuánto contexto previo tenés, no de la fecha.
       const read = this.allArticles.filter((a) => a.status === "read");
-      const ranked = rankQueue(byTopic, { read });
+      const ranked = rankQueue(byTopic, {
+        read,
+        conceptIndex: this.plugin.conceptIndex,
+      });
       this.priorityReasons = new Map(
         ranked.map((r) => [r.article.file.path, r.reason]),
       );

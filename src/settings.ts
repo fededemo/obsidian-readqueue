@@ -27,6 +27,8 @@ export interface ReadQueueSettings {
   kindleFolder: string;
   matterFolder: string;
   booksFolder: string;
+  /** Capa wiki: notas-concepto que conectan lo leído con lo pendiente (B-731). */
+  conceptsFolder: string;
   wishlistUrl: string;
   reconcileKindleOnLoad: boolean;
   recommendModel: string;
@@ -61,6 +63,7 @@ export const DEFAULT_SETTINGS: ReadQueueSettings = {
   kindleFolder: "Inbox/Kindle/",
   matterFolder: "Inbox/Legacy/",
   booksFolder: "Books/",
+  conceptsFolder: "Concepts/",
   wishlistUrl: "",
   reconcileKindleOnLoad: true,
   recommendModel: "claude-sonnet-5",
@@ -447,6 +450,21 @@ export class ReadQueueSettingsTab extends PluginSettingTab {
           .setValue(this.plugin.settings.includeHighlightsInDigest)
           .onChange(async (value) => {
             this.plugin.settings.includeHighlightsInDigest = value;
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("Carpeta de conceptos")
+      .setDesc(
+        'La capa wiki: notas que conectan lo que leíste con lo que tenés pendiente. El orden «Vale la pena» las usa para saber cuánto contexto previo tenés sobre cada artículo. Ej: "Concepts/".',
+      )
+      .addText((text) =>
+        text
+          .setPlaceholder("Concepts/")
+          .setValue(this.plugin.settings.conceptsFolder)
+          .onChange(async (value) => {
+            this.plugin.settings.conceptsFolder = ensureTrailingSlash(value);
             await this.plugin.saveSettings();
           }),
       );

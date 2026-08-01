@@ -11,6 +11,13 @@ import {
   type WorkspaceLeaf,
 } from "obsidian";
 
+import {
+  buildConceptIndex,
+  emptyConceptIndex,
+  parseConceptNote,
+  type ConceptIndex,
+  type ConceptNote,
+} from "./concept-graph";
 import { buildDailyRitual, renderDailyRitual } from "./daily-ritual";
 import { rankQueue } from "./priority";
 import {
@@ -120,6 +127,7 @@ export interface VaultFileHighlights {
 
 export default class ReadQueuePlugin extends Plugin {
   settings: ReadQueueSettings = DEFAULT_SETTINGS;
+  conceptIndex: ConceptIndex = emptyConceptIndex();
   private highlightUI: HighlightUI | null = null;
   private readingFlow: ReadingFlowManager | null = null;
   private layoutReady = false;
@@ -782,6 +790,32 @@ export default class ReadQueuePlugin extends Plugin {
     });
   }
 
+  /**
+   * Índice del grafo de conceptos, cacheado. Se reconstruye al abrir/recargar
+   * la cola: son ~30 archivos, así que releerlos es más barato que sostener
+   * invalidación por evento y arriesgar un índice viejo tras editar a mano.
+   */
+  async refreshConceptIndex(): Promise<void> {
+    const folder = stripTrailingSlash(this.settings.conceptsFolder);
+    if (!folder) {
+      this.conceptIndex = emptyConceptIndex();
+      return;
+    }
+    const prefix = `${folder}/`;
+    const files = this.app.vault
+      .getMarkdownFiles()
+      .filter((f) => f.path.startsWith(prefix));
+    const notes: ConceptNote[] = [];
+    for (const file of files) {
+      try {
+        notes.push(parseConceptNote(file.basename, await this.app.vault.cachedRead(file)));
+      } catch {
+        // Una nota-concepto ilegible no puede tumbar el orden de la cola.
+      }
+    }
+    this.conceptIndex = buildConceptIndex(notes);
+  }
+
   async readRandom(): Promise<void> {
     const articles = this.loadQueueArticles();
     const unread = filterByStatus(articles, "unread");
@@ -854,9 +888,13 @@ export default class ReadQueuePlugin extends Plugin {
             | undefined
         )?.topic,
       }));
+    await this.refreshConceptIndex();
     const queueTop = rankQueue(
       all.filter((a) => a.status === "unread"),
-      { read: all.filter((a) => a.status === "read") },
+      {
+        read: all.filter((a) => a.status === "read"),
+        conceptIndex: this.conceptIndex,
+      },
     )
       .slice(0, 2)
       .map((r): { note: string; why: string } => ({

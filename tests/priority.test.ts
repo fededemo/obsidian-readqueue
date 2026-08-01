@@ -1,6 +1,7 @@
 import type { TFile } from "obsidian";
 import { describe, expect, it } from "vitest";
 
+import { buildConceptIndex, emptyConceptIndex } from "../src/concept-graph";
 import {
   activeTopics,
   rankQueue,
@@ -135,5 +136,48 @@ describe("rankQueue", () => {
   it("no explota con la cola vacía ni sin material leído", () => {
     expect(rankQueue([], { read: [], now: NOW })).toEqual([]);
     expect(rankQueue([mk({ title: "a" })], { read: [], now: NOW })).toHaveLength(1);
+  });
+});
+
+describe("rankQueue con grafo de conceptos", () => {
+  const graph = buildConceptIndex([
+    {
+      name: "Compounding de capital humano",
+      readSources: ["L1", "L2", "L3"],
+      unreadSources: ["con-concepto"],
+      status: "conocido",
+    },
+  ]);
+
+  it("usa el concepto en vez del topic y lo nombra en la razón", () => {
+    const ranked = rankQueue([mk({ title: "con-concepto", topic: "tech" })], {
+      read: [mk({ topic: "tech" })],
+      now: NOW,
+      conceptIndex: graph,
+    });
+    expect(ranked[0]?.reason).toBe("3 notas que leíste sobre Compounding de capital humano");
+  });
+
+  it("con grafo, el topic deja de inflar a las notas que el grafo no cubre", () => {
+    // "sin-concepto" comparte topic con 5 leídas: por topic ganaría. No debe.
+    const read = Array.from({ length: 5 }, () => mk({ topic: "tech" }));
+    const ranked = rankQueue(
+      [
+        mk({ title: "sin-concepto", topic: "tech", shelfLife: "evergreen" }),
+        mk({ title: "con-concepto", topic: "tech", shelfLife: "evergreen" }),
+      ],
+      { read, now: NOW, conceptIndex: graph },
+    );
+    expect(ranked[0]?.article.title).toBe("con-concepto");
+    expect(ranked[1]?.reason).toContain("sin contexto previo");
+  });
+
+  it("sin grafo se mantiene el comportamiento por topic", () => {
+    const ranked = rankQueue([mk({ title: "a", topic: "tech" })], {
+      read: [mk({ topic: "tech" }), mk({ topic: "tech" })],
+      now: NOW,
+      conceptIndex: emptyConceptIndex(),
+    });
+    expect(ranked[0]?.reason).toBe("conecta con 2 notas que ya leíste");
   });
 });
