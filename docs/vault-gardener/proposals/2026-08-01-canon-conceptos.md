@@ -56,12 +56,12 @@ Las 22 sin encaje son la respuesta correcta, no una falla: el prompt permite dev
 | Concepto | Fuentes |
 |---|---:|
 | **Captura de valor desigual en cadenas globales** — quién se queda el margen frente a quien hace el trabajo | 13 |
-| **Poder empresarial mediante integración vertical** | 10 |
+| **Poder empresarial mediante integración vertical** | 14 |
 | **Discriminación de precios y opacidad algorítmica** | 10 |
 | **Concentración de riqueza en individuos y plataformas** | 8 |
-| **Contra-posicionamiento y nichos defendibles** | 6 |
-| **Costos de cambio y efectos de red como barrera** | 6 |
-| **Ventaja competitiva imitable erosionándose** | 6 |
+| **Contra-posicionamiento y nichos defendibles** | 9 |
+| **Costos de cambio y efectos de red como barrera** | 8 |
+| **Ventaja competitiva imitable erosionándose** | 12 |
 
 > *Captura de valor desigual*: Apple in China · Why the world needs more franchises · el truco de precios de las aerolíneas · call centres en África · Las Vegas.
 
@@ -69,12 +69,12 @@ Las 22 sin encaje son la respuesta correcta, no una falla: el prompt permite dev
 
 | Concepto | Fuentes |
 |---|---:|
-| **Cultura organizacional como ventaja fundamental** | 12 |
+| **Cultura organizacional como ventaja fundamental** | 20 |
 | **Selección y retención de talento como inversión** | 12 |
-| **Sobrecapacidad e incompetencia a escala** | 13 |
+| **Sobrecapacidad e incompetencia a escala** | 17 |
 | **Incentivos económicos alineados con desempeño** | 10 |
-| **Crecimiento que oculta disfunción** | 9 |
-| **Punto único de fallo por dependencia humana** | 7 |
+| **Crecimiento que oculta disfunción** | 10 |
+| **Punto único de fallo por dependencia humana** | 8 |
 | **Path dependence y límites de transformar personas** | 6 |
 
 > *Sobrecapacidad e incompetencia a escala*: The Phoenix Project · *You just hired a million bad employees* · 3G Capital · cloud exit.
@@ -85,8 +85,8 @@ Las 22 sin encaje son la respuesta correcta, no una falla: el prompt permite dev
 |---|---:|
 | **Compounding de capital humano y tecnológico** | **17** |
 | **Herramientas sin agencia propia** — los modelos no tienen metas propias; amplifican intención humana | 12 |
-| **Adopción de IA sin impacto material inmediato** | 10 |
-| **Concentración geográfica como vulnerabilidad estratégica** | 7 |
+| **Adopción de IA sin impacto material inmediato** | 16 |
+| **Concentración geográfica como vulnerabilidad estratégica** | 9 |
 
 > *Herramientas sin agencia propia*: How To Actually Design With AI · The rise of vibe lawyering · agents-over-bubbles · gpt-4.
 
@@ -94,8 +94,8 @@ Las 22 sin encaje son la respuesta correcta, no una falla: el prompt permite dev
 
 | Concepto | Fuentes |
 |---|---:|
-| **Manipulación institucional de la verdad** | 13 |
-| **Instituciones como barreras invisibles** | 8 |
+| **Manipulación institucional de la verdad** | 22 |
+| **Instituciones como barreras invisibles** | 9 |
 
 > *Manipulación institucional de la verdad*: **1984** · Red Rising · el club secreto de Peter Thiel · Facebook sabe que Instagram es tóxico para adolescentes · Deloitte.
 > **Cruza ficción y periodismo de investigación** — de las conexiones más interesantes del canon.
@@ -104,13 +104,13 @@ Las 22 sin encaje son la respuesta correcta, no una falla: el prompt permite dev
 
 | Concepto | Fuentes |
 |---|---:|
-| **Incomodidad deliberada como motor de mejora** | 13 |
-| **Identidad como precondición del cambio personal** | 9 |
-| **Motivación intrínseca y trabajo significativo** | 9 |
-| **Autoconciencia como base de vínculos** | 8 |
-| **Aprendizaje amplio antes que especialización temprana** | 6 |
+| **Incomodidad deliberada como motor de mejora** | 22 |
+| **Identidad como precondición del cambio personal** | 19 |
+| **Motivación intrínseca y trabajo significativo** | 11 |
+| **Autoconciencia como base de vínculos** | 12 |
+| **Aprendizaje amplio antes que especialización temprana** | 7 |
 | **Distinción entre experiencia valiosa y desechable** | 5 |
-| **Progreso como proceso recursivo e imperfecto** | 5 |
+| **Progreso como proceso recursivo e imperfecto** | 9 |
 
 > *Incomodidad deliberada*: **Meditations** · Scaling People · The Stranger in the Woods · How to become so creative it feels illegal.
 
