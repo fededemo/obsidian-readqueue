@@ -1,6 +1,7 @@
 import {
   debounce,
   MarkdownView,
+  normalizePath,
   Notice,
   Plugin,
   TFile,
@@ -10,6 +11,8 @@ import {
   type WorkspaceLeaf,
 } from "obsidian";
 
+import { buildDailyRitual, renderDailyRitual } from "./daily-ritual";
+import { rankQueue } from "./priority";
 import {
   articleFromFile,
   estimateReadingMinutesFromSize,
@@ -308,6 +311,14 @@ export default class ReadQueuePlugin extends Plugin {
       name: "Pick today's reading (5 articles)",
       callback: () => {
         void this.pickTodayReading();
+      },
+    });
+
+    this.addCommand({
+      id: "daily-ritual",
+      name: "Repaso del día (1 highlight + conexiones)",
+      callback: () => {
+        void this.createDailyRitual();
       },
     });
 
@@ -802,6 +813,79 @@ export default class ReadQueuePlugin extends Plugin {
         : `ReadQueue: ${picks.length} artículos sugeridos para hoy.`,
     );
     return picks;
+  }
+
+  /**
+   * Genera `Daily/Repaso YYYY-MM-DD.md`: un highlight, con qué se conecta, y
+   * qué leer. Determinista por fecha — regenerarlo el mismo día no cambia nada.
+   */
+  async createDailyRitual(): Promise<void> {
+    const date = new Date().toISOString().slice(0, 10);
+    const files = await this.collectHighlights();
+    const highlights = files.flatMap((f: VaultFileHighlights) => {
+      const fm = this.app.metadataCache.getFileCache(f.file)?.frontmatter as
+        | ReadFrontmatter
+        | undefined;
+      return f.highlights.map((h): {
+        text: string;
+        note: string;
+        articleSource: VaultFileHighlights["articleSource"];
+        topic: string | undefined;
+      } => ({
+        text: h.text,
+        note: f.file.basename,
+        articleSource: f.articleSource,
+        topic: typeof fm?.topic === "string" ? fm.topic : undefined,
+      }));
+    });
+
+    const all = this.loadQueueArticles();
+    const read = all
+      .filter((a) => a.status === "read")
+      .map((a) => ({ note: a.file.basename, topic: a.topic }));
+    const concepts = this.app.vault
+      .getMarkdownFiles()
+      .filter((f) => f.path.startsWith("Concepts/"))
+      .map((f) => ({
+        note: f.basename,
+        topic: (
+          this.app.metadataCache.getFileCache(f)?.frontmatter as
+            | ReadFrontmatter
+            | undefined
+        )?.topic,
+      }));
+    const queueTop = rankQueue(
+      all.filter((a) => a.status === "unread"),
+      { read: all.filter((a) => a.status === "read") },
+    )
+      .slice(0, 2)
+      .map((r): { note: string; why: string } => ({
+        note: r.article.file.basename,
+        why: r.reason,
+      }));
+
+    const ritual = buildDailyRitual({
+      date,
+      highlights,
+      read,
+      concepts,
+      queueTop,
+      rng: rngFromSeed(date),
+    });
+
+    const path = normalizePath(`Diario/Repaso ${date}.md`);
+    const body = renderDailyRitual(ritual);
+    const existing = this.app.vault.getAbstractFileByPath(path);
+    if (existing instanceof TFile) {
+      await this.app.vault.modify(existing, body);
+    } else {
+      await ensureFolder(this.app, "Diario");
+      await this.app.vault.create(path, body);
+    }
+    const leaf = this.app.workspace.getLeaf(false);
+    const file = this.app.vault.getAbstractFileByPath(path);
+    if (file instanceof TFile) await leaf.openFile(file);
+    new Notice("Repaso del día listo");
   }
 
   async createDailyDigest(): Promise<void> {
