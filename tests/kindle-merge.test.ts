@@ -379,3 +379,50 @@ describe("run --merge (CLI parity)", () => {
     expect(writeFile).not.toHaveBeenCalled();
   });
 });
+
+// Regresión B-327: 34 de 34 libros de la vault quedaron 2-4x inflados
+// (2410 highlights, 777 únicos). Dos capas independientes lo previenen.
+describe("B-327 — no duplicar highlights", () => {
+  const book: KindleBook = {
+    asin: "B01",
+    title: "Meditations",
+    author: "Marcus Aurelius",
+    coverUrl: "https://example.com/cover.jpg",
+  };
+
+  it("buildBookMarkdown dedupe repeticiones dentro del mismo scrape", () => {
+    const dup = [h("read carefully", "Location 10"), h("read carefully", "Location 10"), h("otra cosa", "Location 20")];
+    const { content } = buildBookMarkdown({ book, highlights: dup }, "cultura");
+    const quotes = content.split("\n").filter((l) => l.startsWith("> read carefully"));
+    expect(quotes).toHaveLength(1);
+    expect(content).toContain("highlightCount: 2");
+  });
+
+  it("buildBookMarkdown trata whitespace distinto como el mismo highlight", () => {
+    const dup = [h("read  carefully", "Location 10"), h("read\ncarefully", "Location 10")];
+    const { content } = buildBookMarkdown({ book, highlights: dup }, "cultura");
+    expect(content).toContain("highlightCount: 1");
+  });
+
+  it("el merge no reinserta un highlight que ya está en el archivo, aunque el sidecar se haya perdido", () => {
+    const { content } = buildBookMarkdown({ book, highlights: [h("read carefully", "Location 10")] }, "cultura");
+    // sidecar perdido => planMerge cree que todo es nuevo
+    const merged = mergeHighlightsIntoMarkdown(content, [h("read carefully", "Location 10")], 1);
+    expect(merged).toBe(content);
+  });
+
+  it("re-sync repetido es idempotente (el caso que infló la vault 4x)", () => {
+    const hs = [h("uno", "Location 1"), h("dos", "Location 2")];
+    let doc = buildBookMarkdown({ book, highlights: hs }, "cultura").content;
+    for (let i = 0; i < 4; i++) doc = mergeHighlightsIntoMarkdown(doc, hs, 2);
+    expect(doc.split("\n").filter((l) => l === "> uno")).toHaveLength(1);
+    expect(doc.split("\n").filter((l) => l === "> dos")).toHaveLength(1);
+  });
+
+  it("sigue agregando los que sí son nuevos", () => {
+    const doc = buildBookMarkdown({ book, highlights: [h("viejo", "Location 1")] }, "cultura").content;
+    const merged = mergeHighlightsIntoMarkdown(doc, [h("viejo", "Location 1"), h("nuevo", "Location 2")], 2);
+    expect(merged).toContain("> nuevo");
+    expect(merged.split("\n").filter((l) => l === "> viejo")).toHaveLength(1);
+  });
+});

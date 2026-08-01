@@ -110,10 +110,33 @@ export function mergeHighlightsIntoMarkdown(
 ): string {
   if (newHighlights.length === 0) return existing;
   const lines = existing.split("\n");
+  const fresh = newHighlights.filter(
+    (h) => !isAlreadyInFile(lines, h),
+  );
+  if (fresh.length === 0) return existing;
   const bodyStart = updateFrontmatterCount(lines, highlightCount);
-  const blockLines = newHighlights.flatMap((h) => renderHighlightLines(h));
+  const blockLines = fresh.flatMap((h) => renderHighlightLines(h));
   insertIntoHighlightsSection(lines, blockLines, bodyStart);
   return lines.join("\n");
+}
+
+/**
+ * Last line of defence against duplicates: never re-insert a highlight whose
+ * text is already in the file.
+ *
+ * The delivered-keys sidecar is the primary guard, but it lives in the vault
+ * and can go missing (it did — the whole state was lost, and every re-sync
+ * appended the full set again). This check makes the merge idempotent on its
+ * own, so a lost sidecar costs a redundant scrape instead of a corrupted note.
+ */
+function isAlreadyInFile(
+  lines: readonly string[],
+  h: KindleHighlight,
+): boolean {
+  const firstLine = normalizeHighlightText(h.text.split("\n")[0] ?? "");
+  if (firstLine === "") return false;
+  const needle = `> ${firstLine}`;
+  return lines.some((l) => normalizeHighlightText(l) === needle);
 }
 
 /** Returns the index of the first body line (after the closing `---`, or 0 if no frontmatter). */

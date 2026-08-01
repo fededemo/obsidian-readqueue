@@ -155,6 +155,28 @@ function yamlList(values: readonly string[]): string {
   return `[${values.map(yamlScalar).join(", ")}]`;
 }
 
+/**
+ * Drops repeats within a single scrape, keyed by normalized text + location.
+ *
+ * The scraper has delivered the same highlight more than once (Kindle's
+ * notebook page renders duplicates for annotations edited on-device), and a
+ * full build used to write every copy — which is how 34 books ended up 2-4x
+ * inflated. Dedupe here so the file is correct even if the input is not.
+ */
+export function dedupeHighlights(
+  highlights: readonly KindleHighlight[],
+): KindleHighlight[] {
+  const seen = new Set<string>();
+  const out: KindleHighlight[] = [];
+  for (const h of highlights) {
+    const key = `${h.text.replace(/\s+/g, " ").trim()}|${(h.location ?? "").trim()}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(h);
+  }
+  return out;
+}
+
 /** Renders one highlight as markdown block lines (blockquote + location + 📝 note), ending with a blank line. Shared by full builds and incremental merges so both produce identical output. */
 export function renderHighlightLines(h: KindleHighlight): string[] {
   const lines = [`> ${h.text.replace(/\n/g, "\n> ")}`];
@@ -172,7 +194,8 @@ export function buildBookMarkdown(
   topic: string,
   now: Date = new Date(),
 ): BookMarkdown {
-  const { book, highlights } = data;
+  const { book } = data;
+  const highlights = dedupeHighlights(data.highlights);
   const ts = now.toISOString();
   const tags = ["reader", "kindle", "legacy"];
   const fmLines = [
