@@ -134,14 +134,50 @@ export function buildClassifyPrompt(
     "First 600 characters of the content:",
     input.excerpt.slice(0, 600),
     "",
-    'Reply with ONLY a JSON object on a single line: {"topic":"<one>","tags":["t1","t2"]}. Lowercase, no spaces in tags, no leading #. Use the closed topic list above.',
+    "Also judge how fast this content goes stale (shelfLife):",
+    "- evergreen: principles, essays, papers, biographies. Still true in 5 years.",
+    "- seasonal: analysis of an ongoing situation. Loses its edge in 6-12 months.",
+    "- perishable: news, launches, benchmarks, drama. Archaeology in weeks.",
+    "",
+    "And write a `tldr`: ONE sentence in Spanish, max 25 words, answering \"why would this be worth MY time?\" — the payoff, not a summary. No preamble.",
+    "",
+    'Reply with ONLY a JSON object on a single line: {"topic":"<one>","tags":["t1","t2"],"shelfLife":"<one>","tldr":"<one sentence>"}. Lowercase for topic/tags/shelfLife, no spaces in tags, no leading #. Use the closed lists above.',
   );
   return lines.join("\n");
 }
 
+/**
+ * How fast the content goes stale. The point is that age alone doesn't measure
+ * obsolescence: a 2005 Paul Graham essay still explains 2026, while a release
+ * announcement is archaeology in weeks. Drives the "is this still worth
+ * reading?" triage — see docs/SEGUNDO-CEREBRO.md §4.3.
+ */
+export const SHELF_LIVES = ["evergreen", "seasonal", "perishable"] as const;
+export type ShelfLife = (typeof SHELF_LIVES)[number];
+
 export interface ClassifyResult {
   topic: string;
   tags: string[];
+  /** Absent when the model didn't answer usably — never guessed. */
+  shelfLife?: ShelfLife;
+  /** One line of "why this would matter to you", not a summary of the article. */
+  tldr?: string;
+}
+
+/** Max chars kept from the model's tldr — it has to fit in a queue card. */
+const TLDR_MAX = 200;
+
+function sanitizeTldr(raw: unknown): string | undefined {
+  if (typeof raw !== "string") return undefined;
+  const clean = raw.replace(/\s+/g, " ").trim();
+  if (clean.length < 10) return undefined;
+  return clean.length > TLDR_MAX ? `${clean.slice(0, TLDR_MAX - 1).trimEnd()}…` : clean;
+}
+
+function sanitizeShelfLife(raw: unknown): ShelfLife | undefined {
+  if (typeof raw !== "string") return undefined;
+  const v = raw.toLowerCase().trim();
+  return SHELF_LIVES.find((s) => s === v);
 }
 
 function sanitizeTag(raw: unknown): string | undefined {
@@ -162,11 +198,13 @@ function parseClassifyReply(
 ): ClassifyResult | undefined {
   const lower = text.trim();
   if (!lower) return undefined;
-  let parsed: { topic?: unknown; tags?: unknown } | undefined;
+  let parsed:
+    | { topic?: unknown; tags?: unknown; shelfLife?: unknown; tldr?: unknown }
+    | undefined;
   const jsonMatch = lower.match(/\{[\s\S]*\}/);
   if (jsonMatch) {
     try {
-      parsed = JSON.parse(jsonMatch[0]) as { topic?: unknown; tags?: unknown };
+      parsed = JSON.parse(jsonMatch[0]) as typeof parsed;
     } catch {
       parsed = undefined;
     }
@@ -191,7 +229,14 @@ function parseClassifyReply(
       if (tags.length >= 4) break;
     }
   }
-  return { topic, tags };
+  const shelfLife = sanitizeShelfLife(parsed?.shelfLife);
+  const tldr = sanitizeTldr(parsed?.tldr);
+  return {
+    topic,
+    tags,
+    ...(shelfLife ? { shelfLife } : {}),
+    ...(tldr ? { tldr } : {}),
+  };
 }
 
 const defaultFetchJson: NonNullable<ClassifyDeps["fetchJson"]> = async (

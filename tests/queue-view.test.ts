@@ -77,6 +77,8 @@ function article(title: string, topic: string): QueueArticle {
     url: undefined,
     source: undefined,
     topic,
+    shelfLife: undefined,
+    tldr: undefined,
     author: undefined,
     published: undefined,
     savedAt: undefined,
@@ -197,5 +199,35 @@ describe("QueueView search input", () => {
 
     const empty = container.querySelector(".readqueue-view__list p");
     expect(empty?.textContent).toBe("Sin resultados para ese filtro.");
+  });
+});
+
+describe("B2 — tldr y shelfLife en la card", () => {
+  beforeAll(installObsidianDom);
+  afterAll(() => {
+    uninstallObsidianDom();
+    document.body.innerHTML = "";
+  });
+
+  it("muestra el tldr cuando está, y no rompe cuando falta", async () => {
+    const { view, container } = makeView([
+      { ...article("Con tldr", "tech"), tldr: "Explica por qué el margen del modelo tiende a cero." },
+      article("Sin tldr", "tech"),
+    ]);
+    await (view as unknown as RenderableView).render();
+    const tldrs = container.querySelectorAll(".readqueue-view__card-tldr");
+    expect(tldrs).toHaveLength(1);
+    expect(tldrs[0]?.textContent).toContain("margen del modelo");
+  });
+
+  it("marca 'caduca' solo en los perishable", async () => {
+    const { view, container } = makeView([
+      { ...article("Noticia", "tech"), shelfLife: "perishable" },
+      { ...article("Ensayo", "tech"), shelfLife: "evergreen" },
+    ]);
+    await (view as unknown as RenderableView).render();
+    const badges = container.querySelectorAll(".readqueue-view__shelf-badge--perishable");
+    expect(badges).toHaveLength(1);
+    expect(badges[0]?.textContent).toBe("caduca");
   });
 });

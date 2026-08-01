@@ -321,3 +321,54 @@ describe("classifyTopic orchestrator", () => {
     expect(result.topic).toBe("otros");
   });
 });
+
+// B2 — shelfLife + tldr en el mismo call que topic (docs/SEGUNDO-CEREBRO.md §4.3)
+describe("B2 — shelfLife y tldr", () => {
+  const apiResponse = (text: string): unknown => ({
+    content: [{ type: "text", text }],
+  });
+  const call = async (reply: string) =>
+    classifyWithClaude(makeInput(), makeSettings({ anthropicApiKey: "sk-ant-test" }), {
+      fetchJson: vi.fn().mockResolvedValue({ status: 200, json: apiResponse(reply) }),
+    });
+
+  it("el prompt pide los tres valores de shelfLife y el tldr", () => {
+    const prompt = buildClassifyPrompt(["tech"], { tech: "x" }, { title: "T", excerpt: "E" });
+    for (const v of ["evergreen", "seasonal", "perishable", "tldr"]) {
+      expect(prompt).toContain(v);
+    }
+  });
+
+  it("parsea shelfLife y tldr válidos", async () => {
+    const r = await call(
+      '{"topic":"tech","tags":["ai"],"shelfLife":"evergreen","tldr":"Explica por qué el margen del modelo tiende a cero."}',
+    );
+    expect(r?.shelfLife).toBe("evergreen");
+    expect(r?.tldr).toBe("Explica por qué el margen del modelo tiende a cero.");
+  });
+
+  it("descarta un shelfLife fuera de la lista en vez de inventarlo", async () => {
+    const r = await call('{"topic":"tech","tags":[],"shelfLife":"eterno","tldr":"Una linea util aca."}');
+    expect(r?.topic).toBe("tech");
+    expect(r?.shelfLife).toBeUndefined();
+  });
+
+  it("sigue funcionando si el modelo no manda los campos nuevos (retrocompatible)", async () => {
+    const r = await call('{"topic":"tech","tags":["ai"]}');
+    expect(r).toEqual({ topic: "tech", tags: ["ai"] });
+  });
+
+  it("normaliza el case de shelfLife y el whitespace del tldr", async () => {
+    const r = await call('{"topic":"tech","tags":[],"shelfLife":"  PERISHABLE ","tldr":"  hay   saltos\\n y espacios  "}');
+    expect(r?.shelfLife).toBe("perishable");
+    expect(r?.tldr).toBe("hay saltos y espacios");
+  });
+
+  it("trunca un tldr largo y descarta uno vacío", async () => {
+    const largo = await call(`{"topic":"tech","tags":[],"tldr":"${"x".repeat(400)}"}`);
+    expect(largo?.tldr).toHaveLength(200);
+    expect(largo?.tldr?.endsWith("…")).toBe(true);
+    const corto = await call('{"topic":"tech","tags":[],"tldr":"ok"}');
+    expect(corto?.tldr).toBeUndefined();
+  });
+});

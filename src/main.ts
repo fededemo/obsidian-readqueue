@@ -1119,6 +1119,9 @@ export default class ReadQueuePlugin extends Plugin {
       const obj = raw as Record<string, unknown>;
       obj["topic"] = result.topic;
       obj["classified"] = true;
+      if (result.shelfLife) obj["shelfLife"] = result.shelfLife;
+      // No pisamos un tldr existente: puede haberlo editado el usuario.
+      if (result.tldr && typeof obj["tldr"] !== "string") obj["tldr"] = result.tldr;
       if (result.tags.length > 0) {
         const existing = obj["tags"];
         const merged = mergeTagsForFrontmatter(existing, result.tags);

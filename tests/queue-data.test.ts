@@ -32,6 +32,8 @@ function mkArticle(overrides: Partial<QueueArticle> = {}): QueueArticle {
     url: undefined,
     source: undefined,
     topic: undefined,
+    shelfLife: undefined,
+    tldr: undefined,
     author: undefined,
     published: undefined,
     savedAt: undefined,

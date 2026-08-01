@@ -6,6 +6,10 @@ export interface ReadFrontmatter {
   url?: string;
   topic?: string;
   classified?: boolean;
+  /** evergreen | seasonal | perishable — ver src/topics.ts */
+  shelfLife?: string;
+  /** Una línea de "por qué te importaría a vos" (no es el resumen del artículo). */
+  tldr?: string;
   description?: string;
   author?: string | string[];
   published?: string;
@@ -22,6 +26,8 @@ export interface QueueArticle {
   url: string | undefined;
   source: string | undefined;
   topic: string | undefined;
+  shelfLife: string | undefined;
+  tldr: string | undefined;
   author: string | undefined;
   published: string | undefined;
   savedAt: Date | undefined;
@@ -77,6 +83,8 @@ export function articleFromFile(
     url,
     source,
     topic: isString(fm.topic) ? fm.topic : undefined,
+    shelfLife: isString(fm.shelfLife) ? fm.shelfLife : undefined,
+    tldr: isString(fm.tldr) ? fm.tldr : undefined,
     author: normalizeAuthor(fm.author),
     published: isString(fm.published) ? fm.published : undefined,
     savedAt,

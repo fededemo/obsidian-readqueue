@@ -32,6 +32,8 @@ export interface ParsedArticle {
   bodyMarkdown?: string;
   tags?: string[];
   topic?: string;
+  shelfLife?: string;
+  tldr?: string;
 }
 
 export interface ArticleNote {
@@ -64,9 +66,15 @@ export interface ProcessUrlDeps {
   parseDom?: (html: string) => Document;
   fetchUrl?: (url: string) => Promise<{ status: number; text: string }>;
   now?: () => Date;
-  classify?: (
-    article: ParsedArticle,
-  ) => Promise<{ topic: string; tags: string[] } | undefined>;
+  classify?: (article: ParsedArticle) => Promise<
+    | {
+        topic: string;
+        tags: string[];
+        shelfLife?: string;
+        tldr?: string;
+      }
+    | undefined
+  >;
   /**
    * Returns an already-present note matching `url` (by canonical key), or
    * undefined. When set and it hits, intake skips the fetch/parse entirely.
@@ -248,6 +256,8 @@ export function articleToMarkdown(
   if (article.author) frontmatter.author = article.author;
   if (article.published) frontmatter.published = article.published;
   if (article.topic) frontmatter.topic = article.topic;
+  if (article.shelfLife) frontmatter.shelfLife = article.shelfLife;
+  if (article.tldr) frontmatter.tldr = article.tldr;
   const markdown = article.bodyMarkdown ?? htmlToMarkdown(article.contentHtml);
   const body = `# ${article.title}\n\n[Original ↗](${article.url})\n\n${markdown}`;
   return { frontmatter, body };
@@ -327,6 +337,8 @@ export async function processUrl(
       try {
         const result = await deps.classify(parsed);
         if (result?.topic) parsed.topic = result.topic;
+        if (result?.shelfLife) parsed.shelfLife = result.shelfLife;
+        if (result?.tldr) parsed.tldr = result.tldr;
         if (result?.tags && result.tags.length > 0) {
           const existing = parsed.tags ?? ["reader"];
           parsed.tags = mergeTags(existing, result.tags);

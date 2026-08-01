@@ -290,7 +290,23 @@ export class QueueView extends ItemView {
       text: article.title,
     });
 
+    // El tldr contesta "¿por qué me importaría?" — convierte la lista de
+    // títulos en una lista de decisiones (docs/SEGUNDO-CEREBRO.md §4.3).
+    if (article.tldr) {
+      card.createEl("div", {
+        cls: "readqueue-view__card-tldr",
+        text: article.tldr,
+      });
+    }
+
     const meta = card.createDiv({ cls: "readqueue-view__card-meta" });
+    if (article.shelfLife === "perishable") {
+      meta.createEl("span", {
+        cls: "readqueue-view__shelf-badge readqueue-view__shelf-badge--perishable",
+        text: "caduca",
+        attr: { title: "Contenido perecedero: si tiene más de 3 meses, probablemente ya no aplique" },
+      });
+    }
     const sourceText = computeSourceText(article);
     if (sourceText) meta.createEl("span", { text: sourceText });
     if (article.savedAt) {
