@@ -265,3 +265,33 @@ describe("C2 — orden por prioridad", () => {
     expect(container.querySelectorAll(".readqueue-view__why")).toHaveLength(0);
   });
 });
+
+describe("botón Recargar", () => {
+  beforeAll(installObsidianDom);
+  afterAll(() => {
+    uninstallObsidianDom();
+    document.body.innerHTML = "";
+  });
+
+  it("re-renderizar no duplica ni vacía la lista", async () => {
+    const { view, container } = makeView([article("a", "tech"), article("b", "macro")]);
+    await (view as unknown as RenderableView).render();
+    expect(titles(container)).toEqual(["a", "b"]);
+    // Lo que hace el botón: render() de nuevo sobre el mismo root.
+    await (view as unknown as RenderableView).render();
+    expect(titles(container)).toEqual(["a", "b"]);
+    expect(container.querySelectorAll(".readqueue-view__toolbar")).toHaveLength(1);
+  });
+
+  it("re-renderizar en modo prioridad tampoco rompe", async () => {
+    const { view, container } = makeView([
+      { ...article("leida", "tech"), status: "read", readAt: new Date() },
+      article("pendiente", "tech"),
+    ]);
+    (view as unknown as { sortBy: string }).sortBy = "priority";
+    await (view as unknown as RenderableView).render();
+    const first = titles(container);
+    await (view as unknown as RenderableView).render();
+    expect(titles(container)).toEqual(first);
+  });
+});
