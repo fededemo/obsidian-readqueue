@@ -1,5 +1,11 @@
 # obsidian-readqueue — ROADMAP
 
+> **Dos roadmaps, no los confundas:**
+> - **Este archivo** = el roadmap del **plugin** (F0–F7): features, releases, deploy log. Histórico y vigente.
+> - **[`SEGUNDO-CEREBRO.md`](./SEGUNDO-CEREBRO.md) §5** = el roadmap del **segundo cerebro** (Fases A–E): conexiones, conceptos, ritual diario, X. **Es el que está activo hoy.**
+>
+> El detalle por ítem de ambos vive en [`backlog.md`](./backlog.md).
+
 > Fuente de verdad unificada del registro de deploys + plan de alto nivel + handoff formal a `qa-tester`.
 >
 > **Distinto de:**

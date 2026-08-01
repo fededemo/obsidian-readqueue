@@ -35,8 +35,7 @@
 
 ### 1.2 Lo que NUNCA pasó
 
-- La extensión no está instalada en ningún browser.
-- `Inbox/Kindle/` no existe en fedenotes; cero notas de libros.
+a - `Inbox/Kindle/` no existe en fedenotes; cero notas de libros.
 - La vista unificada de highlights solo muestra web + Matter legacy.
 - Nadie validó el scrape contra la cuenta real de Amazon de Fede (dominio, idioma, cantidad de libros, edge cases reales).
 

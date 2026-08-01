@@ -14,7 +14,7 @@
 
 | ID | Descripción | Status | Agent | Dependencies | Acceptance |
 |----|-------------|--------|-------|--------------|------------|
-| B-006 | Setup BRAT en Mac + iPhone, distribuir plugin | TODO | user (manual) | B-001..B-005 (todos DONE) | F1.6 del ROADMAP |
+| B-006 | ~~Setup BRAT en Mac + iPhone~~ → **CERRADO por B-725**: Obsidian Sync propaga `.obsidian/plugins/` nativamente, BRAT ya no hace falta | DONE | user (manual) | B-725 | Vault migrada a `~/fedenotes` + Sync activo (2026-08-01) |
 
 ## P1 — Important, no bloqueantes
 
@@ -74,6 +74,62 @@
 | B-402 | Skill `vault` — método de consulta segura de la KB (carpetas, grep de frontmatter, gate de escritura) | TODO (diferido) | — | B-401 | Diferido por decisión governance-first. Invocable; encapsula gobernanza de lectura |
 | B-403 | Path B headless Sync mirror (`ob` pull-only) — SOLO si hay agentes cloud/cron o dolor iCloud activo | TODO | user + builder | 2da máquina sin la vault + confirmar add-on **Sync** en el plan de Fede | Mirror materializado en dir separado; no doble-sync |
 | B-404 | Path C Local REST API + MCP — opcional, queries vivas (dataview/backlinks/search) | TODO | user + builder | Fede quiere instalar plugin + Obsidian abierto | MCP server registrado en Claude Code |
+
+## F7 — X/Twitter: bookmarks y likes (discovery)
+
+> Discovery en `docs/plans/f7-x-bookmarks-y-likes.md` (2026-07-28). Ingesta = `birdclaw` (externo, MIT), no construimos cliente de X. Ventana de cola = `created_at` del tweet < 90 días (decidido por Fede). Pendiente: D1 (transporte API vs cookies) y D2 (carpeta de la KB).
+
+| ID | Descripción | Status | Agent | Dependencies | Acceptance |
+|----|-------------|--------|-------|--------------|------------|
+| B-600 | ADR-004 — Estructura de carpetas y taxonomía de la vault (3 ejes: carpeta=ciclo de vida, frontmatter=naturaleza, links=sentido). Mide la deuda real: 3 nombres para "fecha de entrada", 2 vocabularios de estado, `status` ausente en `Inbox/Web` | PROPOSED | system-architect | — | `ADR-004`. Pendiente OK de Fede a §2.2 (estructura) y §2.4 (normalización, = escritura en vault, gated) |
+| B-601 | F7.0 — **COMPLETADO**: birdclaw + xurl instalados y autenticados, sync real `ok:true count:20`. Mix medido: 13/20 punteros, 70% de un solo autor, punteros a **PDFs académicos** (no HTML). 7 correcciones al diseño (§11.4) | DONE | user + system-architect | D1 (API oficial) | ✅ Datos reales en `~/.birdclaw`; hallazgos en `f7-...md` §11 |
+| B-606 | F7.0b — **COMPLETADO**: 450 bookmarks + 200 likes sincronizados (~$0.65). Mix real: **33% READ / 24% WATCH / 43% REFERENCE**. Los papers eran 3%, no 65% (la muestra de 20 era una racha). Solo **92 de 450** entran a la cola | DONE | system-architect | B-601 | ✅ §13 del plan. Taxonomía v2 validada con datos |
+| B-609 | Refinamiento: expandir **quote-tweets** (86 en la muestra) vía `quoted_tweet_id` — hoy caen en REFERENCE pero el contenido vive en el tweet citado; algunos serían READ | TODO | builder | B-608 | Reclasificación medida antes/después |
+| B-608 | **Diseño corregido**: la especie `pointer` NO se resuelve con defuddle (los links son PDFs de ssrn/arxiv). Usar `birdclaw research` (expande el hilo padre → resumen + link). Reescribir §3.2 del plan en F7.1 | TODO | builder | B-606 | `x-sync.ts` consume salida de `research`, no fetchea PDFs |
+| B-607 | **Fuera de F7, colateral**: Command Line Tools desactualizadas en la Mac de Fede — rompe cualquier fórmula brew que compile desde fuente y dejó `Cellar/node/22.0.0` con dylib faltante | TODO | user (manual) | — | `xcode-select --install` (o Software Update); `brew doctor` limpio |
+| B-602 | F7.1 — `src/x-sync.ts`: lector del SQLite de birdclaw + dedupe vía `url-canon` + router `read`/`watch`/`reference` (taxonomía v2, §12 del plan). **Bloqueante de E1 y E2** | TODO | builder | B-601 ✅, B-606 ✅ | Comando "Sincronizar bookmarks de X"; tests con fixtures reales de los 450 |
+| B-603b | **E1 — la punta de X**: ~92 bookmarks recientes y consumibles (`<90d` + READ/WATCH) → `Inbox/Web/` con `status: unread`. **Se adelanta**: va después del priorizador (B-732), no al final | TODO | builder | B-602, B-732 | 92 notas en la cola, ya ordenadas por señal; la cola pasa de 175 a ~267 sin abrumar |
+| B-603c | **E2 — el volumen de X**: ~358 bookmarks restantes + 200+ likes → `Inbox/Legacy/`. Sigue último: necesita la capa de conceptos para ser navegable | TODO | builder | B-603b, B-724 | Material indexado y consultable, sin competir por atención |
+| B-603 | F7.2 — Backfill del histórico: CLI paceado (patrón `score-wishlist`) + clasificación Batch API + escritura a la KB | TODO | builder + user | B-602, D2 decidida | Histórico clasificado en la KB; la cola no se inunda |
+| B-604 | F7.3 — Likes desde el archive ZIP → notas **agregadas** por autor/tema (no una nota por like) | TODO | builder | B-602 | Likes consultables sin ensuciar el graph de F6 |
+| B-605 | F7.4 — Enganche con F6: vault-gardener cita y conecta material de X en `/vault-ask` y `/vault-link` | TODO | system-architect | B-603, B-502 | 1 pase real que conecte notas de X con notas existentes |
+
+## Secuencia unificada del segundo cerebro (`docs/SEGUNDO-CEREBRO.md` §5)
+
+> El hilo que conecta F6 + F7 + F8 en 5 pasos donde cada uno alimenta al siguiente. Confirmado por Fede 2026-07-31.
+
+| ID | Descripción | Status | Agent | Dependencies | Acceptance |
+|----|-------------|--------|-------|--------------|------------|
+| B-720 | **Paso 1** — Validar el demo de F6.1 (mismo que B-711). ~20 min de Fede. Calibra el linking antes de escribir nada | TODO | **user (manual)** | — | 10 conexiones marcadas sirve/no-sirve |
+| B-725 | **Paso 1b** — Migrar la vault de iCloud a Obsidian Sync | **DONE** | user (manual) | — | ✅ 2026-08-01: vault en `~/fedenotes`, 676 notas, 3 plugins y `data.json` intactos, 0 rastros en iCloud. Cierra B-006 |
+| B-726 | **Paso 2** — Git en la vault (backbone de undo) | **DONE** | builder | B-725 | ✅ 2026-08-01: `git init` + `.gitignore` + commit baseline `9ce8ee3`, 702 archivos versionados. Habilita §4.2 (escritura libre en `Concepts/`) |
+| B-721 | **Paso 3** — Ritual diario: 1 highlight + 1-2 notas relacionadas por `topic` + por qué se conectan. **Restricción dura: 60s de lectura.** Reusa `pickDailyHighlights`/`topics.ts`/`buildDigestHighlightsSection` | TODO | builder | B-701, B-702 | Nota diaria generada; mezcla las 4 fuentes; test determinista |
+| B-722 | **Paso 3a** — `shelfLife: evergreen\|seasonal\|perishable` en el intake (mismo call que `topic`, costo marginal ~0). Resuelve "¿quedó desactualizado?" — la antigüedad no mide obsolescencia, la vida útil sí | TODO | builder | — | Campo en frontmatter + reglas de descarte; pase retroactivo Batch (~$0.15) |
+| B-723 | **Paso 3b** — `tldr:` de 1-2 líneas por nota ("por qué te importaría a vos", no resumen del artículo) en el mismo call. Se muestra en la card de la cola | TODO | builder | B-722 | La cola pasa de lista de títulos a lista de decisiones |
+| B-724 | **Fase D** — Primeras notas-concepto de `tech`+`producto`. **Regla corregida (ADR-005 §9-bis.3): NO se excluye lo no leído, se MARCA.** Cada concepto lleva estatus `conocido` (≥2 leídas, síntesis completa) / `emergente` (1 leída) / `latente` (solo no leídas → se lista, no se sintetiza) | TODO | builder + vault-gardener | B-731, B-726 ✅ | Notas-concepto con estatus explícito; los `latente` se promueven solos al leer |
+| B-730 | ⬆️ **SUBE A BLOQUEANTE** — `status: unread` explícito en las 175 notas de `Inbox/Web` (hoy 0 lo tienen; se infiere por ausencia). Con el estado de lectura en el centro del modelo de relevancia (ADR-005 §9-bis), deja de ser cosmético | TODO | builder | B-726 (git ✅) | Las 175 con `status: unread`; queries de relevancia funcionan sin inferencia |
+| B-731 | **Bug de diseño de `vault-gardener`**: el 1er pase ignoró el estado de lectura — 15 de 17 notas conectadas estaban SIN LEER. Debe clasificar cada conexión en **consolidar** (leída↔leída) / **atraer** (leída↔no leída) / **agrupar** (no leída↔no leída) | TODO | system-architect | B-730 | Nuevo pase con los 3 tipos separados; las "atraer" alimentan la priorización de la cola |
+| B-732 | **Priorizador de cola por conexiones**: `prioridad = nº notas leídas conectadas × shelfLife × topic activo`. Responde el pedido de Fede: "¿qué vale la pena que lea y por qué?" | TODO | builder | B-731, B-722 | La cola se ordena por señal real, no por fecha |
+
+## Operación y escala de la KB (ADR-006)
+
+| ID | Descripción | Status | Agent | Dependencies | Acceptance |
+|----|-------------|--------|-------|--------------|------------|
+| B-710 | ADR-006 — modelo operativo (PULL/PUSH/DISCOVERY), 3 capas de acceso para escalar a 3.000+ notas, rituales por frecuencia, gobernanza consolidada. **Corolario: F6 es prerequisito de F7, no al revés** | PROPOSED | system-architect | — | `ADR-006`. Pendiente OK de Fede a la secuencia de §6 |
+| B-711 | ⚠️ **BLOQUEANTE DE TODO F6** — validar el demo `proposals/2026-07-13-producto-tech-connections.md` (10 conexiones + 3 notas-concepto + ask-your-vault sobre 19 notas). Esperando desde 2026-07-13 | TODO | **user (manual)** | — | Fede dice qué conexiones sirven y cuáles no → calibra antes de escalar a 8 dominios |
+
+## F8 — Relevancia y resurfacing unificado (ADR-005)
+
+> De "variedad aleatoria" a "relevancia". Un solo ranking sobre todo el corpus (highlights web/Kindle/Matter/X + artículos + bookmarks). Caso de uso guía: la impresora diaria — obliga a que no haya silos por fuente. Diseño en `ADR-005`.
+
+| ID | Descripción | Status | Agent | Dependencies | Acceptance |
+|----|-------------|--------|-------|--------------|------------|
+| B-700 | ADR-005 — modelo de relevancia (2 ejes: fuerza del acto × estado de resolución), score determinista, 3 intenciones de resurfacing (Recordar/Reconsiderar/Conectar), impresora desacoplada por archivo | PROPOSED | system-architect | — | `ADR-005`. Pendiente OK de Fede a los pesos del Eje A y a "Reconsiderar" |
+| B-701 | R1 — `ArticleSource` += `"x"`: los highlights/tweets de X entran al resurfacing existente | TODO | builder | B-700, B-608 | `pickDailyHighlights` mezcla 4 fuentes; tests |
+| B-702 | R2 — `score()` determinista + `pickDailyHighlights` pasa a **round-robin ponderado** (hoy todas las fuentes pesan igual y dentro de cada una es azar puro) | TODO | builder | B-701 | Módulo puro + tests; mismo día = mismo resultado |
+| B-703 | R3 — Intención **Reconsiderar**: no-leídos >6 meses + acción "sube a la cola / descartar". Cap ≤1 por semana (riesgo: máquina de culpa) | TODO | builder | B-702 | Query + comando; no aparece más de 1×/semana |
+| B-704 | R4 — Intención **Conectar**: par de ítems de fuentes distintas con `topic` común en el digest. Es el mecanismo real de "que no sean cosas independientes" | TODO | builder | B-702 | Sección nueva en el digest diario |
+| B-705 | R5 — `Daily/print-queue.md` + script externo (LaunchAgent, ESC/POS). El plugin no habla con hardware | TODO | builder + user | B-702 | Nota generada; impresión verificada con hardware real |
 
 ## Archivo
 

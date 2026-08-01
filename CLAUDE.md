@@ -8,7 +8,7 @@
 
 - **Estado**: **v0.3.0 publicado** (GitHub Release con artefactos BRAT). MVP (F1) + polish (F2) shipped; Kindle highlights integrado con **solución propia** (extensión Chrome + CLI, no plugin ajeno); highlights como producto (F4) shipped. Último: MX11–MX15 (subrayado por selección, re-sync incremental Kindle, vista unificada de highlights + repaso diario, polish de lectura, fix búsqueda mobile). **F5 en curso** (MX22–MX25 en `[Unreleased]`): sync Kindle confiable (fix `DOMParser` + sidecar en vault), wishlist de Amazon → `Books/`, recomendador "¿Qué leo ahora?". MX15+F5 están en `main`/working tree pero **sin release** todavía. Detalle por hito en `docs/ROADMAP.md` + `CHANGELOG.md`.
 - **Plan original**: `~/.claude/plans/imperative-sparking-dusk.md`
-- **Vault target del user**: `fedenotes` (iCloud Drive). El plugin debe funcionar con iCloud-backed vaults.
+- **Vault target del user**: `fedenotes` en `~/fedenotes` (local, versionada con git, sincronizada con **Obsidian Sync**). Migrada desde iCloud el 2026-08-01 — ver `docs/SEGUNDO-CEREBRO.md` §4.7.
 
 ## Stack canónico
 
@@ -115,19 +115,21 @@ npm run test
 npm run test:watch
 
 # Instalar en la vault local para probar
-ln -s "$(pwd)" "/Users/federico/Library/Mobile Documents/iCloud~md~obsidian/Documents/fedenotes/.obsidian/plugins/readqueue"
-# (en mobile usar BRAT o copiar main.js+manifest.json+styles.css a mano)
+ln -s "$(pwd)" "/Users/federico/fedenotes/.obsidian/plugins/readqueue"
+# (a mobile llega solo: Obsidian Sync propaga .obsidian/plugins/)
 ```
 
 ## Distribución a mobile
 
-La vault del user es **fedenotes en iCloud**. iCloud tiene problemas conocidos sincronizando `.obsidian/plugins/`. Tres caminos:
+**RESUELTO 2026-08-01**: la vault salió de iCloud (`~/fedenotes`) y usa **Obsidian Sync**, que propaga `.obsidian/plugins/` nativamente. El plugin llega al iPhone solo, sin rodeos. Esto cerró B-006.
 
-1. **BRAT** (recomendado): user instala BRAT desde el community store, agrega `fededemo/obsidian-readqueue` como beta plugin. BRAT propaga a iPhone vía sus propios mecanismos.
+Alternativas históricas (ya no necesarias):
+
+1. ~~**BRAT**~~: era la decisión previa por el problema de iCloud. `obsidian42-brat` sigue instalado; se puede desinstalar.
 2. **Copia manual a iPhone**: vía Files app + Obsidian Mobile, depositar `main.js`, `manifest.json`, `styles.css` en `.obsidian/plugins/readqueue/`.
 3. **Community store**: review largo (~1 semana), público.
 
-Decisión actual: BRAT.
+Decisión actual: **Obsidian Sync**.
 
 ## Mandatory rules — heredadas de governance pigmi
 
@@ -139,7 +141,7 @@ Decisión actual: BRAT.
 
 ## Setup local del user
 
-- **Vault**: `/Users/federico/Library/Mobile Documents/iCloud~md~obsidian/Documents/fedenotes`
+- **Vault**: `/Users/federico/fedenotes` (local + git + Obsidian Sync). **Ya no está en iCloud.**
 - **GitHub**: `fededemo` (token con repo + workflow scopes)
 - **Repo privado**: `github.com/fededemo/obsidian-readqueue`
 
@@ -147,8 +149,8 @@ Decisión actual: BRAT.
 
 > La vault del user es **base de conocimiento read-only** para los agentes. Diseño completo en `docs/architecture/ADR-001-acceso-vault-obsidian.md`.
 
-- **Lectura**: `Read`/`Grep`/`Glob` directo sobre `…/fedenotes` está permitido y es el camino canónico hoy (615 notas, todo materializado localmente vía iCloud). Claude puede buscar, citar y razonar sobre la KB.
-- **Si aparece un placeholder `.icloud`** (iCloud desalojó el contenido): avisar, no forzar descargas en masa. Hoy hay 0, es un riesgo latente.
+- **Lectura**: `Read`/`Grep`/`Glob` directo sobre `~/fedenotes` está permitido y es el camino canónico hoy (676 notas al 2026-08-01, todas materializadas localmente). Claude puede buscar, citar y razonar sobre la KB.
+- **Placeholders `.icloud`**: ya no aplica — la vault salió de iCloud (2026-08-01). Todo está materializado localmente.
 - **Escritura**: prohibida sin **OK explícito de Fede** (ya lo bloquea el classifier). Ninguna edición/borrado/movimiento de notas del user a mano.
 - **No confundir** la vault del user con el repo del plugin. Lo que el *plugin* escribe en runtime (`Inbox/`, `Books/`, `Inbox/Kindle/`) es otra cosa que Claude tocando la vault.
 - **headless Sync (`ob`) / Local REST API + MCP**: NO habilitados. Son para máquinas que *no tienen* la vault (agente cloud/CI) o para queries vivas grado dataview. En la Mac son redundantes con la lectura directa. Activar solo con el trigger del ADR-001.
@@ -164,7 +166,7 @@ Decisión actual: BRAT.
 
 ## Riesgos conocidos
 
-- **iCloud + `.obsidian/plugins/`**: sync flaky, archivos fantasma. Mitigación: BRAT o instalación manual.
+- ~~iCloud + `.obsidian/plugins/`~~ — **RESUELTO 2026-08-01**: la vault salió de iCloud y usa Obsidian Sync, que propaga plugins nativamente.
 - **Highlighter de Web Clipper en iOS Safari**: si resulta áspero, plan B es vivir con `==texto==` manual.
 - **API de Obsidian con breaking changes**: revisar `minAppVersion` cada release del plugin.
 - **defuddle en mobile**: package no testeado por nosotros en el WebView de Obsidian iOS. Si falla, fallback a un parser más simple basado en `<meta property="og:*">`.
