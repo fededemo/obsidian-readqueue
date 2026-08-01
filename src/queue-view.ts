@@ -6,6 +6,7 @@ import {
   filterByQuery,
   filterByStatus,
   filterBySnoozedUntil,
+  filterBySource,
   filterByTopic,
   groupArticles,
   nextArticleAfterPath,
@@ -15,6 +16,7 @@ import {
   type GroupKey,
   type QueueArticle,
   type SortKey,
+  type SourceCategory,
 } from "./queue-data";
 import { rankQueue } from "./priority";
 import {
@@ -35,6 +37,13 @@ const GROUP_OPTIONS: ReadonlyArray<readonly [GroupKey, string]> = [
   ["none", "Sin agrupar"],
 ];
 
+const SOURCE_OPTIONS: ReadonlyArray<readonly [SourceCategory, string]> = [
+  ["all", "Todo"],
+  ["article", "Artículos"],
+  ["x", "X / Twitter"],
+  ["video", "Videos"],
+];
+
 const SORT_OPTIONS: ReadonlyArray<readonly [SortKey, string]> = [
   ["priority", "Vale la pena"],
   ["newest", "Más nuevos"],
@@ -46,6 +55,7 @@ export class QueueView extends ItemView {
   plugin: ReadQueuePlugin;
   groupBy: GroupKey = "none";
   sortBy: SortKey = "newest";
+  sourceFilter: SourceCategory = "all";
   private visibleArticles: QueueArticle[] = [];
   private selectedIndex = 0;
   private searchQuery = "";
@@ -138,6 +148,19 @@ export class QueueView extends ItemView {
       this.renderList();
     };
 
+    const sourceSelect = toolbar.createEl("select", {
+      attr: { "aria-label": "Filtrar por fuente" },
+    });
+    for (const [value, label] of SOURCE_OPTIONS) {
+      const opt = sourceSelect.createEl("option", { text: label });
+      opt.value = value;
+    }
+    sourceSelect.value = this.sourceFilter;
+    sourceSelect.onchange = () => {
+      this.sourceFilter = sourceSelect.value as SourceCategory;
+      this.renderList();
+    };
+
     const sortSelect = toolbar.createEl("select", {
       attr: { "aria-label": "Ordenar por" },
     });
@@ -153,6 +176,9 @@ export class QueueView extends ItemView {
 
     const refresh = toolbar.createEl("button", { text: "Recargar" });
     refresh.onclick = () => {
+      // Las ★ de "lectura de hoy" son una selección puntual: si siguen puestas
+      // después de recargar, la cola parece congelada aunque el orden cambie.
+      this.todayPicks = new Set();
       void this.render();
     };
 
@@ -202,7 +228,8 @@ export class QueueView extends ItemView {
     const unread = filterByStatus(this.allArticles, "unread");
     const active = filterBySnoozedUntil(unread);
     this.unreadCount = active.length;
-    const byQuery = filterByQuery(active, this.searchQuery);
+    const bySource = filterBySource(active, this.sourceFilter);
+    const byQuery = filterByQuery(bySource, this.searchQuery);
     const byTopic = filterByTopic(byQuery, this.activeTopicFilter);
     let sorted: QueueArticle[];
     if (this.sortBy === "priority") {

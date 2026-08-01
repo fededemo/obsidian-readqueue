@@ -8,6 +8,8 @@ export interface ReadFrontmatter {
   classified?: boolean;
   /** evergreen | seasonal | perishable — ver src/topics.ts */
   shelfLife?: string;
+  /** read | watch | reference — lo pone x-sync al importar de X */
+  kind?: string;
   /** Una línea de "por qué te importaría a vos" (no es el resumen del artículo). */
   tldr?: string;
   description?: string;
@@ -28,6 +30,8 @@ export interface QueueArticle {
   topic: string | undefined;
   shelfLife: string | undefined;
   tldr: string | undefined;
+  /** `kind` del frontmatter: read | watch | reference (lo pone x-sync). */
+  kindLabel: string | undefined;
   author: string | undefined;
   published: string | undefined;
   savedAt: Date | undefined;
@@ -85,6 +89,7 @@ export function articleFromFile(
     topic: isString(fm.topic) ? fm.topic : undefined,
     shelfLife: isString(fm.shelfLife) ? fm.shelfLife : undefined,
     tldr: isString(fm.tldr) ? fm.tldr : undefined,
+    kindLabel: isString(fmAny["kind"]) ? (fmAny["kind"] as string) : undefined,
     author: normalizeAuthor(fm.author),
     published: isString(fm.published) ? fm.published : undefined,
     savedAt,
@@ -242,6 +247,35 @@ export function filterByQuery(
       .toLowerCase();
     return haystack.includes(q);
   });
+}
+
+/**
+ * Categoría de fuente para filtrar la cola.
+ *
+ * Agrupa por *de dónde vino y cómo se consume*, que es como Fede piensa la
+ * cola: "mostrame solo lo de Twitter" o "solo videos". El `source` crudo tiene
+ * demasiados valores (web-clipper, intake-defuddle, intake-fxtwitter,
+ * x-bookmark…) para ser un filtro usable.
+ */
+export type SourceCategory = "all" | "article" | "x" | "video";
+
+export function sourceCategory(article: QueueArticle): Exclude<SourceCategory, "all"> {
+  // El video gana sobre el origen: si es para ver, el filtro "videos" lo
+  // encuentra venga de donde venga.
+  if (article.kindLabel === "watch") return "video";
+  const s = (article.source ?? "").toLowerCase();
+  if (s.startsWith("x-") || s === "intake-fxtwitter" || s === "tweet") return "x";
+  const host = (article.url ?? "").toLowerCase();
+  if (host.includes("//x.com/") || host.includes("//twitter.com/")) return "x";
+  return "article";
+}
+
+export function filterBySource(
+  articles: readonly QueueArticle[],
+  category: SourceCategory,
+): QueueArticle[] {
+  if (category === "all") return [...articles];
+  return articles.filter((a) => sourceCategory(a) === category);
 }
 
 export function filterByTopic(

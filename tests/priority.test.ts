@@ -21,6 +21,7 @@ function mk(overrides: Partial<QueueArticle> = {}): QueueArticle {
     topic: undefined,
     shelfLife: undefined,
     tldr: undefined,
+    kindLabel: undefined,
     author: undefined,
     published: undefined,
     savedAt: undefined,

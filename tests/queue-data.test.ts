@@ -17,6 +17,8 @@ import {
   sortArticles,
   sourceLabel,
   topicSlug,
+  filterBySource,
+  sourceCategory,
   type QueueArticle,
   type ReadFrontmatter,
 } from "../src/queue-data";
@@ -34,6 +36,7 @@ function mkArticle(overrides: Partial<QueueArticle> = {}): QueueArticle {
     topic: undefined,
     shelfLife: undefined,
     tldr: undefined,
+    kindLabel: undefined,
     author: undefined,
     published: undefined,
     savedAt: undefined,
@@ -658,5 +661,36 @@ describe("nextArticleAfterPath", () => {
 
   it("returns undefined for an empty list", () => {
     expect(nextArticleAfterPath([], "x")).toBeUndefined();
+  });
+});
+
+describe("sourceCategory / filterBySource", () => {
+  it("clasifica X por source, por url y por origen del intake", () => {
+    expect(sourceCategory(mkArticle({ source: "x-bookmark" }))).toBe("x");
+    expect(sourceCategory(mkArticle({ source: "x-like" }))).toBe("x");
+    expect(sourceCategory(mkArticle({ source: "intake-fxtwitter" }))).toBe("x");
+    expect(sourceCategory(mkArticle({ url: "https://x.com/u/status/1" }))).toBe("x");
+  });
+
+  it("el video gana sobre el origen: se encuentra venga de donde venga", () => {
+    expect(sourceCategory(mkArticle({ source: "x-bookmark", kindLabel: "watch" }))).toBe("video");
+    expect(sourceCategory(mkArticle({ source: "web-clipper", kindLabel: "watch" }))).toBe("video");
+  });
+
+  it("lo demás es artículo", () => {
+    expect(sourceCategory(mkArticle({ source: "web-clipper" }))).toBe("article");
+    expect(sourceCategory(mkArticle({ source: undefined }))).toBe("article");
+  });
+
+  it("filtra y 'all' devuelve todo", () => {
+    const items = [
+      mkArticle({ title: "a", source: "web-clipper" }),
+      mkArticle({ title: "b", source: "x-bookmark" }),
+      mkArticle({ title: "c", source: "x-bookmark", kindLabel: "watch" }),
+    ];
+    expect(filterBySource(items, "all")).toHaveLength(3);
+    expect(filterBySource(items, "article").map((a) => a.title)).toEqual(["a"]);
+    expect(filterBySource(items, "x").map((a) => a.title)).toEqual(["b"]);
+    expect(filterBySource(items, "video").map((a) => a.title)).toEqual(["c"]);
   });
 });

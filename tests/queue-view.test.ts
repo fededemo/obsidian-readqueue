@@ -79,6 +79,7 @@ function article(title: string, topic: string): QueueArticle {
     topic,
     shelfLife: undefined,
     tldr: undefined,
+    kindLabel: undefined,
     author: undefined,
     published: undefined,
     savedAt: undefined,
@@ -293,5 +294,63 @@ describe("botón Recargar", () => {
     const first = titles(container);
     await (view as unknown as RenderableView).render();
     expect(titles(container)).toEqual(first);
+  });
+});
+
+describe("Recargar en modo Al azar", () => {
+  beforeAll(installObsidianDom);
+  afterAll(() => {
+    uninstallObsidianDom();
+    document.body.innerHTML = "";
+  });
+
+  it("cada Recargar produce un orden distinto", async () => {
+    const many = Array.from({ length: 12 }, (_, i) => article(`n${i}`, "tech"));
+    const { view, container } = makeView(many);
+    (view as unknown as { sortBy: string }).sortBy = "shuffle";
+
+    const ordenes = new Set<string>();
+    for (let i = 0; i < 6; i++) {
+      await (view as unknown as RenderableView).render();
+      ordenes.add(titles(container).join(","));
+    }
+    // Con 12 items, 6 barajadas repetidas serían una casualidad imposible.
+    expect(ordenes.size).toBeGreaterThan(1);
+  });
+});
+
+describe("filtro por fuente en la vista", () => {
+  beforeAll(installObsidianDom);
+  afterAll(() => {
+    uninstallObsidianDom();
+    document.body.innerHTML = "";
+  });
+
+  it("filtra la cola por origen", async () => {
+    const { view, container } = makeView([
+      { ...article("un articulo", "tech"), source: "web-clipper" },
+      { ...article("un tweet", "tech"), source: "x-bookmark" },
+      { ...article("un video", "tech"), source: "x-bookmark", kindLabel: "watch" },
+    ]);
+    await (view as unknown as RenderableView).render();
+    expect(titles(container)).toHaveLength(3);
+
+    (view as unknown as { sourceFilter: string }).sourceFilter = "x";
+    await (view as unknown as RenderableView).render();
+    expect(titles(container)).toEqual(["un tweet"]);
+
+    (view as unknown as { sourceFilter: string }).sourceFilter = "video";
+    await (view as unknown as RenderableView).render();
+    expect(titles(container)).toEqual(["un video"]);
+  });
+
+  it("Recargar limpia las ★ de lectura del día", async () => {
+    const { view, container } = makeView([article("a", "tech")]);
+    view.todayPicks = new Set(["a.md"]);
+    await (view as unknown as RenderableView).render();
+    // El botón es el único <button> de la toolbar.
+    const btn = container.querySelector(".readqueue-view__toolbar button");
+    (btn as HTMLElement).click();
+    expect(view.todayPicks.size).toBe(0);
   });
 });
