@@ -1,8 +1,443 @@
 [
  {
+  "name": "Herramientas sin agencia propia",
+  "gloss": "Los modelos de IA carecen de metas y valores intrínsecos; son instrumentos que amplifican la intención humana",
+  "count": 25,
+  "sources": [
+   {
+    "note": "Project Hail Mary A Novel",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "La velocidad solo tiene sentido al comparar dos objetos. Un auto a 70 mph respecto al suelo se mueve casi 0 mph respecto a otro auto"
+   },
+   {
+    "note": "A frontier without an ecosystem is not stable",
+    "zone": "read",
+    "topic": "producto",
+    "evidence": "La verdadera oportunidad no está en elegir el mejor modelo, sino en construir un loop de aprendizaje donde capital humano y token capital se componen. El aprendizaje nunca puede ser delegado, solo compuesto a través de personas e IA."
+   },
+   {
+    "note": "How To Actually Design With AI",
+    "zone": "read",
+    "topic": "tech",
+    "evidence": "Designing with AI does not mean asking it to do everything for you. The idea, direction, feeling, and creativity should still come from you. AI is there to help you execute."
+   },
+   {
+    "note": "The rise of vibe lawyering",
+    "zone": "read",
+    "topic": "macro",
+    "evidence": "AI 'might create a more level playing field' pero genera citaciones falsas, anima litigios innecesarios y aumenta documentación un 158%"
+   },
+   {
+    "note": "agents-over-bubbles",
+    "zone": "legacy",
+    "topic": "producto",
+    "evidence": "Large language models are intelligent, but they do not have goals or values or drive. They are tools to be used by anyone willing to take the initiative."
+   },
+   {
+    "note": "gpt-4",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "El modelo GPT-4 fue entrenado para predecir la siguiente palabra en un documento"
+   },
+   {
+    "note": "interview-vitalik-buterin-creator-of-ethereum",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "Efficiency and security are not separate problems"
+   },
+   {
+    "note": "introduction-to-selenium-create-a-web-bot-with-python",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "Selenium es una suite de herramientas para automatizar navegadores web"
+   },
+   {
+    "note": "on-policy-v-s-off-policy-learning",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "On-Policy learning evalúa y mejora la misma política usada para seleccionar acciones, mientras que Off-Policy evalúa una política diferente de la usada para interactuar con el ambiente."
+   },
+   {
+    "note": "the-intelligence-of-bodies",
+    "zone": "legacy",
+    "topic": "cultura",
+    "evidence": "Lo que hace singular el arte es exactamente el fracaso parcial del intento; la belleza está en estar 'un poco off'"
+   },
+   {
+    "note": "the-world-ahead-2022-chris-dixon-and-packy-mccormick-on-the-future-of-crypto",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "El código puede hacer compromisos fuertes sobre cómo se comportará en el futuro, garantizando el cumplimiento automático de reglas"
+   },
+   {
+    "note": "why-ai-will-save-the-world",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "La inteligencia humana mejora resultados en casi todos los dominios: logros académicos, desempeño laboral, ingresos, creatividad, salud y satisfacción vital"
+   },
+   {
+    "note": "Cryptonomicon",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "Una máquina simple en su diseño puede producir resultados de complejidad infinita"
+   },
+   {
+    "note": "The Infinity Machine Demis Hassabis, DeepMind, and the Quest for Superintelligence",
+    "zone": "kindle",
+    "topic": "tech",
+    "evidence": "'we still tend to view technology as a dehumanizing force instead of the thing that makes us, us.' - La tecnología no nos deshumaniza sino que nos define."
+   },
+   {
+    "note": "Why more women should get an epidural",
+    "zone": "read",
+    "topic": "ciencia",
+    "evidence": "Just because that suffering is natural does not mean it is without consequence"
+   },
+   {
+    "note": "Travis is Back",
+    "zone": "read",
+    "topic": "producto",
+    "evidence": "Es inevitable que los robots hagan la mayoría del trabajo menial en el mundo físico, así como las computadoras dominaron el mundo digital"
+   },
+   {
+    "note": "a-ten-minute-introduction-to-sequence-to-sequence-learning-in-keras",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "Entrenar modelos para convertir secuencias de un dominio (como oraciones en inglés) a secuencias en otro dominio (como las mismas oraciones traducidas al francés)"
+   },
+   {
+    "note": "best-practices-for-using-claude-opus-4-7-with-claude-code",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "Well-specified task descriptions that incorporate intent, constraints, acceptance criteria, and relevant file locations give Opus 4.7 the context it needs to deliver stronger outputs"
+   },
+   {
+    "note": "a-philosophy-of-software-design-my-take-and-a-book-review",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "Es más importante que un módulo tenga una interfaz simple que una implementación simple"
+   },
+   {
+    "note": "interview-marc-andreessen",
+    "zone": "legacy",
+    "topic": "macro",
+    "evidence": "Software is a lever on the real world - no es solo código abstracto sino herramienta que transforma la realidad física"
+   },
+   {
+    "note": "professional-programming-the-first-10-years",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "No construyas para posibilidades futuras; construye lo que sabes que necesitas ahora, porque las cosas cambian todo el tiempo"
+   },
+   {
+    "note": "top-5-tips-to-make-your-pandas-code-absurdly-fast",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "Las operaciones vectorizadas en pandas son altamente recomendadas para un rendimiento óptimo, aunque no todas las operaciones pueden vectorizarse."
+   },
+   {
+    "note": "Cryptonomicon WWII codebreakers, Nazi Enigma secrets, and a modern data-haven scheme collide across",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "Una máquina simple en su diseño puede producir resultados de complejidad infinita"
+   },
+   {
+    "note": "forget-open-source-algorithms-focus-on-experiments-instead",
+    "zone": "legacy",
+    "topic": "producto",
+    "evidence": "Even complete transparency into models still tells us little about their effects. The problem is that only people running experiments can study them."
+   },
+   {
+    "note": "the-guide-to-fine-tuning-stable-diffusion-with-your-own-images",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "Sin prior-preservation loss, el modelo fine-tuneado no puede generar perros más allá del específicamente ajustado"
+   }
+  ]
+ },
+ {
+  "name": "Manipulación institucional de la verdad",
+  "gloss": "Control del relato histórico, doble discurso institucional y desinformación como herramientas de poder",
+  "count": 22,
+  "sources": [
+   {
+    "note": "1984",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "War is Peace, Freedom is Slavery, Ignorance is Strength - palabras que significan lo opuesto a su definición"
+   },
+   {
+    "note": "Red Rising enter the explosive first book in the globally bestselling dystopian space opera series (",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "'You do not know what your forefathers sacrificed to place you on these heights' - justificar la opresión actual apelando a sacrificios pasados"
+   },
+   {
+    "note": "Leak Exposes Members of Peter Thiel’s Secretive ‘Dialog’ Society",
+    "zone": "read",
+    "topic": "cultura",
+    "evidence": "Grupo privado de invitación exclusiva que convoca funcionarios estadounidenses, figuras de gobiernos extranjeros y ejecutivos de Silicon Valley en retiros fuera del registro"
+   },
+   {
+    "note": "The last Romans are still around",
+    "zone": "read",
+    "topic": "cultura",
+    "evidence": "Even though the Roman state stopped functioning over 1500 years ago, the Roman identity never entirely disappeared; it just evolved."
+   },
+   {
+    "note": "beaver-on-x-deloitte-a-74-billion-cancer-metastasized-across-america",
+    "zone": "legacy",
+    "topic": "tweet",
+    "evidence": "State health directors leave the government and join Deloitte, managers from Deloitte take up state IT departments. Hill staffers that worked on healthcare policy show up at Deloitte."
+   },
+   {
+    "note": "facebook-knows-instagram-is-toxic-for-teen-girls-company-documents-show",
+    "zone": "legacy",
+    "topic": "macro",
+    "evidence": "Facebook's internal research desde 2020 documenta que Instagram causa ansiedad, depresión y trastornos alimenticios en adolescentes, pero la empresa continúa operando la plataforma sin cambios significativos."
+   },
+   {
+    "note": "facebook-says-its-rules-apply-to-all-company-documents-reveal-a-secret-elite-tha",
+    "zone": "legacy",
+    "topic": "macro",
+    "evidence": "'We are not actually doing what we say we do publicly' - la empresa aplica reglas diferentes a las que comunica externamente"
+   },
+   {
+    "note": "hace-dias-hice-un-hilo-sobre-muestras-no-repres",
+    "zone": "legacy",
+    "topic": "tweet",
+    "evidence": "Marco muestral limitado a registros de teléfonos y automóviles, excluyendo poblaciones sin acceso a estos recursos"
+   },
+   {
+    "note": "signaling-on-the-internet",
+    "zone": "legacy",
+    "topic": "cultura",
+    "evidence": "Las universidades elite mantienen clases pequeñas porque su poder proviene de cuánta gente NO puede acceder, no de cuánta se beneficia"
+   },
+   {
+    "note": "the-internet-is-rotting",
+    "zone": "legacy",
+    "topic": "cultura",
+    "evidence": "50% de los links en opiniones judiciales desde 1996 ya no funcionan, y 72% de los links de artículos de 1998 están muertos"
+   },
+   {
+    "note": "the-paradoxes-of-liberal-peacekeeping",
+    "zone": "legacy",
+    "topic": "cultura",
+    "evidence": "El comercio internacional y las sanciones, instrumentos liberales, no eliminan la guerra sino que la transforman en 'guerras perpetuas' o conflictos sin fin"
+   },
+   {
+    "note": "the-speed-of-science",
+    "zone": "legacy",
+    "topic": "ciencia",
+    "evidence": "Cuando un investigador cita un estudio que a su vez deriva datos de investigaciones previas disputadas o retractadas, la incertidumbre se compone en el tiempo"
+   },
+   {
+    "note": "we-are-no-longer-a-serious-people",
+    "zone": "legacy",
+    "topic": "cultura",
+    "evidence": "'Excellent men in corrupt republics are considered enemies' - los sistemas corruptos eliminan a quienes podrían gobernar bien"
+   },
+   {
+    "note": "1929 Inside the Greatest Crash in Wall Street History--and How It Shattered a Nation",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "People will find new ways to believe that the good times can last forever"
+   },
+   {
+    "note": "How should bosses talk about AI?",
+    "zone": "read",
+    "topic": "producto",
+    "evidence": "Bosses want employees to use AI pero employees are less enthused. El desafío es cómo hablar sobre el efecto de AI en los empleos sin generar pánico."
+   },
+   {
+    "note": "How TV learned to sell itself - Works in Progress Magazine",
+    "zone": "read",
+    "topic": "cultura",
+    "evidence": "Atraer espectadores requería programas, que requerían publicidad, que requerían espectadores. La televisión necesitaba simultáneamente vender hardware, crear contenido y encontrar ingresos"
+   },
+   {
+    "note": "depression-is-complicated-this-is-how-our-understanding-of-the-condition-has-evo",
+    "zone": "legacy",
+    "topic": "ciencia",
+    "evidence": "Depression is diagnosed based on people's psychological symptoms and behavior, not from a brain scan or markers in their blood or DNA"
+   },
+   {
+    "note": "don-t-tax-wealth",
+    "zone": "legacy",
+    "topic": "macro",
+    "evidence": "A dozen OECD countries had wealth taxes in 1990, but over time the approach has fallen out of favour"
+   },
+   {
+    "note": "i-angel-invested-in-fast-s-series-a-in-may-2020",
+    "zone": "legacy",
+    "topic": "tweet",
+    "evidence": "Investors lose at most 1x their capital. Employees lose much more."
+   },
+   {
+    "note": "hyping-fisher-the-most-cited-2019-qje-paper-relied-on-an-outdated-stata-default-",
+    "zone": "legacy",
+    "topic": "ciencia",
+    "evidence": "Un paper muy citado concluyó que los p-values de regresión son inadecuados, pero basó su conclusión en un default obsoleto de software"
+   },
+   {
+    "note": "Economic Inequality",
+    "zone": "read",
+    "topic": "macro",
+    "evidence": "Economic inequality has multiple causes. Many of these causes are bad, like tax loopholes and drug addiction. But some are good, like Larry Page and Sergey Brin starting Google. If you want to fix the bad aspects of it, you have to tease apart the components."
+   },
+   {
+    "note": "the-secret-language-of-ships",
+    "zone": "legacy",
+    "topic": "cultura",
+    "evidence": "El número IMO permanece igual durante toda la vida del barco, aunque el dueño, nombre y bandera cambien"
+   }
+  ]
+ },
+ {
+  "name": "Incomodidad deliberada como motor de mejora",
+  "gloss": "El crecimiento requiere rendir seguridad temporal y establecer ritmos incómodos, no comodidad constante",
+  "count": 22,
+  "sources": [
+   {
+    "note": "Meditations",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "Simplicity in my way of living, far removed from the habits of the rich; abstinence, not only from evil deeds, but even from evil thoughts"
+   },
+   {
+    "note": "Scaling People Tactics for Management and Company Building",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "Las empresas más exitosas y duraderas fomentan una fuerte adherencia interna a sus marcos centrales. Son indicadores de las prioridades de la empresa y establecen las acciones o procesos que todos deben realizar de la misma manera."
+   },
+   {
+    "note": "Un momento inolvidable Juntos por primera vez (Spanish Edition)",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "Uno de cada tres jóvenes afirma que su primera relación sexual fue fruto de 'la presión de su entorno'"
+   },
+   {
+    "note": "The Stranger in the Woods The extraordinary story of the last true hermit",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "William Deresiewicz escribió que 'ninguna excelencia real, personal o social, artística, filosófica, científica o moral, puede surgir sin soledad'. Edward Gibbon dijo que 'la soledad es la escuela del genio'."
+   },
+   {
+    "note": "How to become so creative it feels illegal",
+    "zone": "read",
+    "topic": "personal",
+    "evidence": "You know that feeling when you're thinking about nothing and everything at the same time... It's more of a cognitive burnout than an emotional one."
+   },
+   {
+    "note": "3-2-1-trying-new-ideas-preparation-and-taking-action",
+    "zone": "legacy",
+    "topic": "personal",
+    "evidence": "Las estrategias que te hicieron exitoso en el pasado eventualmente alcanzan su límite; no dejes que tus decisiones previas establezcan el techo de tu futuro."
+   },
+   {
+    "note": "3-2-1-resilience-growth-and-a-guiding-question-for-new-opportunities",
+    "zone": "legacy",
+    "topic": "personal",
+    "evidence": "¿Cómo quiero pasar mis días? Toma la menor cantidad posible de decisiones que violen tu respuesta"
+   },
+   {
+    "note": "dan-koe-on-x-how-to-fix-your-entire-life-in-1",
+    "zone": "legacy",
+    "topic": "tweet",
+    "evidence": "If you want a specific outcome in life, you must have the lifestyle that creates that outcome long before you reach it."
+   },
+   {
+    "note": "give-it-five-minutes",
+    "zone": "legacy",
+    "topic": "personal",
+    "evidence": "Las ideas comienzan como pensamientos apenas formados, tan fácilmente perdidos, comprometidos o aplastados"
+   },
+   {
+    "note": "every-interesting-outcome-in-my-life-was-unpred",
+    "zone": "legacy",
+    "topic": "personal",
+    "evidence": "El éxito continuo depende fundamentalmente de cómo se construyen tus días"
+   },
+   {
+    "note": "life-is-short",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "La vida es corta, por lo que argumentos como 'la vida es demasiado corta para x' tienen gran fuerza para tomar decisiones"
+   },
+   {
+    "note": "the-anatomy-of-determination",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "Determinación consiste en voluntad equilibrada con disciplina, dirigida por ambición"
+   },
+   {
+    "note": "why-self-improvement-starts-with-maintenance",
+    "zone": "legacy",
+    "topic": "personal",
+    "evidence": "El poder de reparar es el poder de mejorar"
+   },
+   {
+    "note": "The 5 Types of Wealth A Transformative Guide to Design Your Dream Life",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "Imagina tu día ideal a los 80 años y trabaja hacia atrás en el presente para diseñar acciones que logren ese futuro deseado."
+   },
+   {
+    "note": "Elon Musk",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "Question every requirement. Each should come with the name of the person who made it... Requirements from smart people are the most dangerous, because people are less likely to question them."
+   },
+   {
+    "note": "The Martian Classroom Edition A Novel",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "Science is a tool we use to solve problems or make our lives better. The allure is in what you can do with it."
+   },
+   {
+    "note": "Crazy New Ideas",
+    "zone": "read",
+    "topic": "cultura",
+    "evidence": "Si apuestas por el conjunto completo de ideas que suenan implausibles propuestas por expertos razonables, terminarías ganando en promedio"
+   },
+   {
+    "note": "having-kids",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "La atención es un juego de suma cero. Solo una idea a la vez puede ser la idea principal en tu mente."
+   },
+   {
+    "note": "how-google-takes-the-pain-out-of-code-reviews-with-97-dev-satisfaction",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "La mayoría de cambios en Google son pequeños, tienen un revisor y se aprueban sin comentarios adicionales"
+   },
+   {
+    "note": "top-5-tips-to-make-your-pandas-code-absurdly-fast",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "Las operaciones vectorizadas en pandas son altamente recomendadas para un rendimiento óptimo, aunque no todas las operaciones pueden vectorizarse."
+   },
+   {
+    "note": "Breath The New Science of a Lost Art",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "La respiración nasal derecha actúa como acelerador (aumenta ritmo cardíaco, cortisol), mientras que la izquierda actúa como freno (reduce presión, ansiedad). Cada canal conecta con sistemas nerviosos opuestos."
+   },
+   {
+    "note": "optimism",
+    "zone": "legacy",
+    "topic": "cultura",
+    "evidence": "Optimism is 'a way of explaining failure, not prophesying success': If we've failed at something, it's because we didn't have the right knowledge in time."
+   }
+  ]
+ },
+ {
   "name": "Compounding de capital humano y tecnológico",
   "gloss": "Loops de aprendizaje donde agencia humana y herramientas se refuerzan mutuamente generando valor creciente",
-  "count": 17,
+  "count": 21,
   "sources": [
    {
     "note": "Project Hail Mary A Novel",
@@ -105,140 +540,182 @@
     "zone": "legacy",
     "topic": "tech",
     "evidence": "La inteligencia humana mejora resultados en casi todos los dominios: logros académicos, desempeño laboral, ingresos, creatividad, salud y satisfacción vital"
+   },
+   {
+    "note": "The Martian Classroom Edition A Novel",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "Science is a tool we use to solve problems or make our lives better. The allure is in what you can do with it."
+   },
+   {
+    "note": "The Amusement Park for Engineers",
+    "zone": "read",
+    "topic": "tech",
+    "evidence": "Si podríamos hacer funcionar esto, reduciríamos el costo de nuestro sistema Roadrunner en 30x reutilizando tecnología de misiles de los años 60"
+   },
+   {
+    "note": "ai-foundation-models-for-the-rest-of-us",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "Entidades más pequeñas pueden utilizar el trabajo de gigantes tecnológicos, incluyendo foundation models, para iniciar el desarrollo de sus propias aplicaciones de machine learning"
+   },
+   {
+    "note": "how-google-takes-the-pain-out-of-code-reviews-with-97-dev-satisfaction",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "La mayoría de cambios en Google son pequeños, tienen un revisor y se aprueban sin comentarios adicionales"
    }
   ]
  },
  {
-  "name": "Manipulación institucional de la verdad",
-  "gloss": "Control del relato histórico, doble discurso institucional y desinformación como herramientas de poder",
-  "count": 13,
+  "name": "Cultura organizacional como ventaja fundamental",
+  "gloss": "La cultura, la misión compartida y la transparencia radical como base del desempeño de una empresa",
+  "count": 20,
   "sources": [
    {
-    "note": "1984",
+    "note": "The Nvidia Way Jensen Huang and the Making of a Tech Giant",
     "zone": "kindle",
     "topic": "otros",
-    "evidence": "War is Peace, Freedom is Slavery, Ignorance is Strength - palabras que significan lo opuesto a su definición"
+    "evidence": "'Strategy is not words. Strategy is action' y 'turns out it's just really hard work and intense execution on schedules' - la cultura y ejecución importan más que los planes."
    },
    {
-    "note": "Red Rising enter the explosive first book in the globally bestselling dystopian space opera series (",
+    "note": "The Making of a Manager What to Do When Everyone Looks to You",
     "zone": "kindle",
     "topic": "otros",
-    "evidence": "'You do not know what your forefathers sacrificed to place you on these heights' - justificar la opresión actual apelando a sacrificios pasados"
+    "evidence": "Tu rol no es hacer el trabajo tú mismo, sino mejorar el propósito, personas y procesos del equipo para maximizar el efecto multiplicador del resultado colectivo"
    },
    {
-    "note": "Leak Exposes Members of Peter Thiel’s Secretive ‘Dialog’ Society",
+    "note": "Social Status Follow-up Thoughts",
     "zone": "read",
     "topic": "cultura",
-    "evidence": "Grupo privado de invitación exclusiva que convoca funcionarios estadounidenses, figuras de gobiernos extranjeros y ejecutivos de Silicon Valley en retiros fuera del registro"
+    "evidence": "Sin prestigio, el comercio de favores se detiene. El prestigio es la moneda informal que mantiene funcionando la economía informal de los grupos."
    },
    {
-    "note": "The last Romans are still around",
+    "note": "hire-people-who-give-a-shit",
+    "zone": "legacy",
+    "topic": "producto",
+    "evidence": "No hay futuro si contratamos personas que no se identifican con nuestra misión, producto y problema"
+   },
+   {
+    "note": "how-big-tech-runs-tech-projects-and-the-curious-absence-of-scrum",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "The success of companies and project management approaches is not always correlated. Whatsapp logró mayor éxito sin frameworks como Scrum mientras Skype aceleró entregas pero perdió competitividad."
+   },
+   {
+    "note": "how-mckinsey-lost-its-edge",
+    "zone": "legacy",
+    "topic": "macro",
+    "evidence": "McKinsey tuvo ingresos más del doble que BCG en 2012, pero solo un quinto mayor en 2024, perdiendo participación de mercado frente a rivales"
+   },
+   {
+    "note": "how-to-be-a-better-boss",
+    "zone": "legacy",
+    "topic": "macro",
+    "evidence": "69% de trabajadores dicen que su jefe influye en su salud mental tanto como su pareja"
+   },
+   {
+    "note": "how-to-recruit-with-softer-skills-in-mind",
+    "zone": "legacy",
+    "topic": "macro",
+    "evidence": "Las personas que se destacan en pruebas de lectura de emociones faciales consistentemente hacen que sus grupos tengan mejor rendimiento, sin que esto se refleje en tests de IQ o personalidad."
+   },
+   {
+    "note": "i-managed-multiple-engineering-teams-before-qui",
+    "zone": "legacy",
+    "topic": "tweet",
+    "evidence": "All the code you wrote will end up in the recycling bin if it does not add value directly or indirectly to the business"
+   },
+   {
+    "note": "the-upside-of-workplace-jargon",
+    "zone": "legacy",
+    "topic": "macro",
+    "evidence": "Un 'nub' es alguien que no está en el equipo; la jerga opaca refuerza quién pertenece y quién no"
+   },
+   {
+    "note": "tim-cook-on-shaping-the-future-of-apple",
+    "zone": "legacy",
+    "topic": "producto",
+    "evidence": "Tim Cook no oculta su email y lo deja disponible públicamente para que clientes y empleados se comuniquen directamente con él"
+   },
+   {
+    "note": "today-is-a-special-day-for-me-the-5-year-anniv",
+    "zone": "legacy",
+    "topic": "tweet",
+    "evidence": "I did control the weekly habit. Excellence, then, is not an act, but a habit."
+   },
+   {
+    "note": "The Man Who Solved the Market How Jim Simons Launched the Quant Revolution",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "Un modelo es una versión simplificada de la realidad que permite usar reglas para predecir qué sucederá en situaciones nuevas"
+   },
+   {
+    "note": "How should bosses talk about AI?",
+    "zone": "read",
+    "topic": "producto",
+    "evidence": "Bosses want employees to use AI pero employees are less enthused. El desafío es cómo hablar sobre el efecto de AI en los empleos sin generar pánico."
+   },
+   {
+    "note": "Crazy New Ideas",
     "zone": "read",
     "topic": "cultura",
-    "evidence": "Even though the Roman state stopped functioning over 1500 years ago, the Roman identity never entirely disappeared; it just evolved."
+    "evidence": "Si apuestas por el conjunto completo de ideas que suenan implausibles propuestas por expertos razonables, terminarías ganando en promedio"
    },
    {
-    "note": "beaver-on-x-deloitte-a-74-billion-cancer-metastasized-across-america",
+    "note": "How TV learned to sell itself - Works in Progress Magazine",
+    "zone": "read",
+    "topic": "cultura",
+    "evidence": "Atraer espectadores requería programas, que requerían publicidad, que requerían espectadores. La televisión necesitaba simultáneamente vender hardware, crear contenido y encontrar ingresos"
+   },
+   {
+    "note": "have-been-lucky-to-meet-with-or-study-hundreds",
     "zone": "legacy",
     "topic": "tweet",
-    "evidence": "State health directors leave the government and join Deloitte, managers from Deloitte take up state IT departments. Hill staffers that worked on healthcare policy show up at Deloitte."
+    "evidence": "Cuando el camino personal y experiencias formativas de alguien se alinean con el problema que resuelve la empresa, surge la motivación de 'life's work' como fuente de perseverancia"
    },
    {
-    "note": "facebook-knows-instagram-is-toxic-for-teen-girls-company-documents-show",
+    "note": "managing-processes-before-people",
     "zone": "legacy",
-    "topic": "macro",
-    "evidence": "Facebook's internal research desde 2020 documenta que Instagram causa ansiedad, depresión y trastornos alimenticios en adolescentes, pero la empresa continúa operando la plataforma sin cambios significativos."
+    "topic": "producto",
+    "evidence": "Reemplazar reuniones diarias con preguntas automatizadas en herramientas para mantener a todos informados sin necesidad de supervisión directa"
    },
    {
-    "note": "facebook-says-its-rules-apply-to-all-company-documents-reveal-a-secret-elite-tha",
+    "note": "professional-programming-the-first-10-years",
     "zone": "legacy",
-    "topic": "macro",
-    "evidence": "'We are not actually doing what we say we do publicly' - la empresa aplica reglas diferentes a las que comunica externamente"
+    "topic": "tech",
+    "evidence": "No construyas para posibilidades futuras; construye lo que sabes que necesitas ahora, porque las cosas cambian todo el tiempo"
    },
    {
-    "note": "hace-dias-hice-un-hilo-sobre-muestras-no-repres",
+    "note": "the-pragmatic-engineer-inside-amazon-s-engineering-culture-notable-internal-syst",
     "zone": "legacy",
-    "topic": "tweet",
-    "evidence": "Marco muestral limitado a registros de teléfonos y automóviles, excluyendo poblaciones sin acceso a estos recursos"
+    "topic": "tech",
+    "evidence": "Connections pregunta diariamente a todos los empleados sobre su sentimiento hacia el manager y enfoque en excelencia operacional, capturando métricas uniformes en toda la empresa"
+   }
+  ]
+ },
+ {
+  "name": "Identidad como precondición del cambio personal",
+  "gloss": "El cambio duradero requiere convertirse en otra persona, no solo modificar comportamientos aislados",
+  "count": 19,
+  "sources": [
+   {
+    "note": "An Astronaut's Guide to Life on Earth What Going to Space Taught Me About Ingenuity, Determination,",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "Mis decisiones diarias determinan qué tipo de persona llegaré a ser"
    },
    {
-    "note": "signaling-on-the-internet",
-    "zone": "legacy",
-    "topic": "cultura",
-    "evidence": "Las universidades elite mantienen clases pequeñas porque su poder proviene de cuánta gente NO puede acceder, no de cuánta se beneficia"
+    "note": "How to fix your entire life in 1 day",
+    "zone": "read",
+    "topic": "personal",
+    "evidence": "No estás donde quieres estar porque no eres la persona que estaría allí. El cambio debe ser de primer orden (quién eres) no de segundo orden (tus acciones)."
    },
    {
-    "note": "the-internet-is-rotting",
-    "zone": "legacy",
-    "topic": "cultura",
-    "evidence": "50% de los links en opiniones judiciales desde 1996 ya no funcionan, y 72% de los links de artículos de 1998 están muertos"
-   },
-   {
-    "note": "the-paradoxes-of-liberal-peacekeeping",
-    "zone": "legacy",
-    "topic": "cultura",
-    "evidence": "El comercio internacional y las sanciones, instrumentos liberales, no eliminan la guerra sino que la transforman en 'guerras perpetuas' o conflictos sin fin"
-   },
-   {
-    "note": "the-speed-of-science",
+    "note": "descriptive-vs-prescriptive-optimism",
     "zone": "legacy",
     "topic": "ciencia",
-    "evidence": "Cuando un investigador cita un estudio que a su vez deriva datos de investigaciones previas disputadas o retractadas, la incertidumbre se compone en el tiempo"
-   },
-   {
-    "note": "we-are-no-longer-a-serious-people",
-    "zone": "legacy",
-    "topic": "cultura",
-    "evidence": "'Excellent men in corrupt republics are considered enemies' - los sistemas corruptos eliminan a quienes podrían gobernar bien"
-   }
-  ]
- },
- {
-  "name": "Incomodidad deliberada como motor de mejora",
-  "gloss": "El crecimiento requiere rendir seguridad temporal y establecer ritmos incómodos, no comodidad constante",
-  "count": 13,
-  "sources": [
-   {
-    "note": "Meditations",
-    "zone": "kindle",
-    "topic": "otros",
-    "evidence": "Simplicity in my way of living, far removed from the habits of the rich; abstinence, not only from evil deeds, but even from evil thoughts"
-   },
-   {
-    "note": "Scaling People Tactics for Management and Company Building",
-    "zone": "kindle",
-    "topic": "otros",
-    "evidence": "Las empresas más exitosas y duraderas fomentan una fuerte adherencia interna a sus marcos centrales. Son indicadores de las prioridades de la empresa y establecen las acciones o procesos que todos deben realizar de la misma manera."
-   },
-   {
-    "note": "Un momento inolvidable Juntos por primera vez (Spanish Edition)",
-    "zone": "kindle",
-    "topic": "otros",
-    "evidence": "Uno de cada tres jóvenes afirma que su primera relación sexual fue fruto de 'la presión de su entorno'"
-   },
-   {
-    "note": "The Stranger in the Woods The extraordinary story of the last true hermit",
-    "zone": "kindle",
-    "topic": "otros",
-    "evidence": "William Deresiewicz escribió que 'ninguna excelencia real, personal o social, artística, filosófica, científica o moral, puede surgir sin soledad'. Edward Gibbon dijo que 'la soledad es la escuela del genio'."
-   },
-   {
-    "note": "How to become so creative it feels illegal",
-    "zone": "read",
-    "topic": "personal",
-    "evidence": "You know that feeling when you're thinking about nothing and everything at the same time... It's more of a cognitive burnout than an emotional one."
-   },
-   {
-    "note": "3-2-1-trying-new-ideas-preparation-and-taking-action",
-    "zone": "legacy",
-    "topic": "personal",
-    "evidence": "Las estrategias que te hicieron exitoso en el pasado eventualmente alcanzan su límite; no dejes que tus decisiones previas establezcan el techo de tu futuro."
-   },
-   {
-    "note": "3-2-1-resilience-growth-and-a-guiding-question-for-new-opportunities",
-    "zone": "legacy",
-    "topic": "personal",
-    "evidence": "¿Cómo quiero pasar mis días? Toma la menor cantidad posible de decisiones que violen tu respuesta"
+    "evidence": "Expectativa de que ocurran cosas buenas, creencia sobre cómo será el mundo basada en hechos externos"
    },
    {
     "note": "dan-koe-on-x-how-to-fix-your-entire-life-in-1",
@@ -247,126 +724,101 @@
     "evidence": "If you want a specific outcome in life, you must have the lifestyle that creates that outcome long before you reach it."
    },
    {
-    "note": "give-it-five-minutes",
+    "note": "dealing-with-mistakes",
     "zone": "legacy",
     "topic": "personal",
-    "evidence": "Las ideas comienzan como pensamientos apenas formados, tan fácilmente perdidos, comprometidos o aplastados"
+    "evidence": "Mencionar una debilidad temprano establece credibilidad para lo que dices después, posicionando tu argumento más fuerte inmediatamente después."
    },
    {
-    "note": "every-interesting-outcome-in-my-life-was-unpred",
-    "zone": "legacy",
-    "topic": "personal",
-    "evidence": "El éxito continuo depende fundamentalmente de cómo se construyen tus días"
-   },
-   {
-    "note": "life-is-short",
+    "note": "how-to-do-what-you-love",
     "zone": "legacy",
     "topic": "tech",
-    "evidence": "La vida es corta, por lo que argumentos como 'la vida es demasiado corta para x' tienen gran fuerza para tomar decisiones"
+    "evidence": "No se trata de hacer lo que te hace más feliz en este momento, sino lo que te hará más feliz durante un período más largo, como una semana o un mes"
    },
    {
-    "note": "the-anatomy-of-determination",
+    "note": "josh-kushner-thrive-and-the-new-world",
     "zone": "legacy",
-    "topic": "tech",
-    "evidence": "Determinación consiste en voluntad equilibrada con disciplina, dirigida por ambición"
+    "topic": "producto",
+    "evidence": "El primer álbum viene del corazón, pero el segundo se escribe pensando en lo que el mundo quiere. Escribir desde la pasión inicial versus escribir para agradar son caminos divergentes."
+   },
+   {
+    "note": "the-upside-of-workplace-jargon",
+    "zone": "legacy",
+    "topic": "macro",
+    "evidence": "Un 'nub' es alguien que no está en el equipo; la jerga opaca refuerza quién pertenece y quién no"
    },
    {
     "note": "why-self-improvement-starts-with-maintenance",
     "zone": "legacy",
     "topic": "personal",
     "evidence": "El poder de reparar es el poder de mejorar"
-   }
-  ]
- },
- {
-  "name": "Captura de valor desigual en cadenas globales",
-  "gloss": "Quién se queda con el margen en manufactura, streaming, BPO y plataformas frente a quien hace el trabajo real",
-  "count": 13,
-  "sources": [
+   },
    {
-    "note": "Apple in China The Capture of the World's Greatest Company",
+    "note": "Atlas Shrugged",
     "zone": "kindle",
     "topic": "otros",
-    "evidence": "Los trabajadores chinos contribuyeron solo el 3.6% del costo mayorista del iPhone a pesar de realizar la manufactura, mientras Apple captura la mayor parte del valor"
+    "evidence": "'The man without a purpose' es el tipo más depravado; 'qué tan bien haces tu trabajo' es la única medida del valor humano"
    },
    {
-    "note": "Why the world needs more franchises",
+    "note": "Flowers for Algernon Student Edition",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "The more intelligent you become the more problems you'll have, Charlie. Your intellectual growth is going to outstrip your emotional growth."
+   },
+   {
+    "note": "The 5 Types of Wealth A Transformative Guide to Design Your Dream Life",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "Imagina tu día ideal a los 80 años y trabaja hacia atrás en el presente para diseñar acciones que logren ese futuro deseado."
+   },
+   {
+    "note": "The Amusement Park for Engineers",
     "zone": "read",
-    "topic": "producto",
-    "evidence": "Los franquiciados aportan el capital para abrir nuevos locales mientras la marca obtiene royalties, permitiendo expansión sin inversión propia"
+    "topic": "tech",
+    "evidence": "Si podríamos hacer funcionar esto, reduciríamos el costo de nuestro sistema Roadrunner en 30x reutilizando tecnología de misiles de los años 60"
    },
    {
-    "note": "The market for marriage - Works in Progress Magazine",
-    "zone": "read",
-    "topic": "cultura",
-    "evidence": "'Su nombre continúa en los labios de los hombres' - el matrimonio fantasma asegura que el nombre y la identidad del difunto persistan generacionalmente"
-   },
-   {
-    "note": "airlines-favourite-new-pricing-trick",
-    "zone": "legacy",
-    "topic": "macro",
-    "evidence": "Cobran tarifas más altas por persona para reservas individuales que para itinerarios idénticos con dos pasajeros: $811 vs $565 por persona"
-   },
-   {
-    "note": "call-centres-could-be-a-gold-mine-for-africa",
-    "zone": "legacy",
-    "topic": "macro",
-    "evidence": "La industria BPO crece 14% anual en África versus 8% globalmente, casi el doble de la tasa de crecimiento económico africano del 4%"
-   },
-   {
-    "note": "did-las-vegas-get-too-greedy",
-    "zone": "legacy",
-    "topic": "macro",
-    "evidence": "Solo 35% de ingresos provienen de juegos (vs 50% en 1998), casi todo en el casino es un centro de ganancias"
-   },
-   {
-    "note": "facebook-knows-instagram-is-toxic-for-teen-girls-company-documents-show",
-    "zone": "legacy",
-    "topic": "macro",
-    "evidence": "Facebook's internal research desde 2020 documenta que Instagram causa ansiedad, depresión y trastornos alimenticios en adolescentes, pero la empresa continúa operando la plataforma sin cambios significativos."
-   },
-   {
-    "note": "facebook-political-problems",
-    "zone": "legacy",
-    "topic": "producto",
-    "evidence": "Facebook no vende datos de usuarios porque son inteligibles solo para Facebook, actuando como mediador de datos en lugar de un mercado abierto de datos"
-   },
-   {
-    "note": "iphone-13-review-from-mini-to-pro-max-it-s-all-about-the-battery-and-cameras",
-    "zone": "legacy",
-    "topic": "macro",
-    "evidence": "AT&T ofrece iPhone 13 Pro gratis con canje del iPhone 12 Pro Max, incentivando la actualización frecuente"
-   },
-   {
-    "note": "la-revolucion-bancaria-de-brasil-del-efectivo-al-codigo",
-    "zone": "legacy",
-    "topic": "macro",
-    "evidence": "Alrededor del 93% de adultos brasileños han utilizado PIX, representando casi la mitad de las transacciones financieras del país"
-   },
-   {
-    "note": "the-fake-artists-problem-is-much-worse-than-you-realize",
+    "note": "ayn-rand-lexicon",
     "zone": "legacy",
     "topic": "cultura",
-    "evidence": "Los algoritmos determinan la asignación de royalties musicales, y quien los manipule puede enviar enormes sumas de dinero a su cuenta bancaria."
+    "evidence": "Respuesta de odio no hacia los vicios humanos, sino hacia las virtudes humanas"
    },
    {
-    "note": "the-counterintuitive-economics-of-smoking",
+    "note": "have-been-lucky-to-meet-with-or-study-hundreds",
     "zone": "legacy",
-    "topic": "macro",
-    "evidence": "Las acciones de tabaqueras estadounidenses ($165) superaron al índice tecnológico Nasdaq ($160) en el mismo período, desafiando expectativas del mercado"
+    "topic": "tweet",
+    "evidence": "Cuando el camino personal y experiencias formativas de alguien se alinean con el problema que resuelve la empresa, surge la motivación de 'life's work' como fuente de perseverancia"
    },
    {
-    "note": "who-will-pay-for-the-trillion-dollar-ai-boom",
+    "note": "having-kids",
     "zone": "legacy",
-    "topic": "macro",
-    "evidence": "Nobody is quite sure who will pick up the tab - la inversión masiva en IA carece de claridad sobre quién capturará el valor generado"
+    "topic": "tech",
+    "evidence": "La atención es un juego de suma cero. Solo una idea a la vez puede ser la idea principal en tu mente."
+   },
+   {
+    "note": "lies-we-tell-kids",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "Los adolescentes están atrapados en un mundo diseñado para niños de 10 años, lo que genera frustración porque su capacidad ha evolucionado pero su contexto no"
+   },
+   {
+    "note": "managing-your-mental-health-while-running-a-startup",
+    "zone": "legacy",
+    "topic": "personal",
+    "evidence": "Guardo cuidadosamente el tiempo familiar. Estoy en casa para cenar con mi esposa e hijos cada noche, dejo el teléfono en el recibidor y no tomo llamadas de trabajo los fines de semana a menos que sea una emergencia absoluta."
+   },
+   {
+    "note": "El maestro de esgrima (Spanish Edition)",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "Hay que conservar una serie de valores que no se deprecian con el paso del tiempo. Lo demás son modas del momento, situaciones fugaces y mutables"
    }
   ]
  },
  {
   "name": "Sobrecapacidad e incompetencia a escala",
   "gloss": "Exceso de headcount, presupuesto o burocracia sin control genera ineficiencia organizacional",
-  "count": 13,
+  "count": 17,
   "sources": [
    {
     "note": "The Phoenix Project A Novel About IT, DevOps, and Helping Your Business Win",
@@ -445,164 +897,327 @@
     "zone": "legacy",
     "topic": "tweet",
     "evidence": "You cannot be a tech-first company when tech is a cost center. Moving tech from being a cost center to a profit center is a complete business overhaul."
+   },
+   {
+    "note": "Elon Musk",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "Question every requirement. Each should come with the name of the person who made it... Requirements from smart people are the most dangerous, because people are less likely to question them."
+   },
+   {
+    "note": "big-data-world-part-4-architecture",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "Data engineers are responsible for building the architecture of data warehouses"
+   },
+   {
+    "note": "managing-processes-before-people",
+    "zone": "legacy",
+    "topic": "producto",
+    "evidence": "Reemplazar reuniones diarias con preguntas automatizadas en herramientas para mantener a todos informados sin necesidad de supervisión directa"
+   },
+   {
+    "note": "why-is-ai-so-slow-to-spread-economics-can-explain",
+    "zone": "legacy",
+    "topic": "macro",
+    "evidence": "Close to half the respondents to UBS's surveys say that 'compliance and regulatory concerns' are one of the main challenges for AI adoption"
    }
   ]
  },
  {
-  "name": "Herramientas sin agencia propia",
-  "gloss": "Los modelos de IA carecen de metas y valores intrínsecos; son instrumentos que amplifican la intención humana",
-  "count": 12,
+  "name": "Adopción de IA sin impacto material inmediato",
+  "gloss": "Brecha entre inversión/adopción de IA y productividad o resultados observables, con rezagos históricos similares",
+  "count": 16,
   "sources": [
    {
-    "note": "Project Hail Mary A Novel",
-    "zone": "kindle",
-    "topic": "otros",
-    "evidence": "La velocidad solo tiene sentido al comparar dos objetos. Un auto a 70 mph respecto al suelo se mueve casi 0 mph respecto a otro auto"
-   },
-   {
-    "note": "A frontier without an ecosystem is not stable",
-    "zone": "read",
-    "topic": "producto",
-    "evidence": "La verdadera oportunidad no está en elegir el mejor modelo, sino en construir un loop de aprendizaje donde capital humano y token capital se componen. El aprendizaje nunca puede ser delegado, solo compuesto a través de personas e IA."
-   },
-   {
-    "note": "How To Actually Design With AI",
-    "zone": "read",
-    "topic": "tech",
-    "evidence": "Designing with AI does not mean asking it to do everything for you. The idea, direction, feeling, and creativity should still come from you. AI is there to help you execute."
-   },
-   {
-    "note": "The rise of vibe lawyering",
+    "note": "Why hasn’t AI increased unemployment?",
     "zone": "read",
     "topic": "macro",
-    "evidence": "AI 'might create a more level playing field' pero genera citaciones falsas, anima litigios innecesarios y aumenta documentación un 158%"
+    "evidence": "AI ha funcionado como tecnología 'skill-biased' y labor-augmenting, donde la experiencia humana complementaria amplifica lo que la IA sola puede lograr"
    },
    {
-    "note": "agents-over-bubbles",
-    "zone": "legacy",
-    "topic": "producto",
-    "evidence": "Large language models are intelligent, but they do not have goals or values or drive. They are tools to be used by anyone willing to take the initiative."
-   },
-   {
-    "note": "gpt-4",
-    "zone": "legacy",
-    "topic": "tech",
-    "evidence": "El modelo GPT-4 fue entrenado para predecir la siguiente palabra en un documento"
-   },
-   {
-    "note": "interview-vitalik-buterin-creator-of-ethereum",
-    "zone": "legacy",
-    "topic": "tech",
-    "evidence": "Efficiency and security are not separate problems"
-   },
-   {
-    "note": "introduction-to-selenium-create-a-web-bot-with-python",
-    "zone": "legacy",
-    "topic": "tech",
-    "evidence": "Selenium es una suite de herramientas para automatizar navegadores web"
-   },
-   {
-    "note": "on-policy-v-s-off-policy-learning",
-    "zone": "legacy",
-    "topic": "tech",
-    "evidence": "On-Policy learning evalúa y mejora la misma política usada para seleccionar acciones, mientras que Off-Policy evalúa una política diferente de la usada para interactuar con el ambiente."
-   },
-   {
-    "note": "the-intelligence-of-bodies",
+    "note": "as-we-may-think",
     "zone": "legacy",
     "topic": "cultura",
-    "evidence": "Lo que hace singular el arte es exactamente el fracaso parcial del intento; la belleza está en estar 'un poco off'"
+    "evidence": "La máquina de Leibnitz no se utilizó porque 'el trabajo involucrado en construirla excedía el trabajo a ahorrar', hasta que llegó la producción en masa"
    },
    {
-    "note": "the-world-ahead-2022-chris-dixon-and-packy-mccormick-on-the-future-of-crypto",
+    "note": "cloud-exit-pays-off-in-performance-too",
     "zone": "legacy",
-    "topic": "tech",
-    "evidence": "El código puede hacer compromisos fuertes sobre cómo se comportará en el futuro, garantizando el cumplimiento automático de reglas"
+    "topic": "producto",
+    "evidence": "$333/mes en hardware para ejecutar una aplicación SaaS que genera millones de dólares anuales"
    },
    {
-    "note": "why-ai-will-save-the-world",
+    "note": "distributed-service-sector-productivity",
+    "zone": "legacy",
+    "topic": "macro",
+    "evidence": "Las tecnologías de propósito general a menudo tardan mucho tiempo en aumentar la productividad de manera medible porque requieren reorganizar completamente los sistemas de producción"
+   },
+   {
+    "note": "spending-on-ai-is-at-epic-levels-will-it-ever-pay-off",
+    "zone": "legacy",
+    "topic": "macro",
+    "evidence": "OpenAI gasta $60B anuales en servidores pero solo genera $13B en ingresos, requiriendo $800B en ventas futuras para justificar la inversión"
+   },
+   {
+    "note": "the-apple-vision-pro-s-missing-apps",
+    "zone": "legacy",
+    "topic": "producto",
+    "evidence": "Si creciste viendo televisores de 75 pulgadas no apreciarías tanto esto, pero quien usa iPad como dispositivo principal durante años ve el siguiente paso obvio"
+   },
+   {
+    "note": "the-algorithm-will-see-you-now",
+    "zone": "legacy",
+    "topic": "ciencia",
+    "evidence": "Geoffrey Hinton predijo el fin de la radiología, pero la demanda de radiólogos alcanzó récords históricos en 2025"
+   },
+   {
+    "note": "the-apple-vision-pro",
+    "zone": "legacy",
+    "topic": "producto",
+    "evidence": "Si creciste viendo televisores de 75 pulgadas probablemente no lo apreciarías, pero quien usa iPad como dispositivo principal de consumo de video ve esto como el siguiente paso obvio"
+   },
+   {
+    "note": "who-will-pay-for-the-trillion-dollar-ai-boom",
+    "zone": "legacy",
+    "topic": "macro",
+    "evidence": "Nobody is quite sure who will pick up the tab - la inversión masiva en IA carece de claridad sobre quién capturará el valor generado"
+   },
+   {
+    "note": "why-didn-t-electricity-immediately-change-manufacturing",
+    "zone": "legacy",
+    "topic": "ciencia",
+    "evidence": "La electricidad no cambió inmediatamente la manufactura a pesar de ser disponible, lo que sugiere que la innovación tecnológica no se traduce automáticamente en transformación económica"
+   },
+   {
+    "note": "Travis is Back",
+    "zone": "read",
+    "topic": "producto",
+    "evidence": "Es inevitable que los robots hagan la mayoría del trabajo menial en el mundo físico, así como las computadoras dominaron el mundo digital"
+   },
+   {
+    "note": "ai-foundation-models-for-the-rest-of-us",
     "zone": "legacy",
     "topic": "tech",
-    "evidence": "La inteligencia humana mejora resultados en casi todos los dominios: logros académicos, desempeño laboral, ingresos, creatividad, salud y satisfacción vital"
+    "evidence": "Entidades más pequeñas pueden utilizar el trabajo de gigantes tecnológicos, incluyendo foundation models, para iniciar el desarrollo de sus propias aplicaciones de machine learning"
+   },
+   {
+    "note": "an-in-depth-guide-to-denoising-diffusion-probabilistic-models-from-theory-to-imp",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "En el proceso de Forward Diffusion, se añade iterativamente ruido a las imágenes para que 'se muevan fuera' de su subespacio existente"
+   },
+   {
+    "note": "how-to-lose-time-and-money",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "It was possible to go from rich to poor, just as it was possible to go from poor to rich"
+   },
+   {
+    "note": "over-the-weekend-my-team-at-stripe-converted",
+    "zone": "legacy",
+    "topic": "tweet",
+    "evidence": "TypeScript había claramente ganado sobre la comunidad frontend, y el equipo de TS hizo un trabajo fantástico con tooling y soporte"
+   },
+   {
+    "note": "why-we-re-leaving-the-cloud",
+    "zone": "legacy",
+    "topic": "producto",
+    "evidence": "Paying an at times almost absurd premium for the possibility that it could [scale], like paying a quarter of your house's value for earthquake insurance when you don't live anywhere near a fault line"
    }
   ]
  },
  {
-  "name": "Cultura organizacional como ventaja fundamental",
-  "gloss": "La cultura, la misión compartida y la transparencia radical como base del desempeño de una empresa",
-  "count": 12,
+  "name": "Captura de valor desigual en cadenas globales",
+  "gloss": "Quién se queda con el margen en manufactura, streaming, BPO y plataformas frente a quien hace el trabajo real",
+  "count": 16,
   "sources": [
    {
-    "note": "The Nvidia Way Jensen Huang and the Making of a Tech Giant",
+    "note": "Apple in China The Capture of the World's Greatest Company",
     "zone": "kindle",
     "topic": "otros",
-    "evidence": "'Strategy is not words. Strategy is action' y 'turns out it's just really hard work and intense execution on schedules' - la cultura y ejecución importan más que los planes."
+    "evidence": "Los trabajadores chinos contribuyeron solo el 3.6% del costo mayorista del iPhone a pesar de realizar la manufactura, mientras Apple captura la mayor parte del valor"
    },
    {
-    "note": "The Making of a Manager What to Do When Everyone Looks to You",
-    "zone": "kindle",
-    "topic": "otros",
-    "evidence": "Tu rol no es hacer el trabajo tú mismo, sino mejorar el propósito, personas y procesos del equipo para maximizar el efecto multiplicador del resultado colectivo"
+    "note": "Why the world needs more franchises",
+    "zone": "read",
+    "topic": "producto",
+    "evidence": "Los franquiciados aportan el capital para abrir nuevos locales mientras la marca obtiene royalties, permitiendo expansión sin inversión propia"
    },
    {
-    "note": "Social Status Follow-up Thoughts",
+    "note": "The market for marriage - Works in Progress Magazine",
     "zone": "read",
     "topic": "cultura",
-    "evidence": "Sin prestigio, el comercio de favores se detiene. El prestigio es la moneda informal que mantiene funcionando la economía informal de los grupos."
+    "evidence": "'Su nombre continúa en los labios de los hombres' - el matrimonio fantasma asegura que el nombre y la identidad del difunto persistan generacionalmente"
    },
    {
-    "note": "hire-people-who-give-a-shit",
+    "note": "airlines-favourite-new-pricing-trick",
+    "zone": "legacy",
+    "topic": "macro",
+    "evidence": "Cobran tarifas más altas por persona para reservas individuales que para itinerarios idénticos con dos pasajeros: $811 vs $565 por persona"
+   },
+   {
+    "note": "call-centres-could-be-a-gold-mine-for-africa",
+    "zone": "legacy",
+    "topic": "macro",
+    "evidence": "La industria BPO crece 14% anual en África versus 8% globalmente, casi el doble de la tasa de crecimiento económico africano del 4%"
+   },
+   {
+    "note": "did-las-vegas-get-too-greedy",
+    "zone": "legacy",
+    "topic": "macro",
+    "evidence": "Solo 35% de ingresos provienen de juegos (vs 50% en 1998), casi todo en el casino es un centro de ganancias"
+   },
+   {
+    "note": "facebook-knows-instagram-is-toxic-for-teen-girls-company-documents-show",
+    "zone": "legacy",
+    "topic": "macro",
+    "evidence": "Facebook's internal research desde 2020 documenta que Instagram causa ansiedad, depresión y trastornos alimenticios en adolescentes, pero la empresa continúa operando la plataforma sin cambios significativos."
+   },
+   {
+    "note": "facebook-political-problems",
     "zone": "legacy",
     "topic": "producto",
-    "evidence": "No hay futuro si contratamos personas que no se identifican con nuestra misión, producto y problema"
+    "evidence": "Facebook no vende datos de usuarios porque son inteligibles solo para Facebook, actuando como mediador de datos en lugar de un mercado abierto de datos"
    },
    {
-    "note": "how-big-tech-runs-tech-projects-and-the-curious-absence-of-scrum",
-    "zone": "legacy",
-    "topic": "tech",
-    "evidence": "The success of companies and project management approaches is not always correlated. Whatsapp logró mayor éxito sin frameworks como Scrum mientras Skype aceleró entregas pero perdió competitividad."
-   },
-   {
-    "note": "how-mckinsey-lost-its-edge",
+    "note": "iphone-13-review-from-mini-to-pro-max-it-s-all-about-the-battery-and-cameras",
     "zone": "legacy",
     "topic": "macro",
-    "evidence": "McKinsey tuvo ingresos más del doble que BCG en 2012, pero solo un quinto mayor en 2024, perdiendo participación de mercado frente a rivales"
+    "evidence": "AT&T ofrece iPhone 13 Pro gratis con canje del iPhone 12 Pro Max, incentivando la actualización frecuente"
    },
    {
-    "note": "how-to-be-a-better-boss",
+    "note": "la-revolucion-bancaria-de-brasil-del-efectivo-al-codigo",
     "zone": "legacy",
     "topic": "macro",
-    "evidence": "69% de trabajadores dicen que su jefe influye en su salud mental tanto como su pareja"
+    "evidence": "Alrededor del 93% de adultos brasileños han utilizado PIX, representando casi la mitad de las transacciones financieras del país"
    },
    {
-    "note": "how-to-recruit-with-softer-skills-in-mind",
+    "note": "the-fake-artists-problem-is-much-worse-than-you-realize",
+    "zone": "legacy",
+    "topic": "cultura",
+    "evidence": "Los algoritmos determinan la asignación de royalties musicales, y quien los manipule puede enviar enormes sumas de dinero a su cuenta bancaria."
+   },
+   {
+    "note": "the-counterintuitive-economics-of-smoking",
     "zone": "legacy",
     "topic": "macro",
-    "evidence": "Las personas que se destacan en pruebas de lectura de emociones faciales consistentemente hacen que sus grupos tengan mejor rendimiento, sin que esto se refleje en tests de IQ o personalidad."
+    "evidence": "Las acciones de tabaqueras estadounidenses ($165) superaron al índice tecnológico Nasdaq ($160) en el mismo período, desafiando expectativas del mercado"
    },
    {
-    "note": "i-managed-multiple-engineering-teams-before-qui",
-    "zone": "legacy",
-    "topic": "tweet",
-    "evidence": "All the code you wrote will end up in the recycling bin if it does not add value directly or indirectly to the business"
-   },
-   {
-    "note": "the-upside-of-workplace-jargon",
+    "note": "who-will-pay-for-the-trillion-dollar-ai-boom",
     "zone": "legacy",
     "topic": "macro",
-    "evidence": "Un 'nub' es alguien que no está en el equipo; la jerga opaca refuerza quién pertenece y quién no"
+    "evidence": "Nobody is quite sure who will pick up the tab - la inversión masiva en IA carece de claridad sobre quién capturará el valor generado"
    },
    {
-    "note": "tim-cook-on-shaping-the-future-of-apple",
+    "note": "the-case-for-credit-unions",
+    "zone": "legacy",
+    "topic": "macro",
+    "evidence": "La Enmienda Durbin exentó límites de interchange para bancos menores a $10B, posicionando a bancos comunitarios y cooperativas de crédito como proveedores de infraestructura para neobancos"
+   },
+   {
+    "note": "ai-is-killing-the-web-can-anything-save-it",
+    "zone": "legacy",
+    "topic": "macro",
+    "evidence": "Apple reportó caída de búsquedas convencionales en Safari porque usuarios prefieren consultar directamente a IA en lugar de usar el navegador web"
+   },
+   {
+    "note": "the-secret-language-of-ships",
+    "zone": "legacy",
+    "topic": "cultura",
+    "evidence": "El número IMO permanece igual durante toda la vida del barco, aunque el dueño, nombre y bandera cambien"
+   }
+  ]
+ },
+ {
+  "name": "Poder empresarial mediante integración vertical",
+  "gloss": "Controlar de punta a punta la cadena (materia prima a manufactura) como defensa estratégica",
+  "count": 14,
+  "sources": [
+   {
+    "note": "Apple in China The Capture of the World's Greatest Company",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "Los trabajadores chinos contribuyeron solo el 3.6% del costo mayorista del iPhone a pesar de realizar la manufactura, mientras Apple captura la mayor parte del valor"
+   },
+   {
+    "note": "a-moment-of-clarity",
+    "zone": "legacy",
+    "topic": "macro",
+    "evidence": "La única protección contra amenazas externas es un estado-nación fuerte y económicamente prospero"
+   },
+   {
+    "note": "america-s-newest-media-moguls-the-ellisons",
+    "zone": "legacy",
+    "topic": "macro",
+    "evidence": "Los Ellison se posicionan como nuevos mogules de medios en América, consolidando control sobre múltiples plataformas de comunicación"
+   },
+   {
+    "note": "back-to-the-future-of-twitter",
     "zone": "legacy",
     "topic": "producto",
-    "evidence": "Tim Cook no oculta su email y lo deja disponible públicamente para que clientes y empleados se comuniquen directamente con él"
+    "evidence": "Twitter es un conjunto de microservicios (timeline, grafo, posting, perfil) cuya arquitectura compleja permite operar a escala global"
    },
    {
-    "note": "today-is-a-special-day-for-me-the-5-year-anniv",
+    "note": "facebook-political-problems",
+    "zone": "legacy",
+    "topic": "producto",
+    "evidence": "Facebook no vende datos de usuarios porque son inteligibles solo para Facebook, actuando como mediador de datos en lugar de un mercado abierto de datos"
+   },
+   {
+    "note": "facebook-says-its-rules-apply-to-all-company-documents-reveal-a-secret-elite-tha",
+    "zone": "legacy",
+    "topic": "macro",
+    "evidence": "'We are not actually doing what we say we do publicly' - la empresa aplica reglas diferentes a las que comunica externamente"
+   },
+   {
+    "note": "lyft-s-secret-plan-to-take-control-of-its-maps-and-its-future",
+    "zone": "legacy",
+    "topic": "producto",
+    "evidence": "Entre 70% y 80% de los segmentos de carreteras de EE.UU. tienen viajes de Lyft al menos una vez cada diez días, generando datos únicos sobre el terreno"
+   },
+   {
+    "note": "resiliency-and-scale",
+    "zone": "legacy",
+    "topic": "producto",
+    "evidence": "Apple cree que debe controlar sus tecnologías primarias, pero su capacidad más importante de manufactura a escala la controla China, no ella misma"
+   },
+   {
+    "note": "three-lessons-from-uber-s-defeat-in-china",
+    "zone": "legacy",
+    "topic": "producto",
+    "evidence": "Uber usó Google Maps que no funcionaba en China y ofreció pagos con tarjeta de crédito cuando la mayoría de chinos no las usaban"
+   },
+   {
+    "note": "why-don-t-elite-colleges-expand-supply",
+    "zone": "legacy",
+    "topic": "macro",
+    "evidence": "La verdadera restricción es la facultad. Los estándares de Harvard tendrían que caer y los grupos de poder en los departamentos verían su poder diluido"
+   },
+   {
+    "note": "The Prize The Epic Quest for Oil, Money & Power",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "Standard cortaba precios en mercados específicos para forzar competidores a operar con pérdidas, o generaba escasez artificial de barriles para presionar a refinadores reticentes"
+   },
+   {
+    "note": "el-director-del-shopping-paseo-del-este-redobla-su-apuesta-a-maldonado-y-anuncia",
+    "zone": "legacy",
+    "topic": "producto",
+    "evidence": "Cuando un supermercado se instala al lado de Sodimac, sus ventas suben entre 20% y 30%"
+   },
+   {
+    "note": "five-values-guiding-our-cloud-exit",
+    "zone": "legacy",
+    "topic": "producto",
+    "evidence": "Cloud has been sold as The Answer... The narrative is not true"
+   },
+   {
+    "note": "yesterday-i-rented-a-boat-and-took-the-leader-o",
     "zone": "legacy",
     "topic": "tweet",
-    "evidence": "I did control the weekly habit. Excellence, then, is not an act, but a habit."
+    "evidence": "You should always choose the most capital intensive part of the line to be your bottleneck"
    }
   ]
  },
@@ -686,45 +1301,100 @@
   ]
  },
  {
-  "name": "Poder empresarial mediante integración vertical",
-  "gloss": "Controlar de punta a punta la cadena (materia prima a manufactura) como defensa estratégica",
-  "count": 10,
+  "name": "Autoconciencia como base de vínculos",
+  "gloss": "Entender el propio sistema de valores es condición para la conciencia mutua y las relaciones sanas",
+  "count": 12,
   "sources": [
    {
-    "note": "Apple in China The Capture of the World's Greatest Company",
+    "note": "Scaling People Tactics for Management and Company Building",
     "zone": "kindle",
     "topic": "otros",
-    "evidence": "Los trabajadores chinos contribuyeron solo el 3.6% del costo mayorista del iPhone a pesar de realizar la manufactura, mientras Apple captura la mayor parte del valor"
+    "evidence": "Las empresas más exitosas y duraderas fomentan una fuerte adherencia interna a sus marcos centrales. Son indicadores de las prioridades de la empresa y establecen las acciones o procesos que todos deben realizar de la misma manera."
    },
    {
-    "note": "a-moment-of-clarity",
+    "note": "Un momento inolvidable Juntos por primera vez (Spanish Edition)",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "Uno de cada tres jóvenes afirma que su primera relación sexual fue fruto de 'la presión de su entorno'"
+   },
+   {
+    "note": "The Top Idea in Your Mind",
+    "zone": "read",
+    "topic": "personal",
+    "evidence": "Hay un tipo de pensamiento que haces sin intentar, necesario para resolver problemas difíciles, que solo puedes controlar indirectamente"
+   },
+   {
+    "note": "how to be good at research",
+    "zone": "read",
+    "topic": "personal",
+    "evidence": "No absorbas problemas de otros; elige un resultado que genuinamente quieras que exista y razona hacia atrás desde ahí, lo que manufactura originalidad"
+   },
+   {
+    "note": "3-2-1-resilience-growth-and-a-guiding-question-for-new-opportunities",
     "zone": "legacy",
-    "topic": "macro",
-    "evidence": "La única protección contra amenazas externas es un estado-nación fuerte y económicamente prospero"
+    "topic": "personal",
+    "evidence": "¿Cómo quiero pasar mis días? Toma la menor cantidad posible de decisiones que violen tu respuesta"
    },
    {
-    "note": "america-s-newest-media-moguls-the-ellisons",
+    "note": "dealing-with-mistakes",
     "zone": "legacy",
-    "topic": "macro",
-    "evidence": "Los Ellison se posicionan como nuevos mogules de medios en América, consolidando control sobre múltiples plataformas de comunicación"
+    "topic": "personal",
+    "evidence": "Mencionar una debilidad temprano establece credibilidad para lo que dices después, posicionando tu argumento más fuerte inmediatamente después."
    },
    {
-    "note": "back-to-the-future-of-twitter",
+    "note": "how-to-do-what-you-love",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "No se trata de hacer lo que te hace más feliz en este momento, sino lo que te hará más feliz durante un período más largo, como una semana o un mes"
+   },
+   {
+    "note": "josh-kushner-thrive-and-the-new-world",
     "zone": "legacy",
     "topic": "producto",
-    "evidence": "Twitter es un conjunto de microservicios (timeline, grafo, posting, perfil) cuya arquitectura compleja permite operar a escala global"
+    "evidence": "El primer álbum viene del corazón, pero el segundo se escribe pensando en lo que el mundo quiere. Escribir desde la pasión inicial versus escribir para agradar son caminos divergentes."
    },
    {
-    "note": "facebook-political-problems",
+    "note": "Flowers for Algernon Student Edition",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "The more intelligent you become the more problems you'll have, Charlie. Your intellectual growth is going to outstrip your emotional growth."
+   },
+   {
+    "note": "There There A novel",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "The trouble with believing is you have to believe that believing will work, you have to believe in belief"
+   },
+   {
+    "note": "lies-we-tell-kids",
     "zone": "legacy",
-    "topic": "producto",
-    "evidence": "Facebook no vende datos de usuarios porque son inteligibles solo para Facebook, actuando como mediador de datos en lugar de un mercado abierto de datos"
+    "topic": "tech",
+    "evidence": "Los adolescentes están atrapados en un mundo diseñado para niños de 10 años, lo que genera frustración porque su capacidad ha evolucionado pero su contexto no"
    },
    {
-    "note": "facebook-says-its-rules-apply-to-all-company-documents-reveal-a-secret-elite-tha",
+    "note": "managing-your-mental-health-while-running-a-startup",
+    "zone": "legacy",
+    "topic": "personal",
+    "evidence": "Guardo cuidadosamente el tiempo familiar. Estoy en casa para cenar con mi esposa e hijos cada noche, dejo el teléfono en el recibidor y no tomo llamadas de trabajo los fines de semana a menos que sea una emergencia absoluta."
+   }
+  ]
+ },
+ {
+  "name": "Ventaja competitiva imitable erosionándose",
+  "gloss": "Las ventajas de mercado (Meta, McKinsey, navegadores) se erosionan cuando competidores alcanzan la calidad a menor costo",
+  "count": 12,
+  "sources": [
+   {
+    "note": "how-mckinsey-lost-its-edge",
     "zone": "legacy",
     "topic": "macro",
-    "evidence": "'We are not actually doing what we say we do publicly' - la empresa aplica reglas diferentes a las que comunica externamente"
+    "evidence": "McKinsey tuvo ingresos más del doble que BCG en 2012, pero solo un quinto mayor en 2024, perdiendo participación de mercado frente a rivales"
+   },
+   {
+    "note": "if-you-re-going-to-build-something-to-replace-e",
+    "zone": "legacy",
+    "topic": "tweet",
+    "evidence": "Si vas a reemplazar Excel, tiene que ser 100X mejor porque 10X no va a funcionar"
    },
    {
     "note": "lyft-s-secret-plan-to-take-control-of-its-maps-and-its-future",
@@ -733,22 +1403,131 @@
     "evidence": "Entre 70% y 80% de los segmentos de carreteras de EE.UU. tienen viajes de Lyft al menos una vez cada diez días, generando datos únicos sobre el terreno"
    },
    {
-    "note": "resiliency-and-scale",
+    "note": "meta-open-sources-another-ai-model-moats-and-open-source-apple-and-meta",
     "zone": "legacy",
     "topic": "producto",
-    "evidence": "Apple cree que debe controlar sus tecnologías primarias, pero su capacidad más importante de manufactura a escala la controla China, no ella misma"
+    "evidence": "Open source está resolviendo 'major open problems' más rápido que los competidores cerrados: LLMs en teléfonos, IA personalizada, modelos multimodales entrenados en una hora"
    },
    {
-    "note": "three-lessons-from-uber-s-defeat-in-china",
+    "note": "the-ai-unbundling",
     "zone": "legacy",
     "topic": "producto",
-    "evidence": "Uber usó Google Maps que no funcionaba en China y ofreció pagos con tarjeta de crédito cuando la mayoría de chinos no las usaban"
+    "evidence": "Una vez que Internet redujo costos de distribución, los bundles se desagregaron: noticias perdieron valor, periódicos perdieron monopolios geográficos, publicistas se separaron del contenido."
    },
    {
-    "note": "why-don-t-elite-colleges-expand-supply",
+    "note": "the-most-common-issue-with-innovation-at-big",
+    "zone": "legacy",
+    "topic": "tweet",
+    "evidence": "Es mucho mejor ser monopolista en un mercado pequeño pero muy acelerado que ser uno de N jugadores en un mercado ya establecido"
+   },
+   {
+    "note": "Buying My Second Picasso",
+    "zone": "read",
+    "topic": "producto",
+    "evidence": "An AI data center company with insanely valuable assets trading dirt cheap because public investors had it in the wrong mental box"
+   },
+   {
+    "note": "how-to-lose-time-and-money",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "It was possible to go from rich to poor, just as it was possible to go from poor to rich"
+   },
+   {
+    "note": "netflix-and-video-games",
+    "zone": "legacy",
+    "topic": "producto",
+    "evidence": "Juegos como Among Us (4 desarrolladores, 500MM MAUs) y Fortnite (<$1.5B gastos, $4B+ ingresos) generan impacto masivo con menos recursos que Netflix (12,000 empleados, $20B+ anuales)"
+   },
+   {
+    "note": "thin-platforms",
+    "zone": "legacy",
+    "topic": "producto",
+    "evidence": "GitHub Codespaces es un entorno explícitamente online que puedes usar temporalmente en local. Microsoft construyó su nuevo sistema operativo como una plataforma delgada"
+   },
+   {
+    "note": "ai-is-killing-the-web-can-anything-save-it",
     "zone": "legacy",
     "topic": "macro",
-    "evidence": "La verdadera restricción es la facultad. Los estándares de Harvard tendrían que caer y los grupos de poder en los departamentos verían su poder diluido"
+    "evidence": "Apple reportó caída de búsquedas convencionales en Safari porque usuarios prefieren consultar directamente a IA en lugar de usar el navegador web"
+   },
+   {
+    "note": "michaeldell-s-new-book-is-out-play-nice-but-w",
+    "zone": "legacy",
+    "topic": "tweet",
+    "evidence": "Mientras las ventas de PC cayeron globalmente de 350M a 275M, Dell aumentó su participación de mercado de 19% a 27%, ganando cuota en una industria en contracción"
+   }
+  ]
+ },
+ {
+  "name": "Motivación intrínseca y trabajo significativo",
+  "gloss": "El desempeño sostenido surge de propósito, autonomía y reconocimiento más que de incentivos externos",
+  "count": 11,
+  "sources": [
+   {
+    "note": "How Will You Measure Your Life A thought-provoking approach to measuring life's success",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "La motivación surge de condiciones intrínsecas del trabajo mismo—trabajo significativo, reconocimiento, responsabilidad—mucho más que de estímulos externos o compensación monetaria."
+   },
+   {
+    "note": "Ideas to help you build a better personal network",
+    "zone": "read",
+    "topic": "personal",
+    "evidence": "Aumentarás tu tasa de éxito reduciendo la fricción para otros que quieren ayudarte pero están limitados por su tiempo"
+   },
+   {
+    "note": "a-project-of-one-s-own",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "Working on a project of your own is as different from ordinary work as skating is from walking. It's more fun, but also much more productive."
+   },
+   {
+    "note": "children-and-young-people-s-reading-in-2025",
+    "zone": "legacy",
+    "topic": "cultura",
+    "evidence": "Solo 32.7% de niños y jóvenes disfrutan leer en su tiempo libre, 36% menos que en 2005"
+   },
+   {
+    "note": "dan-koe-on-x-how-to-fix-your-entire-life-in-1",
+    "zone": "legacy",
+    "topic": "tweet",
+    "evidence": "If you want a specific outcome in life, you must have the lifestyle that creates that outcome long before you reach it."
+   },
+   {
+    "note": "how-to-do-what-you-love",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "No se trata de hacer lo que te hace más feliz en este momento, sino lo que te hará más feliz durante un período más largo, como una semana o un mes"
+   },
+   {
+    "note": "josh-kushner-thrive-and-the-new-world",
+    "zone": "legacy",
+    "topic": "producto",
+    "evidence": "El primer álbum viene del corazón, pero el segundo se escribe pensando en lo que el mundo quiere. Escribir desde la pasión inicial versus escribir para agradar son caminos divergentes."
+   },
+   {
+    "note": "the-anatomy-of-determination",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "Determinación consiste en voluntad equilibrada con disciplina, dirigida por ambición"
+   },
+   {
+    "note": "the-bus-ticket-theory-of-genius",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "To have a disinterested obsession with something that matters. La obsesión no motivada por recompensa es el ingrediente clave del genio."
+   },
+   {
+    "note": "Atlas Shrugged",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "'The man without a purpose' es el tipo más depravado; 'qué tan bien haces tu trabajo' es la única medida del valor humano"
+   },
+   {
+    "note": "ayn-rand-lexicon",
+    "zone": "legacy",
+    "topic": "cultura",
+    "evidence": "Respuesta de odio no hacia los vicios humanos, sino hacia las virtudes humanas"
    }
   ]
  },
@@ -887,198 +1666,9 @@
   ]
  },
  {
-  "name": "Adopción de IA sin impacto material inmediato",
-  "gloss": "Brecha entre inversión/adopción de IA y productividad o resultados observables, con rezagos históricos similares",
-  "count": 10,
-  "sources": [
-   {
-    "note": "Why hasn’t AI increased unemployment?",
-    "zone": "read",
-    "topic": "macro",
-    "evidence": "AI ha funcionado como tecnología 'skill-biased' y labor-augmenting, donde la experiencia humana complementaria amplifica lo que la IA sola puede lograr"
-   },
-   {
-    "note": "as-we-may-think",
-    "zone": "legacy",
-    "topic": "cultura",
-    "evidence": "La máquina de Leibnitz no se utilizó porque 'el trabajo involucrado en construirla excedía el trabajo a ahorrar', hasta que llegó la producción en masa"
-   },
-   {
-    "note": "cloud-exit-pays-off-in-performance-too",
-    "zone": "legacy",
-    "topic": "producto",
-    "evidence": "$333/mes en hardware para ejecutar una aplicación SaaS que genera millones de dólares anuales"
-   },
-   {
-    "note": "distributed-service-sector-productivity",
-    "zone": "legacy",
-    "topic": "macro",
-    "evidence": "Las tecnologías de propósito general a menudo tardan mucho tiempo en aumentar la productividad de manera medible porque requieren reorganizar completamente los sistemas de producción"
-   },
-   {
-    "note": "spending-on-ai-is-at-epic-levels-will-it-ever-pay-off",
-    "zone": "legacy",
-    "topic": "macro",
-    "evidence": "OpenAI gasta $60B anuales en servidores pero solo genera $13B en ingresos, requiriendo $800B en ventas futuras para justificar la inversión"
-   },
-   {
-    "note": "the-apple-vision-pro-s-missing-apps",
-    "zone": "legacy",
-    "topic": "producto",
-    "evidence": "Si creciste viendo televisores de 75 pulgadas no apreciarías tanto esto, pero quien usa iPad como dispositivo principal durante años ve el siguiente paso obvio"
-   },
-   {
-    "note": "the-algorithm-will-see-you-now",
-    "zone": "legacy",
-    "topic": "ciencia",
-    "evidence": "Geoffrey Hinton predijo el fin de la radiología, pero la demanda de radiólogos alcanzó récords históricos en 2025"
-   },
-   {
-    "note": "the-apple-vision-pro",
-    "zone": "legacy",
-    "topic": "producto",
-    "evidence": "Si creciste viendo televisores de 75 pulgadas probablemente no lo apreciarías, pero quien usa iPad como dispositivo principal de consumo de video ve esto como el siguiente paso obvio"
-   },
-   {
-    "note": "who-will-pay-for-the-trillion-dollar-ai-boom",
-    "zone": "legacy",
-    "topic": "macro",
-    "evidence": "Nobody is quite sure who will pick up the tab - la inversión masiva en IA carece de claridad sobre quién capturará el valor generado"
-   },
-   {
-    "note": "why-didn-t-electricity-immediately-change-manufacturing",
-    "zone": "legacy",
-    "topic": "ciencia",
-    "evidence": "La electricidad no cambió inmediatamente la manufactura a pesar de ser disponible, lo que sugiere que la innovación tecnológica no se traduce automáticamente en transformación económica"
-   }
-  ]
- },
- {
-  "name": "Identidad como precondición del cambio personal",
-  "gloss": "El cambio duradero requiere convertirse en otra persona, no solo modificar comportamientos aislados",
-  "count": 9,
-  "sources": [
-   {
-    "note": "An Astronaut's Guide to Life on Earth What Going to Space Taught Me About Ingenuity, Determination,",
-    "zone": "kindle",
-    "topic": "otros",
-    "evidence": "Mis decisiones diarias determinan qué tipo de persona llegaré a ser"
-   },
-   {
-    "note": "How to fix your entire life in 1 day",
-    "zone": "read",
-    "topic": "personal",
-    "evidence": "No estás donde quieres estar porque no eres la persona que estaría allí. El cambio debe ser de primer orden (quién eres) no de segundo orden (tus acciones)."
-   },
-   {
-    "note": "descriptive-vs-prescriptive-optimism",
-    "zone": "legacy",
-    "topic": "ciencia",
-    "evidence": "Expectativa de que ocurran cosas buenas, creencia sobre cómo será el mundo basada en hechos externos"
-   },
-   {
-    "note": "dan-koe-on-x-how-to-fix-your-entire-life-in-1",
-    "zone": "legacy",
-    "topic": "tweet",
-    "evidence": "If you want a specific outcome in life, you must have the lifestyle that creates that outcome long before you reach it."
-   },
-   {
-    "note": "dealing-with-mistakes",
-    "zone": "legacy",
-    "topic": "personal",
-    "evidence": "Mencionar una debilidad temprano establece credibilidad para lo que dices después, posicionando tu argumento más fuerte inmediatamente después."
-   },
-   {
-    "note": "how-to-do-what-you-love",
-    "zone": "legacy",
-    "topic": "tech",
-    "evidence": "No se trata de hacer lo que te hace más feliz en este momento, sino lo que te hará más feliz durante un período más largo, como una semana o un mes"
-   },
-   {
-    "note": "josh-kushner-thrive-and-the-new-world",
-    "zone": "legacy",
-    "topic": "producto",
-    "evidence": "El primer álbum viene del corazón, pero el segundo se escribe pensando en lo que el mundo quiere. Escribir desde la pasión inicial versus escribir para agradar son caminos divergentes."
-   },
-   {
-    "note": "the-upside-of-workplace-jargon",
-    "zone": "legacy",
-    "topic": "macro",
-    "evidence": "Un 'nub' es alguien que no está en el equipo; la jerga opaca refuerza quién pertenece y quién no"
-   },
-   {
-    "note": "why-self-improvement-starts-with-maintenance",
-    "zone": "legacy",
-    "topic": "personal",
-    "evidence": "El poder de reparar es el poder de mejorar"
-   }
-  ]
- },
- {
-  "name": "Motivación intrínseca y trabajo significativo",
-  "gloss": "El desempeño sostenido surge de propósito, autonomía y reconocimiento más que de incentivos externos",
-  "count": 9,
-  "sources": [
-   {
-    "note": "How Will You Measure Your Life A thought-provoking approach to measuring life's success",
-    "zone": "kindle",
-    "topic": "otros",
-    "evidence": "La motivación surge de condiciones intrínsecas del trabajo mismo—trabajo significativo, reconocimiento, responsabilidad—mucho más que de estímulos externos o compensación monetaria."
-   },
-   {
-    "note": "Ideas to help you build a better personal network",
-    "zone": "read",
-    "topic": "personal",
-    "evidence": "Aumentarás tu tasa de éxito reduciendo la fricción para otros que quieren ayudarte pero están limitados por su tiempo"
-   },
-   {
-    "note": "a-project-of-one-s-own",
-    "zone": "legacy",
-    "topic": "tech",
-    "evidence": "Working on a project of your own is as different from ordinary work as skating is from walking. It's more fun, but also much more productive."
-   },
-   {
-    "note": "children-and-young-people-s-reading-in-2025",
-    "zone": "legacy",
-    "topic": "cultura",
-    "evidence": "Solo 32.7% de niños y jóvenes disfrutan leer en su tiempo libre, 36% menos que en 2005"
-   },
-   {
-    "note": "dan-koe-on-x-how-to-fix-your-entire-life-in-1",
-    "zone": "legacy",
-    "topic": "tweet",
-    "evidence": "If you want a specific outcome in life, you must have the lifestyle that creates that outcome long before you reach it."
-   },
-   {
-    "note": "how-to-do-what-you-love",
-    "zone": "legacy",
-    "topic": "tech",
-    "evidence": "No se trata de hacer lo que te hace más feliz en este momento, sino lo que te hará más feliz durante un período más largo, como una semana o un mes"
-   },
-   {
-    "note": "josh-kushner-thrive-and-the-new-world",
-    "zone": "legacy",
-    "topic": "producto",
-    "evidence": "El primer álbum viene del corazón, pero el segundo se escribe pensando en lo que el mundo quiere. Escribir desde la pasión inicial versus escribir para agradar son caminos divergentes."
-   },
-   {
-    "note": "the-anatomy-of-determination",
-    "zone": "legacy",
-    "topic": "tech",
-    "evidence": "Determinación consiste en voluntad equilibrada con disciplina, dirigida por ambición"
-   },
-   {
-    "note": "the-bus-ticket-theory-of-genius",
-    "zone": "legacy",
-    "topic": "tech",
-    "evidence": "To have a disinterested obsession with something that matters. La obsesión no motivada por recompensa es el ingrediente clave del genio."
-   }
-  ]
- },
- {
   "name": "Crecimiento que oculta disfunción",
   "gloss": "El éxito rápido o la escala pueden enmascarar mala ejecución, incompetencia o desalineación estratégica",
-  "count": 9,
+  "count": 10,
   "sources": [
    {
     "note": "facebook-parent-meta-is-preparing-to-notify-employees-of-large-scale-layoffs-thi",
@@ -1133,13 +1723,19 @@
     "zone": "legacy",
     "topic": "macro",
     "evidence": "Nobody is quite sure who will pick up the tab - la inversión masiva en IA carece de claridad sobre quién capturará el valor generado"
+   },
+   {
+    "note": "why-we-re-leaving-the-cloud",
+    "zone": "legacy",
+    "topic": "producto",
+    "evidence": "Paying an at times almost absurd premium for the possibility that it could [scale], like paying a quarter of your house's value for earthquake insurance when you don't live anywhere near a fault line"
    }
   ]
  },
  {
   "name": "Instituciones como barreras invisibles",
   "gloss": "Reglas, credencialismo y sistemas (hukou, facultades) que limitan acceso y movilidad más que las leyes explícitas",
-  "count": 8,
+  "count": 9,
   "sources": [
    {
     "note": "1984",
@@ -1188,61 +1784,195 @@
     "zone": "legacy",
     "topic": "macro",
     "evidence": "La verdadera restricción es la facultad. Los estándares de Harvard tendrían que caer y los grupos de poder en los departamentos verían su poder diluido"
+   },
+   {
+    "note": "There There A novel",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "The trouble with believing is you have to believe that believing will work, you have to believe in belief"
    }
   ]
  },
  {
-  "name": "Autoconciencia como base de vínculos",
-  "gloss": "Entender el propio sistema de valores es condición para la conciencia mutua y las relaciones sanas",
-  "count": 8,
+  "name": "Concentración geográfica como vulnerabilidad estratégica",
+  "gloss": "Dependencia crítica de un solo país/proveedor (China, ecosistemas únicos) que crea riesgo sistémico",
+  "count": 9,
   "sources": [
    {
-    "note": "Scaling People Tactics for Management and Company Building",
+    "note": "Apple in China The Capture of the World's Greatest Company",
     "zone": "kindle",
     "topic": "otros",
-    "evidence": "Las empresas más exitosas y duraderas fomentan una fuerte adherencia interna a sus marcos centrales. Son indicadores de las prioridades de la empresa y establecen las acciones o procesos que todos deben realizar de la misma manera."
+    "evidence": "Los trabajadores chinos contribuyeron solo el 3.6% del costo mayorista del iPhone a pesar de realizar la manufactura, mientras Apple captura la mayor parte del valor"
    },
    {
-    "note": "Un momento inolvidable Juntos por primera vez (Spanish Edition)",
-    "zone": "kindle",
-    "topic": "otros",
-    "evidence": "Uno de cada tres jóvenes afirma que su primera relación sexual fue fruto de 'la presión de su entorno'"
-   },
-   {
-    "note": "The Top Idea in Your Mind",
-    "zone": "read",
-    "topic": "personal",
-    "evidence": "Hay un tipo de pensamiento que haces sin intentar, necesario para resolver problemas difíciles, que solo puedes controlar indirectamente"
-   },
-   {
-    "note": "how to be good at research",
-    "zone": "read",
-    "topic": "personal",
-    "evidence": "No absorbas problemas de otros; elige un resultado que genuinamente quieras que exista y razona hacia atrás desde ahí, lo que manufactura originalidad"
-   },
-   {
-    "note": "3-2-1-resilience-growth-and-a-guiding-question-for-new-opportunities",
+    "note": "a-moment-of-clarity",
     "zone": "legacy",
-    "topic": "personal",
-    "evidence": "¿Cómo quiero pasar mis días? Toma la menor cantidad posible de decisiones que violen tu respuesta"
+    "topic": "macro",
+    "evidence": "La única protección contra amenazas externas es un estado-nación fuerte y económicamente prospero"
    },
    {
-    "note": "dealing-with-mistakes",
+    "note": "call-centres-could-be-a-gold-mine-for-africa",
     "zone": "legacy",
-    "topic": "personal",
-    "evidence": "Mencionar una debilidad temprano establece credibilidad para lo que dices después, posicionando tu argumento más fuerte inmediatamente después."
+    "topic": "macro",
+    "evidence": "La industria BPO crece 14% anual en África versus 8% globalmente, casi el doble de la tasa de crecimiento económico africano del 4%"
    },
    {
-    "note": "how-to-do-what-you-love",
+    "note": "don-t-forget-the-downsides-of-china-s-innovation-push",
     "zone": "legacy",
-    "topic": "tech",
-    "evidence": "No se trata de hacer lo que te hace más feliz en este momento, sino lo que te hará más feliz durante un período más largo, como una semana o un mes"
+    "topic": "macro",
+    "evidence": "Policymakers invest honestly but not always wisely, leading to overcrowded industries"
    },
    {
-    "note": "josh-kushner-thrive-and-the-new-world",
+    "note": "facebook-is-down-this-morning-apparently-due-t",
+    "zone": "legacy",
+    "topic": "tweet",
+    "evidence": "BGP organiza internet en sistemas autónomos independientes que intercambian información sobre direcciones IP y conexiones entre pares"
+   },
+   {
+    "note": "resiliency-and-scale",
     "zone": "legacy",
     "topic": "producto",
-    "evidence": "El primer álbum viene del corazón, pero el segundo se escribe pensando en lo que el mundo quiere. Escribir desde la pasión inicial versus escribir para agradar son caminos divergentes."
+    "evidence": "Apple cree que debe controlar sus tecnologías primarias, pero su capacidad más importante de manufactura a escala la controla China, no ella misma"
+   },
+   {
+    "note": "three-lessons-from-uber-s-defeat-in-china",
+    "zone": "legacy",
+    "topic": "producto",
+    "evidence": "Uber usó Google Maps que no funcionaba en China y ofreció pagos con tarjeta de crédito cuando la mayoría de chinos no las usaban"
+   },
+   {
+    "note": "Wing Leader The Incredible Story of the Top-Scoring RAF Fighter Ace of WWII",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "La Luftwaffe organizaba sus cazas en parejas (schwarme) que formaban unidades de cuatro, patrón que los aliados copiaron llamándolo 'finger-four'"
+   },
+   {
+    "note": "the-brics-are-getting-together-in-south-africa",
+    "zone": "legacy",
+    "topic": "macro",
+    "evidence": "La participación de los BRICS en el PIB mundial aumentó de 8% en 2001 a 26% hoy, mientras que la del G7 cayó de 65% a 43%"
+   }
+  ]
+ },
+ {
+  "name": "Contra-posicionamiento y nichos defendibles",
+  "gloss": "Ganar creando dominio en nichos no disputados en vez de competir de frente en mercados establecidos",
+  "count": 9,
+  "sources": [
+   {
+    "note": "7 Powers The Foundations of Business Strategy",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "Power: the set of conditions creating the potential for persistent differential returns"
+   },
+   {
+    "note": "3-2-1-how-to-approach-life-and-how-to-succeed-as-a-writer",
+    "zone": "legacy",
+    "topic": "personal",
+    "evidence": "Es mejor estar solo que con gente tóxica, hacer nada que trabajar en algo sin importancia, descansar que escalar la montaña equivocada."
+   },
+   {
+    "note": "peter-thiel-on-cain-and-abel",
+    "zone": "legacy",
+    "topic": "cultura",
+    "evidence": "People hate those who are similar to them, but not those who are incomparable"
+   },
+   {
+    "note": "the-apple-vision-pro",
+    "zone": "legacy",
+    "topic": "producto",
+    "evidence": "Si creciste viendo televisores de 75 pulgadas probablemente no lo apreciarías, pero quien usa iPad como dispositivo principal de consumo de video ve esto como el siguiente paso obvio"
+   },
+   {
+    "note": "the-most-common-issue-with-innovation-at-big",
+    "zone": "legacy",
+    "topic": "tweet",
+    "evidence": "Es mucho mejor ser monopolista en un mercado pequeño pero muy acelerado que ser uno de N jugadores en un mercado ya establecido"
+   },
+   {
+    "note": "three-lessons-from-uber-s-defeat-in-china",
+    "zone": "legacy",
+    "topic": "producto",
+    "evidence": "Uber usó Google Maps que no funcionaba en China y ofreció pagos con tarjeta de crédito cuando la mayoría de chinos no las usaban"
+   },
+   {
+    "note": "Buying My Second Picasso",
+    "zone": "read",
+    "topic": "producto",
+    "evidence": "An AI data center company with insanely valuable assets trading dirt cheap because public investors had it in the wrong mental box"
+   },
+   {
+    "note": "el-director-del-shopping-paseo-del-este-redobla-su-apuesta-a-maldonado-y-anuncia",
+    "zone": "legacy",
+    "topic": "producto",
+    "evidence": "Cuando un supermercado se instala al lado de Sodimac, sus ventas suben entre 20% y 30%"
+   },
+   {
+    "note": "interview-marc-andreessen",
+    "zone": "legacy",
+    "topic": "macro",
+    "evidence": "Software is a lever on the real world - no es solo código abstracto sino herramienta que transforma la realidad física"
+   }
+  ]
+ },
+ {
+  "name": "Progreso como proceso recursivo e imperfecto",
+  "gloss": "Los problemas generados por el avance tecnológico se resuelven con más progreso, no con retroceso",
+  "count": 9,
+  "sources": [
+   {
+    "note": "disconnecting-distraction",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "Como bacterias resistentes a drogas, nuevas distracciones aparecen constantemente a medida que evitamos las antiguas"
+   },
+   {
+    "note": "interview-jason-crawford-nonprofit-founder",
+    "zone": "legacy",
+    "topic": "cultura",
+    "evidence": "Existen tres categorías de progreso (material, intelectual y moral) que son distintas pero inseparables: dependen, refuerzan e intertwinen mutuamente."
+   },
+   {
+    "note": "technology-and-its-side-effects",
+    "zone": "legacy",
+    "topic": "ciencia",
+    "evidence": "Para evaluar una tecnología, se debe evaluar su efecto general, tanto costos como beneficios, y compararla con las alternativas."
+   },
+   {
+    "note": "spending-on-ai-is-at-epic-levels-will-it-ever-pay-off",
+    "zone": "legacy",
+    "topic": "macro",
+    "evidence": "OpenAI gasta $60B anuales en servidores pero solo genera $13B en ingresos, requiriendo $800B en ventas futuras para justificar la inversión"
+   },
+   {
+    "note": "the-global-decline-of-extreme-poverty-was-it-only-china",
+    "zone": "legacy",
+    "topic": "ciencia",
+    "evidence": "En 1990, dos tercios de la población china vivía en pobreza extrema; para 2013 había descendido a menos del 1%"
+   },
+   {
+    "note": "1929 Inside the Greatest Crash in Wall Street History--and How It Shattered a Nation",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "People will find new ways to believe that the good times can last forever"
+   },
+   {
+    "note": "an-in-depth-guide-to-denoising-diffusion-probabilistic-models-from-theory-to-imp",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "En el proceso de Forward Diffusion, se añade iterativamente ruido a las imágenes para que 'se muevan fuera' de su subespacio existente"
+   },
+   {
+    "note": "Cryptonomicon WWII codebreakers, Nazi Enigma secrets, and a modern data-haven scheme collide across",
+    "zone": "kindle",
+    "topic": "otros",
+    "evidence": "Una máquina simple en su diseño puede producir resultados de complejidad infinita"
+   },
+   {
+    "note": "diffusion-language-models",
+    "zone": "legacy",
+    "topic": "tech",
+    "evidence": "VQ-VAE 2 y VQGAN comprimieron datos en secuencias discretas, luego predijeron paso a paso usando modelos autoregresivos"
    }
   ]
  },
@@ -1302,58 +2032,9 @@
   ]
  },
  {
-  "name": "Concentración geográfica como vulnerabilidad estratégica",
-  "gloss": "Dependencia crítica de un solo país/proveedor (China, ecosistemas únicos) que crea riesgo sistémico",
-  "count": 7,
-  "sources": [
-   {
-    "note": "Apple in China The Capture of the World's Greatest Company",
-    "zone": "kindle",
-    "topic": "otros",
-    "evidence": "Los trabajadores chinos contribuyeron solo el 3.6% del costo mayorista del iPhone a pesar de realizar la manufactura, mientras Apple captura la mayor parte del valor"
-   },
-   {
-    "note": "a-moment-of-clarity",
-    "zone": "legacy",
-    "topic": "macro",
-    "evidence": "La única protección contra amenazas externas es un estado-nación fuerte y económicamente prospero"
-   },
-   {
-    "note": "call-centres-could-be-a-gold-mine-for-africa",
-    "zone": "legacy",
-    "topic": "macro",
-    "evidence": "La industria BPO crece 14% anual en África versus 8% globalmente, casi el doble de la tasa de crecimiento económico africano del 4%"
-   },
-   {
-    "note": "don-t-forget-the-downsides-of-china-s-innovation-push",
-    "zone": "legacy",
-    "topic": "macro",
-    "evidence": "Policymakers invest honestly but not always wisely, leading to overcrowded industries"
-   },
-   {
-    "note": "facebook-is-down-this-morning-apparently-due-t",
-    "zone": "legacy",
-    "topic": "tweet",
-    "evidence": "BGP organiza internet en sistemas autónomos independientes que intercambian información sobre direcciones IP y conexiones entre pares"
-   },
-   {
-    "note": "resiliency-and-scale",
-    "zone": "legacy",
-    "topic": "producto",
-    "evidence": "Apple cree que debe controlar sus tecnologías primarias, pero su capacidad más importante de manufactura a escala la controla China, no ella misma"
-   },
-   {
-    "note": "three-lessons-from-uber-s-defeat-in-china",
-    "zone": "legacy",
-    "topic": "producto",
-    "evidence": "Uber usó Google Maps que no funcionaba en China y ofreció pagos con tarjeta de crédito cuando la mayoría de chinos no las usaban"
-   }
-  ]
- },
- {
   "name": "Punto único de fallo por dependencia humana",
   "gloss": "El 'bus factor' y el conocimiento tácito concentrado en pocas personas como riesgo sistémico",
-  "count": 7,
+  "count": 8,
   "sources": [
    {
     "note": "Prediction markets need better rules",
@@ -1396,56 +2077,19 @@
     "zone": "legacy",
     "topic": "ciencia",
     "evidence": "Cuando un investigador cita un estudio que a su vez deriva datos de investigaciones previas disputadas o retractadas, la incertidumbre se compone en el tiempo"
-   }
-  ]
- },
- {
-  "name": "Contra-posicionamiento y nichos defendibles",
-  "gloss": "Ganar creando dominio en nichos no disputados en vez de competir de frente en mercados establecidos",
-  "count": 6,
-  "sources": [
-   {
-    "note": "7 Powers The Foundations of Business Strategy",
-    "zone": "kindle",
-    "topic": "otros",
-    "evidence": "Power: the set of conditions creating the potential for persistent differential returns"
    },
    {
-    "note": "3-2-1-how-to-approach-life-and-how-to-succeed-as-a-writer",
+    "note": "7-ways-to-execute-scheduled-jobs-with-python",
     "zone": "legacy",
-    "topic": "personal",
-    "evidence": "Es mejor estar solo que con gente tóxica, hacer nada que trabajar en algo sin importancia, descansar que escalar la montaña equivocada."
-   },
-   {
-    "note": "peter-thiel-on-cain-and-abel",
-    "zone": "legacy",
-    "topic": "cultura",
-    "evidence": "People hate those who are similar to them, but not those who are incomparable"
-   },
-   {
-    "note": "the-apple-vision-pro",
-    "zone": "legacy",
-    "topic": "producto",
-    "evidence": "Si creciste viendo televisores de 75 pulgadas probablemente no lo apreciarías, pero quien usa iPad como dispositivo principal de consumo de video ve esto como el siguiente paso obvio"
-   },
-   {
-    "note": "the-most-common-issue-with-innovation-at-big",
-    "zone": "legacy",
-    "topic": "tweet",
-    "evidence": "Es mucho mejor ser monopolista en un mercado pequeño pero muy acelerado que ser uno de N jugadores en un mercado ya establecido"
-   },
-   {
-    "note": "three-lessons-from-uber-s-defeat-in-china",
-    "zone": "legacy",
-    "topic": "producto",
-    "evidence": "Uber usó Google Maps que no funcionaba en China y ofreció pagos con tarjeta de crédito cuando la mayoría de chinos no las usaban"
+    "topic": "tech",
+    "evidence": "Los backends proporcionan un lugar de almacenamiento para persistir triggers, permitiendo que los scripts retomen su ejecución programada incluso después de interrupciones inesperadas"
    }
   ]
  },
  {
   "name": "Costos de cambio y efectos de red como barrera",
   "gloss": "Switching costs, incumbencia (Excel, Windows) y monopolios de red que protegen posiciones de mercado",
-  "count": 6,
+  "count": 8,
   "sources": [
    {
     "note": "7 Powers The Foundations of Business Strategy",
@@ -1482,13 +2126,25 @@
     "zone": "legacy",
     "topic": "macro",
     "evidence": "Las acciones de tabaqueras estadounidenses ($165) superaron al índice tecnológico Nasdaq ($160) en el mismo período, desafiando expectativas del mercado"
+   },
+   {
+    "note": "thin-platforms",
+    "zone": "legacy",
+    "topic": "producto",
+    "evidence": "GitHub Codespaces es un entorno explícitamente online que puedes usar temporalmente en local. Microsoft construyó su nuevo sistema operativo como una plataforma delgada"
+   },
+   {
+    "note": "why-is-ai-so-slow-to-spread-economics-can-explain",
+    "zone": "legacy",
+    "topic": "macro",
+    "evidence": "Close to half the respondents to UBS's surveys say that 'compliance and regulatory concerns' are one of the main challenges for AI adoption"
    }
   ]
  },
  {
   "name": "Aprendizaje amplio antes que especialización temprana",
   "gloss": "Un periodo de exploración diversa (rango) produce mejores expertos que la práctica especializada precoz",
-  "count": 6,
+  "count": 7,
   "sources": [
    {
     "note": "How Will You Measure Your Life A thought-provoking approach to measuring life's success",
@@ -1525,6 +2181,12 @@
     "zone": "legacy",
     "topic": "tech",
     "evidence": "To have a disinterested obsession with something that matters. La obsesión no motivada por recompensa es el ingrediente clave del genio."
+   },
+   {
+    "note": "when-people-share-how-crypto-can-bring-payments",
+    "zone": "legacy",
+    "topic": "tweet",
+    "evidence": "Si quieres construir un sistema de pagos adoptado por cientos de millones, deberías al menos entender qué hizo exitoso a UPI en tan poco tiempo"
    }
   ]
  },
@@ -1572,49 +2234,6 @@
   ]
  },
  {
-  "name": "Ventaja competitiva imitable erosionándose",
-  "gloss": "Las ventajas de mercado (Meta, McKinsey, navegadores) se erosionan cuando competidores alcanzan la calidad a menor costo",
-  "count": 6,
-  "sources": [
-   {
-    "note": "how-mckinsey-lost-its-edge",
-    "zone": "legacy",
-    "topic": "macro",
-    "evidence": "McKinsey tuvo ingresos más del doble que BCG en 2012, pero solo un quinto mayor en 2024, perdiendo participación de mercado frente a rivales"
-   },
-   {
-    "note": "if-you-re-going-to-build-something-to-replace-e",
-    "zone": "legacy",
-    "topic": "tweet",
-    "evidence": "Si vas a reemplazar Excel, tiene que ser 100X mejor porque 10X no va a funcionar"
-   },
-   {
-    "note": "lyft-s-secret-plan-to-take-control-of-its-maps-and-its-future",
-    "zone": "legacy",
-    "topic": "producto",
-    "evidence": "Entre 70% y 80% de los segmentos de carreteras de EE.UU. tienen viajes de Lyft al menos una vez cada diez días, generando datos únicos sobre el terreno"
-   },
-   {
-    "note": "meta-open-sources-another-ai-model-moats-and-open-source-apple-and-meta",
-    "zone": "legacy",
-    "topic": "producto",
-    "evidence": "Open source está resolviendo 'major open problems' más rápido que los competidores cerrados: LLMs en teléfonos, IA personalizada, modelos multimodales entrenados en una hora"
-   },
-   {
-    "note": "the-ai-unbundling",
-    "zone": "legacy",
-    "topic": "producto",
-    "evidence": "Una vez que Internet redujo costos de distribución, los bundles se desagregaron: noticias perdieron valor, periódicos perdieron monopolios geográficos, publicistas se separaron del contenido."
-   },
-   {
-    "note": "the-most-common-issue-with-innovation-at-big",
-    "zone": "legacy",
-    "topic": "tweet",
-    "evidence": "Es mucho mejor ser monopolista en un mercado pequeño pero muy acelerado que ser uno de N jugadores en un mercado ya establecido"
-   }
-  ]
- },
- {
   "name": "Distinción entre experiencia valiosa y desechable",
   "gloss": "Crítica al consumo de contenido/entretenimiento vacío frente a experiencias que realmente importan",
   "count": 5,
@@ -1648,43 +2267,6 @@
     "zone": "legacy",
     "topic": "personal",
     "evidence": "Como muchas otras cosas en nuestra cultura, esos videos están diseñados para ser tirados a la basura. No pueden lastimarte, pero tampoco pueden moverte."
-   }
-  ]
- },
- {
-  "name": "Progreso como proceso recursivo e imperfecto",
-  "gloss": "Los problemas generados por el avance tecnológico se resuelven con más progreso, no con retroceso",
-  "count": 5,
-  "sources": [
-   {
-    "note": "disconnecting-distraction",
-    "zone": "legacy",
-    "topic": "tech",
-    "evidence": "Como bacterias resistentes a drogas, nuevas distracciones aparecen constantemente a medida que evitamos las antiguas"
-   },
-   {
-    "note": "interview-jason-crawford-nonprofit-founder",
-    "zone": "legacy",
-    "topic": "cultura",
-    "evidence": "Existen tres categorías de progreso (material, intelectual y moral) que son distintas pero inseparables: dependen, refuerzan e intertwinen mutuamente."
-   },
-   {
-    "note": "technology-and-its-side-effects",
-    "zone": "legacy",
-    "topic": "ciencia",
-    "evidence": "Para evaluar una tecnología, se debe evaluar su efecto general, tanto costos como beneficios, y compararla con las alternativas."
-   },
-   {
-    "note": "spending-on-ai-is-at-epic-levels-will-it-ever-pay-off",
-    "zone": "legacy",
-    "topic": "macro",
-    "evidence": "OpenAI gasta $60B anuales en servidores pero solo genera $13B en ingresos, requiriendo $800B en ventas futuras para justificar la inversión"
-   },
-   {
-    "note": "the-global-decline-of-extreme-poverty-was-it-only-china",
-    "zone": "legacy",
-    "topic": "ciencia",
-    "evidence": "En 1990, dos tercios de la población china vivía en pobreza extrema; para 2013 había descendido a menos del 1%"
    }
   ]
  }

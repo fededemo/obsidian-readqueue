@@ -9,7 +9,7 @@
 | Notas leídas procesadas | **238** (Kindle 33 · Read 35 · Legacy/Matter 170) |
 | Conceptos candidatos extraídos | 744 |
 | **Conceptos canónicos útiles** | **27** |
-| Notas cubiertas por el canon | **149 / 238 (63%)** |
+| Notas cubiertas por el canon | **213 / 238 (89%)** |
 
 **El mayor aporte está en `Legacy/Matter`**: 189 de las 238 apariciones de fuentes vienen de ahí — las 170 notas que Fede leyó en su era Matter y que nunca habíamos tocado (cobertura previa: 0%).
 
@@ -33,7 +33,19 @@
 - **8 descartados por ralos** (<5 fuentes)
 - **27 conservados**
 
-**29 de 238 notas fallaron** el etiquetado (12%, errores de API). Reintentarlas subiría la cobertura por encima del 63%.
+### Pase incremental (mismo día)
+
+Las 89 notas que quedaron fuera —29 por errores de API, el resto descartadas al filtrar— se reintentaron con `relabel-missing.mjs`, usando **el canon ya filtrado como vocabulario**. Eso es mejor que el original de 45: los conceptos-paraguas ya no están, así que no hay dónde forzar un encaje falso.
+
+| | |
+|---|---:|
+| Encajaron | **+64** |
+| Sin encaje real (lista vacía) | 22 |
+| **Cobertura** | **149 → 213 / 238 (89%)** |
+
+Las 22 sin encaje son la respuesta correcta, no una falla: el prompt permite devolver lista vacía explícitamente, y material que no comparte ideas con el resto **no debería** entrar al grafo a la fuerza.
+
+**Verificación tras el crecimiento**: el cluster que más creció (*Herramientas sin agencia propia*, 12 → 25) se revisó para descartar que se hubiera degradado. Sigue coherente — *gpt-4*, *vibe lawyering*, *agents-over-bubbles*, *on-policy vs off-policy learning*, *why AI will save the world* — con un par de dudosos (*Project Hail Mary*). No repitió el problema del cluster de 46.
 
 ---
 
@@ -123,7 +135,7 @@ Que el pipeline los redescubra de forma independiente es la mejor señal de que 
 
 1. **Los 27 conceptos son candidatos, no notas.** Escribirlos todos sería ruido; conviene elegir los 6–8 con más fuentes leídas y redactarlos con citas, como los tres primeros.
 2. **Los mejores candidatos a nota** por densidad y coherencia: *Compounding de capital humano y tecnológico* (17), *Manipulación institucional de la verdad* (13), *Captura de valor desigual en cadenas globales* (13), *Sobrecapacidad e incompetencia a escala* (13).
-3. **Reintentar las 29 notas fallidas** antes del próximo pase.
+3. ~~Reintentar las notas fallidas~~ ✅ hecho — cobertura 89%.
 4. **Ajustar el prompt del vocabulario** para que no genere conceptos-paraguas: los 6 descartados por genéricos indican que pedir "45 conceptos" empuja a inventar categorías anchas cuando el material no da para tantas.
 
 Datos crudos: `concept-candidates.json` (744 candidatos con evidencia) y `concept-canon.json` (los 27 con sus fuentes).
