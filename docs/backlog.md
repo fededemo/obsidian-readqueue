@@ -114,9 +114,13 @@
 
 ## Operación y escala de la KB (ADR-006)
 
+> Modelo de ejecución en ADR-006 §4-bis: determinista = el plugin (gratis, runtime) · semántico = Claude (por lotes, programado) · git = detector de cambios para mantenimiento incremental.
+
 | ID | Descripción | Status | Agent | Dependencies | Acceptance |
 |----|-------------|--------|-------|--------------|------------|
 | B-710 | ADR-006 — modelo operativo (PULL/PUSH/DISCOVERY), 3 capas de acceso para escalar a 3.000+ notas, rituales por frecuencia, gobernanza consolidada. **Corolario: F6 es prerequisito de F7, no al revés** | PROPOSED | system-architect | — | `ADR-006`. Pendiente OK de Fede a la secuencia de §6 |
+| B-712 | **Gardener programado** — `~/bin/gardener.sh` + LaunchAgent semanal. Usa `git diff` desde el último run para procesar **solo lo cambiado** (centavos en vez de dólares). Escribe únicamente en `Concepts/` y `Daily/`; no corre si el árbol está sucio; log auditable en `Daily/gardener.md` | TODO | builder + user | B-724 (que existan conceptos) | 1 corrida real que promueva ≥1 concepto y deje log |
+| B-713 | **Pase retroactivo de `shelfLife`+`tldr`** sobre las 175 de `Inbox/Web` (Batch API, ~$0.15). Desbloquea el priorizador de cola (B-732), que sin `shelfLife` queda a medias | TODO | builder | B-722 ✅ · **OK de Fede (escritura en vault)** | 175 notas con ambos campos; commit antes/después |
 | B-711 | ⚠️ **BLOQUEANTE DE TODO F6** — validar el demo `proposals/2026-07-13-producto-tech-connections.md` (10 conexiones + 3 notas-concepto + ask-your-vault sobre 19 notas). Esperando desde 2026-07-13 | TODO | **user (manual)** | — | Fede dice qué conexiones sirven y cuáles no → calibra antes de escalar a 8 dominios |
 
 ## F8 — Relevancia y resurfacing unificado (ADR-005)

@@ -70,6 +70,86 @@ Frecuencia distinta para intención distinta. Todo determinista, sin LLM salvo d
 
 **Lo que falta no es más agentes** — es el **ritual** que los invoca. Un `/vault-link` que se corre cuando Fede se acuerda no construye un grafo; uno que corre el primer lunes de cada mes, sí.
 
+## 4-bis. Cómo se ejecuta Claude (agregado 2026-08-01)
+
+> Fede: *"¿cómo vamos a ejecutar Claude para conceptos y mantener todo actualizado?"*. Es **la** pregunta que decide si el sistema vive o se abandona en dos semanas.
+
+### 4-bis.1 El principio: separar lo determinista de lo semántico
+
+| Capa | Quién | Cuándo | Costo |
+|---|---|---|---|
+| **Determinista** | El plugin (TypeScript) | Continuo, en runtime | **$0** |
+| **Semántico** | Claude | Por lotes, programado | centavos |
+
+**Nunca mandar a Claude lo que un `filter()` resuelve.** Resurfacing, priorización, filtros por `shelfLife`, huérfanos, salud del grafo, dedupe: todo eso es código y corre gratis. Claude entra **solo donde hace falta juicio**: clasificar, conectar, sintetizar.
+
+Confundirlos es lo que hace que estos sistemas terminen caros, lentos y frágiles.
+
+### 4-bis.2 Los tres modos de ejecución
+
+| Modo | Qué corre | Cómo se dispara | Estado |
+|---|---|---|---|
+| **Runtime** | Clasificación al intake (`topic`+`shelfLife`+`tldr`), resurfacing diario, priorización de la cola | El plugin, solo | ✅ intake ya; ritual = C1 |
+| **Programado** | Pase de jardinería: conceptos nuevos, conexiones, promociones de estatus | **LaunchAgent + `claude -p`** | ❌ a construir |
+| **A demanda** | `/vault-ask`, `/vault-link` | Fede, cuando quiere algo puntual | ✅ existe |
+
+Verificado en la Mac de Fede: `claude` 2.1.220 en `~/.local/bin/claude`, LaunchAgents funcionando, sin crontab previo.
+
+### 4-bis.3 El truco que lo hace barato: git como detector de cambios
+
+**Re-analizar 674 notas cada semana es caro y redundante.** El 99% no cambió.
+
+Con git en la vault (ya está, B-726), *"qué cambió desde el último pase"* es una sola línea:
+
+```bash
+git diff --name-only "$(cat .gardener-last-run)"..HEAD -- 'Inbox/**/*.md'
+```
+
+**Git deja de ser solo el undo y pasa a ser el motor del mantenimiento incremental.** El pase solo mira lo nuevo y lo que cambió de estado. Si en la semana leíste 3 artículos y entraron 8, el pase procesa 11 notas — **centavos, no dólares**, y segundos en vez de minutos.
+
+### 4-bis.4 Los eventos que importan
+
+No todo cambio merece re-análisis. Solo tres:
+
+| Evento | Detección por git | Qué dispara |
+|---|---|---|
+| **Nota nueva** | archivo agregado en `Inbox/` | Clasificar (ya lo hace el plugin) + buscarle conexiones |
+| **Nota leída** | `status: unread` → `read`, o movida a `Inbox/Read/` | **Promoción de conceptos**: un `latente` puede pasar a `emergente` o `conocido` |
+| **Highlight nuevo** | diff dentro de `Inbox/Kindle/` | La evidencia más fuerte (ADR-005 §3): re-evaluar el concepto que toca |
+
+El segundo es el interesante: **leer un artículo cambia el estado del grafo**, y eso es detectable sin que Fede haga nada.
+
+### 4-bis.5 El pase, concreto
+
+```bash
+#!/bin/sh
+# ~/bin/gardener.sh — corre semanal por LaunchAgent
+cd "$HOME/fedenotes" || exit 1
+LAST=$(cat .gardener-last-run 2>/dev/null || echo HEAD~50)
+CHANGED=$(git diff --name-only "$LAST"..HEAD -- 'Inbox/*' | head -60)
+[ -z "$CHANGED" ] && exit 0          # nada cambió: no gastes un token
+
+claude -p "Pase de jardinería semanal. Notas cambiadas desde el último run:
+$CHANGED
+Seguí docs/architecture/ADR-005 §9-bis: clasificá conexiones en consolidar/
+atraer/agrupar, y promové conceptos latente→emergente→conocido según lo leído.
+Escribí en Concepts/ (zona libre) y dejá el reporte en Daily/gardener.md."
+
+git rev-parse HEAD > .gardener-last-run
+```
+
+**Cadencia**: semanal (domingo a la noche). El diario ya lo cubre el plugin sin costo.
+
+**Por qué semanal y no diario**: el pase solo aporta cuando hay masa crítica de cambios. Con ~8 notas nuevas por semana, correrlo a diario procesa 1 nota y no encuentra nada — puro ruido y tokens quemados.
+
+### 4-bis.6 Salvaguardas
+
+- **`--max-turns`** para acotar el costo por corrida.
+- **Escribe solo en `Concepts/` y `Daily/`** (zonas regenerables, §4.2 del doc maestro). Nunca en `Inbox/` ni `Books/`.
+- **Git es el undo**: si un pase hace desastre, `git revert`. Por eso el pase corre *después* de que el árbol está limpio.
+- **Log en `Daily/gardener.md`**: qué miró, qué escribió, qué costó. Sin log, un agente programado es una caja negra que nadie audita.
+- **Si el árbol está sucio, no corre** — no mezclar ediciones de Fede a medio hacer con escrituras del agente.
+
 ## 5. Gobernanza (quién escribe qué)
 
 Heredado de ADR-001 y ADR-002, sin cambios — se consolida acá:
