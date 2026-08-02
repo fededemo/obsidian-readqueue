@@ -155,6 +155,71 @@ export function itemKey(item: XItem): string {
   return ext[0] ? canonicalizeUrl(ext[0]) : `tweet:${item.id}`;
 }
 
+const STATUS_URL = /^https?:\/\/(?:www\.)?(?:x|twitter)\.com\/[^/]+\/status\/(\d+)/i;
+
+/**
+ * Clave de una nota que YA está en la vault, a partir de su `url`.
+ *
+ * Sin esto el dedupe tiene un agujero: `itemKey` cae a `tweet:<id>` cuando el
+ * tweet no lleva link externo, y eso es el 91% del material de X. Como el índice
+ * de la vault se armaba solo con URLs canonicalizadas, esas claves no matcheaban
+ * nunca y un segundo sync habría reescrito 487 notas. Es la misma forma del bug
+ * B-327 con los highlights de Kindle: idempotencia que se rompe en silencio.
+ */
+export function keyFromVaultUrl(url: string): string {
+  const id = STATUS_URL.exec(url)?.[1];
+  return id ? `tweet:${id}` : canonicalizeUrl(url);
+}
+
+/**
+ * Nombre de archivo para el texto de un tweet.
+ *
+ * El punto inicial no es cosmético: un `.md` que arranca con punto es un archivo
+ * oculto, y Obsidian ignora los ocultos. Tres tweets que empezaban con `.@alguien`
+ * entraron a la vault sin ser visibles ni indexables — y como el walk del dedupe
+ * también saltea los ocultos, el sync siguiente los volvió a escribir.
+ */
+export function noteBasename(text: string): string {
+  return (
+    text
+      .replace(/https?:\/\/\S+/g, "")
+      .replace(/[/\\:*?"<>|#^[\]]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .replace(/^[.\s]+/, "")
+      .trim()
+      .slice(0, 70)
+      .trim() || "sin-titulo"
+  );
+}
+
+/**
+ * Nombre de archivo libre para `base`, dado lo ya usado.
+ *
+ * `used` guarda claves normalizadas porque macOS colapsa nombres que difieren
+ * solo en mayúsculas o en forma unicode (NFC/NFD): comparar el string crudo deja
+ * pasar colisiones que el filesystem sí tiene, y la escritura pisa la nota
+ * anterior en silencio. Pasó en el primer E2 — 537 escrituras, 534 archivos.
+ */
+export function allocateFilename(
+  base: string,
+  used: Set<string>,
+  discriminator: string,
+): string {
+  const norm = (s: string): string => s.normalize("NFC").toLowerCase();
+  const take = (name: string): string => {
+    used.add(norm(name));
+    return name;
+  };
+  if (!used.has(norm(base))) return take(base);
+  const withId = `${base} (${discriminator})`;
+  if (!used.has(norm(withId))) return take(withId);
+  for (let i = 2; ; i++) {
+    const candidate = `${base} (${discriminator}-${i})`;
+    if (!used.has(norm(candidate))) return take(candidate);
+  }
+}
+
 export interface XNote {
   frontmatter: Record<string, unknown>;
   body: string;

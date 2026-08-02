@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  allocateFilename,
   classify,
   externalUrls,
   itemKey,
+  keyFromVaultUrl,
+  noteBasename,
   planSync,
   renderNote,
   textWithoutLinks,
@@ -139,6 +142,79 @@ describe("itemKey", () => {
 
   it("sin link externo cae al id del tweet", () => {
     expect(itemKey(mk({ id: "42" }))).toBe("tweet:42");
+  });
+});
+
+describe("keyFromVaultUrl", () => {
+  it("una nota de X ya escrita produce la misma clave que su tweet", () => {
+    // Sin esto, el 91% del material de X (los que no llevan link externo) se
+    // vuelve a escribir en cada sync: itemKey cae a tweet:<id> y el índice de
+    // la vault solo tenía URLs canonicalizadas.
+    const item = mk({ id: "1234567890" });
+    expect(keyFromVaultUrl("https://x.com/alguien/status/1234567890")).toBe(itemKey(item));
+  });
+
+  it("acepta twitter.com y www, no solo x.com", () => {
+    expect(keyFromVaultUrl("https://www.twitter.com/u/status/99")).toBe("tweet:99");
+  });
+
+  it("una URL que no es un tweet cae a la canonicalización de siempre", () => {
+    const item = mk({ urls: ["https://ssrn.com/abstract=5?utm_source=x"] });
+    expect(keyFromVaultUrl("https://ssrn.com/abstract=5")).toBe(itemKey(item));
+  });
+});
+
+describe("noteBasename", () => {
+  it("saca el punto inicial: si no, la nota entra oculta y Obsidian no la ve", () => {
+    // Pasó de verdad en E2: 3 tweets que empezaban con ".@alguien" quedaron
+    // invisibles en la vault y el dedupe los reescribió al sync siguiente.
+    expect(noteBasename(".@Harvard after 12,000 protesters")).toBe(
+      "@Harvard after 12,000 protesters",
+    );
+    expect(noteBasename("...pensándolo bien")).toBe("pensándolo bien");
+  });
+
+  it("saca las URLs y los caracteres que no van en un nombre de archivo", () => {
+    expect(noteBasename('mirá esto: https://t.co/abc "raro" a/b')).toBe("mirá esto raro a b");
+  });
+
+  it("un tweet que es solo un link no queda sin nombre", () => {
+    expect(noteBasename("https://t.co/abc123")).toBe("sin-titulo");
+    expect(noteBasename("   ")).toBe("sin-titulo");
+  });
+
+  it("corta a 70 y no deja el espacio del corte colgando", () => {
+    const name = noteBasename(`${"a".repeat(69)} bbbb`);
+    expect(name).toBe("a".repeat(69));
+  });
+});
+
+describe("allocateFilename", () => {
+  it("colisiones sucesivas del mismo nombre no se pisan", () => {
+    const used = new Set<string>();
+    expect(allocateFilename("nota", used, "aaa")).toBe("nota");
+    expect(allocateFilename("nota", used, "bbb")).toBe("nota (bbb)");
+    expect(allocateFilename("nota", used, "ccc")).toBe("nota (ccc)");
+  });
+
+  it("dos tweets con el mismo id corto no comparten archivo", () => {
+    const used = new Set<string>();
+    allocateFilename("nota", used, "aaa");
+    expect(allocateFilename("nota", used, "aaa")).toBe("nota (aaa)");
+    expect(allocateFilename("nota", used, "aaa")).toBe("nota (aaa-2)");
+  });
+
+  it("trata como colisión lo que macOS colapsa: mayúsculas y forma unicode", () => {
+    // El primer E2 escribió 537 notas y dejó 534 archivos por exactamente esto.
+    const used = new Set<string>();
+    expect(allocateFilename("Café", used, "aaa")).toBe("Café");
+    expect(allocateFilename("café", used, "bbb")).toBe("café (bbb)");
+    expect(allocateFilename("Café", used, "ccc")).toBe("Café (ccc)");
+  });
+
+  it("respeta los nombres que ya estaban en disco", () => {
+    const used = new Set(["nota"]);
+    expect(allocateFilename("nota", used, "aaa")).toBe("nota (aaa)");
   });
 });
 

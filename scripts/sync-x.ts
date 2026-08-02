@@ -15,8 +15,15 @@ import { existsSync, mkdirSync, readdirSync, writeFileSync, readFileSync } from 
 import { join } from "node:path";
 import { homedir } from "node:os";
 
-import { addToUrlIndex, canonicalizeUrl, type UrlIndex } from "../src/url-canon";
-import { planSync, renderNote, type XItem } from "../src/x-sync";
+import { addToUrlIndex, type UrlIndex } from "../src/url-canon";
+import {
+  allocateFilename,
+  keyFromVaultUrl,
+  noteBasename,
+  planSync,
+  renderNote,
+  type XItem,
+} from "../src/x-sync";
 
 const VAULT = join(homedir(), "fedenotes");
 const DB = join(homedir(), ".birdclaw", "birdclaw.sqlite");
@@ -117,9 +124,9 @@ function existingKeys(): Set<string> {
       if (!e.name.endsWith(".md")) continue;
       const text = readFileSync(join(abs, e.name), "utf-8");
       for (const field of ["url", "targetUrl"]) {
-        const m = text.match(new RegExp(`^${field}:\\s*(\\S+)`, "m"));
+        const m = text.match(new RegExp(`^${field}:\\s*"?([^"\\s]+)"?`, "m"));
         if (m?.[1]) {
-          keys.add(canonicalizeUrl(m[1]));
+          keys.add(keyFromVaultUrl(m[1]));
           addToUrlIndex(index, m[1], {
             path: join(rel, e.name),
             title: e.name.replace(/\.md$/, ""),
@@ -132,14 +139,6 @@ function existingKeys(): Set<string> {
   walk("Inbox");
   return keys;
 }
-
-const slug = (s: string): string =>
-  s
-    .replace(/https?:\/\/\S+/g, "")
-    .replace(/[/\\:*?"<>|#^[\]]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 70) || "sin-titulo";
 
 const yaml = (fm: Record<string, unknown>): string =>
   Object.entries(fm)
@@ -176,14 +175,33 @@ if (DRY) {
 
 let written = 0;
 const target = plan.items.filter((x) => !QUEUE_ONLY || x.triage.destination === "queue");
+/** Nombres ya tomados, por carpeta. Se siembra con lo que hay en disco. */
+const taken = new Map<string, Set<string>>();
+const usedIn = (dir: string): Set<string> => {
+  const cached = taken.get(dir);
+  if (cached) return cached;
+  const set = new Set(
+    existsSync(dir)
+      ? readdirSync(dir)
+          .filter((n) => n.endsWith(".md"))
+          .map((n) => n.replace(/\.md$/, "").normalize("NFC").toLowerCase())
+      : [],
+  );
+  taken.set(dir, set);
+  return set;
+};
+
 for (const { item, triage } of target.slice(0, LIMIT)) {
   const note = renderNote(item, triage, { webFolder: WEB, legacyFolder: LEGACY });
   const dir = join(VAULT, note.folder);
   mkdirSync(dir, { recursive: true });
-  const base = slug(item.text) || `x-${item.id}`;
-  let path = join(dir, `${base}.md`);
-  if (existsSync(path)) path = join(dir, `${base} (${item.id.slice(-6)}).md`);
-  writeFileSync(path, `---\n${yaml(note.frontmatter)}\n---\n\n${note.body}\n`, "utf-8");
+  const base = noteBasename(item.text);
+  const name = allocateFilename(base, usedIn(dir), item.id.slice(-6));
+  writeFileSync(
+    join(dir, `${name}.md`),
+    `---\n${yaml(note.frontmatter)}\n---\n\n${note.body}\n`,
+    "utf-8",
+  );
   written++;
 }
 
