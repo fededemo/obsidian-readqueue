@@ -11,6 +11,7 @@ import {
   filterByStatus,
   filterByTopic,
   groupArticles,
+  isStubArticle,
   nextArticleAfterPath,
   pickForToday,
   randomArticle,
@@ -692,5 +693,31 @@ describe("sourceCategory / filterBySource", () => {
     expect(filterBySource(items, "article").map((a) => a.title)).toEqual(["a"]);
     expect(filterBySource(items, "x").map((a) => a.title)).toEqual(["b"]);
     expect(filterBySource(items, "video").map((a) => a.title)).toEqual(["c"]);
+  });
+});
+
+describe("isStubArticle", () => {
+  const stub = (over: Partial<{ url: string; size: number }> = {}): QueueArticle =>
+    ({
+      file: { path: "Inbox/Web/x.md", basename: "x", stat: { size: over.size ?? 178 } },
+      url: over.url,
+    }) as unknown as QueueArticle;
+
+  it("sin URL y sin cuerpo: no se puede leer ni volver a bajar", () => {
+    // Las 15 reales de la vault pesan entre 97 y 318 bytes: solo frontmatter.
+    expect(isStubArticle(stub({ size: 97 }))).toBe(true);
+    expect(isStubArticle(stub({ size: 318 }))).toBe(true);
+  });
+
+  it("con URL no es stub aunque sea corta: se puede volver a bajar", () => {
+    expect(isStubArticle(stub({ url: "https://ejemplo.com/a", size: 120 }))).toBe(false);
+  });
+
+  it("una nota con cuerpo real no es stub aunque le falte la URL", () => {
+    expect(isStubArticle(stub({ size: 9000 }))).toBe(false);
+  });
+
+  it("tamaño desconocido no cuenta como stub: no borramos por no saber", () => {
+    expect(isStubArticle(stub({ size: 0 }))).toBe(false);
   });
 });

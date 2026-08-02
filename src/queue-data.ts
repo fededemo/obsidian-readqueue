@@ -409,6 +409,29 @@ export function randomArticle(
 
 
 /**
+ * Bytes por debajo de los cuales una nota es solo frontmatter. Las medidas en la
+ * vault de Fede van de 97 a 318; una nota real con cuerpo arranca en varios KB.
+ */
+const STUB_MAX_BYTES = 600;
+
+/**
+ * Una nota que no se puede leer NI recuperar: sin URL para volver a bajarla y
+ * sin cuerpo para leer. No es lo mismo que `isWebClipperOrphan`, que detecta
+ * clippings bien formados sentados fuera del inbox.
+ *
+ * En la vault hay 15, todas anteriores al commit baseline de la migración: son
+ * las bajas de iCloud, que sincroniza archivo por archivo y puede materializar
+ * uno a medias. La causa raíz murió al pasar a Obsidian Sync, pero las notas
+ * quedaron ocupando lugar en la cola y el clasificador les inventó `topic` y
+ * `tags` sobre la nada.
+ */
+export function isStubArticle(article: QueueArticle): boolean {
+  if (article.url) return false;
+  const size = article.file.stat?.size ?? 0;
+  return size > 0 && size <= STUB_MAX_BYTES;
+}
+
+/**
  * True if `path` is a Web Clipper article sitting OUTSIDE the managed inbox
  * structure (so the orphan job should pull it into the queue). Read/archived
  * notes and anything under a protected prefix are never orphans — that bug

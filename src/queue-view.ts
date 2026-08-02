@@ -6,6 +6,7 @@ import {
   filterByQuery,
   filterByStatus,
   filterBySnoozedUntil,
+  isStubArticle,
   filterBySource,
   filterByTopic,
   groupArticles,
@@ -353,6 +354,16 @@ export class QueueView extends ItemView {
     }
 
     const meta = card.createDiv({ cls: "readqueue-view__card-meta" });
+    if (isStubArticle(article)) {
+      meta.createEl("span", {
+        cls: "readqueue-view__shelf-badge readqueue-view__shelf-badge--stub",
+        text: "sin contenido",
+        attr: {
+          title:
+            "La nota quedó vacía y no guardó la URL, así que no se puede leer ni volver a bajar. Usá «Borrar notas sin contenido» para sacarlas de la cola.",
+        },
+      });
+    }
     if (article.shelfLife === "perishable") {
       meta.createEl("span", {
         cls: "readqueue-view__shelf-badge readqueue-view__shelf-badge--perishable",

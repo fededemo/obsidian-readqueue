@@ -25,6 +25,7 @@ import {
   estimateReadingMinutesFromSize,
   filterByStatus,
   filterBySnoozedUntil,
+  isStubArticle,
   isWebClipperOrphan,
   pickForToday,
   randomArticle,
@@ -367,6 +368,14 @@ export default class ReadQueuePlugin extends Plugin {
       name: "¿Qué leo ahora? (recomendar libros)",
       callback: () => {
         void this.recommendBooks();
+      },
+    });
+
+    this.addCommand({
+      id: "purge-stub-articles",
+      name: "Borrar notas sin contenido",
+      callback: () => {
+        void this.purgeStubArticles();
       },
     });
 
@@ -814,6 +823,34 @@ export default class ReadQueuePlugin extends Plugin {
       }
     }
     this.conceptIndex = buildConceptIndex(notes);
+  }
+
+  /**
+   * Manda a la papelera las notas de la cola que quedaron sin cuerpo ni URL.
+   *
+   * A la papelera y no `delete`: respeta la preferencia "Deleted files" del user
+   * y deja marcha atrás. Es explícito (comando, no automático) porque borrar
+   * notas de Fede sin que él lo pida está fuera de lo que el plugin decide solo.
+   */
+  async purgeStubArticles(): Promise<void> {
+    const stubs = this.loadQueueArticles().filter(isStubArticle);
+    if (stubs.length === 0) {
+      new Notice("No hay notas sin contenido en la cola.");
+      return;
+    }
+    let trashed = 0;
+    for (const stub of stubs) {
+      try {
+        await this.app.fileManager.trashFile(stub.file);
+        trashed++;
+      } catch (err) {
+        console.error("ReadQueue: no se pudo borrar el stub", stub.file.path, err);
+      }
+    }
+    new Notice(
+      `${trashed} ${trashed === 1 ? "nota sin contenido movida" : "notas sin contenido movidas"} a la papelera.`,
+    );
+    await this.refreshQueueView();
   }
 
   async readRandom(): Promise<void> {

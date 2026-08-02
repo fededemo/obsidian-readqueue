@@ -1,5 +1,5 @@
 import type { ConceptIndex } from "./concept-graph";
-import type { QueueArticle } from "./queue-data";
+import { isStubArticle, type QueueArticle } from "./queue-data";
 
 /**
  * Ordena la cola por señal real en vez de por fecha (C2 / B-732).
@@ -164,6 +164,11 @@ export function rankQueue(
         published && !Number.isNaN(published.getTime())
           ? Math.max(0, (now.getTime() - published.getTime()) / DAY_MS)
           : undefined;
+      // Una nota sin cuerpo ni URL no se puede leer: cualquier score que no sea
+      // el último lugar es una recomendación imposible de cumplir.
+      if (isStubArticle(article)) {
+        return { article, score: 0, reason: "sin contenido — no se puede leer" };
+      }
       const { score, reason } = scoreArticle({
         readNeighbours: useGraph
           ? (graph?.readNeighbours.get(article.title) ?? 0)

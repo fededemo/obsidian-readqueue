@@ -71,6 +71,11 @@
   align-items: center;
 }
 
+.readqueue-view__shelf-badge--stub {
+  background: var(--background-modifier-error);
+  color: var(--text-on-accent);
+}
+
 .readqueue-view__shelf-badge--perishable {
   padding: 0 var(--size-2-1);
   border-radius: var(--radius-s);
