@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Gardener semanal (B-712).
+
+  Domingo 20:00. StartCalendarInterval y no StartInterval: con StartInterval
+  launchd dispara el job apenas se despierta la Mac si se pasó la ventana, y
+  encadena corridas. Con calendario corre una vez y listo.
+
+  Instalar:
+    cp scripts/launchd/com.fede.readqueue.gardener.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.fede.readqueue.gardener.plist
+
+  Probar sin esperar al domingo:
+    launchctl start com.fede.readqueue.gardener
+    tail -f ~/Library/Logs/readqueue/gardener.log
+
+  Desinstalar:
+    launchctl unload ~/Library/LaunchAgents/com.fede.readqueue.gardener.plist
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.fede.readqueue.gardener</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-lc</string>
+    <string>$HOME/codes/obsidian-readqueue/scripts/launchd/gardener.sh</string>
+  </array>
+
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Weekday</key><integer>0</integer>
+    <key>Hour</key><integer>20</integer>
+    <key>Minute</key><integer>0</integer>
+  </dict>
+
+  <!-- Si la Mac estaba dormida el domingo a las 20, corre al despertarse. -->
+  <key>RunAtLoad</key>
+  <false/>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/readqueue-gardener.out</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/readqueue-gardener.err</string>
+</dict>
+</plist>
