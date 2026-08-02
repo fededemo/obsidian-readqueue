@@ -181,6 +181,43 @@ export function auditConceptNote(
   opts: { knownStems?: ReadonlySet<string> } = {},
 ): CheckResult[] {
   const body = bodyOf(content);
+
+  /**
+   * Una nota `latente` no tiene tesis ni tensión, y no es un defecto: no leíste
+   * ninguna de sus fuentes, así que afirmar algo sería inventarlo. El estándar
+   * describe cómo se escribe una **síntesis**; una latente es un marcador de
+   * que hay material acumulándose. Exigirle lo mismo haría que el gardener
+   * reporte quince fallas para siempre, y un reporte que siempre falla no se
+   * mira. Lo único que sí tiene que cumplir es no ensuciar el grafo.
+   */
+  if (/^status:\s*latente\s*$/m.test(content)) {
+    const links = [...body.matchAll(WIKILINK)].map((m) => (m[1] ?? "").trim());
+    const stems = opts.knownStems;
+    const broken = stems ? links.filter((l) => !stems.has(l)) : [];
+    return [
+      {
+        id: "wikilinks",
+        label: "Cero wikilinks rotos",
+        passed: broken.length === 0,
+        advisory: false,
+        detail: broken.length > 0 ? `rotos: ${broken.slice(0, 5).join(", ")}` : undefined,
+      },
+      {
+        id: "fuentes",
+        label: "Lista las fuentes que la sostendrían",
+        passed: links.length > 0,
+        advisory: false,
+      },
+      {
+        id: "sintesis",
+        label: "Escribir la síntesis cuando haya 2 fuentes leídas",
+        passed: true,
+        advisory: true,
+        detail: "latente: se promueve sola al leer",
+      },
+    ];
+  }
+
   const idea = sectionText(content, "## La idea");
   // "Arriba" es todo lo que va antes de la lista de fuentes: ahí tiene que estar
   // la cita que ancla la tesis. Cortar en el primer `##` dejaría afuera la

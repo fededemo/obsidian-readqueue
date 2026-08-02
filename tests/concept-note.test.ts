@@ -176,3 +176,44 @@ describe("auditConceptNote", () => {
     expect(advisory).toEqual(["dialogo", "filtrado", "largo"]);
   });
 });
+
+describe("auditConceptNote sobre notas latentes", () => {
+  const latente = `---
+type: concept
+status: latente
+---
+
+# Un tema que se viene acumulando
+
+> **\`latente\`** — 8 fuentes, ninguna leída.
+
+## Todavía no leídas
+
+- [[Pendiente A]]
+- [[Pendiente B]]
+`;
+
+  it("no le exige tesis ni tensión: no leíste nada, afirmar sería inventar", () => {
+    const results = auditConceptNote(latente, { knownStems: new Set(["Pendiente A", "Pendiente B"]) });
+    expect(passesStandard(results)).toBe(true);
+    expect(results.map((r) => r.id)).not.toContain("tension");
+    expect(results.map((r) => r.id)).not.toContain("afirma");
+  });
+
+  it("pero sigue sin poder ensuciar el grafo", () => {
+    const roto = latente.replace("[[Pendiente A]]", "[[No existe]]");
+    const results = auditConceptNote(roto, { knownStems: new Set(["Pendiente B"]) });
+    expect(passesStandard(results)).toBe(false);
+    expect(results.find((r) => r.id === "wikilinks")?.detail).toContain("No existe");
+  });
+
+  it("una latente sin fuentes no tiene razón de existir", () => {
+    const vacia = latente.replace(/- \[\[.*\]\]\n/g, "");
+    expect(passesStandard(auditConceptNote(vacia))).toBe(false);
+  });
+
+  it("una nota conocida sigue pasando por el checklist completo", () => {
+    const results = auditConceptNote(note(), { knownStems: new Set(["Leída A", "Leída B"]) });
+    expect(results.map((r) => r.id)).toContain("tension");
+  });
+});

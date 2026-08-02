@@ -80,7 +80,9 @@ for (const c of conceptos) {
     missing++;
     continue;
   }
-  const ok = c.unread.filter((n) => stems.has(n));
+  // Los nombres del JSON se capturaron antes de sanear los archivos con espacio
+  // final: se recortan acá para que matcheen con lo que hay en disco.
+  const ok = [...new Set(c.unread.map((n) => n.trim()))].filter((n) => stems.has(n));
   broken += c.unread.length - ok.length;
   if (ok.length === 0) {
     skipped++;
