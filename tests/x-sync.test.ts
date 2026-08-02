@@ -423,6 +423,13 @@ describe("displayTitle", () => {
     expect(displayTitle(item)).toBe(noteTitle(item));
   });
 
+  it("una línea que termina en `:` es el pie de una lista, no un título", () => {
+    // Caso real: "Andrew Ng:" seguido del contenido. Usarlo sería peor que el
+    // nombre de archivo cortado que reemplaza.
+    const item = mk({ text: "Andrew Ng dijo lo siguiente:\n\n100% of my tasks are now done by AI" });
+    expect(displayTitle(item)).toBe(noteTitle(item));
+  });
+
   it("un tweet sin texto propio usa el nombre por tipo", () => {
     const item = mk({ text: "https://t.co/abc", urls: ["http://x.com/i/article/9"] });
     expect(displayTitle(item)).toBe("Artículo de @alguien");

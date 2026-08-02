@@ -1,19 +1,19 @@
 {
  "generado": "2026-08-01",
  "summary": {
-  "conceptos": 29,
+  "conceptos": 44,
   "leidas": 208,
-  "noLeidas": 284,
-  "noLeidasConConcepto": 164,
+  "noLeidas": 316,
+  "noLeidasConConcepto": 185,
   "conexiones": {
    "consolidar": 1967,
-   "atraer": 3464,
-   "agrupar": 2465
+   "atraer": 3729,
+   "agrupar": 3033
   },
   "vecinos": {
    "porConcepto": {
-    "valoresDistintos": 28,
-    "conContexto": 164,
+    "valoresDistintos": 30,
+    "conContexto": 184,
     "max": 37
    },
    "porTopic": {
@@ -91,7 +91,10 @@
     "GRIP STRENGTH",
     "Good and Bad Procrastination",
     "How to Work Hard",
-    "The Risk of Discovery"
+    "The Risk of Discovery",
+    "Artículo de @RyanHoliday",
+    "Chamath Palihapitiya @chamath Bro, there is no failure. That is what o",
+    "You can’t outwork the whole world. There’s always going to be someone"
    ]
   },
   {
@@ -119,12 +122,12 @@
     "why-is-it-so-difficult-for-traditional-compani"
    ],
    "unread": [
+    "The case for headcount in the age of AI",
+    "it is simultaneously possible to spend a lot on AI and still underuse ",
     "AI closed 90% of your support tickets. you released 10 new features th",
     "Cuando varios agentes trabajan sobre el mismo código, aparece un probl",
-    "The case for headcount in the age of AI",
-    "how I’m building an agent company inside my agency. the structure look",
-    "it is simultaneously possible to spend a lot on AI and still underuse ",
-    "tenían un agente con &gt; 400 líneas de system prompt &gt; 12 tools &g"
+    "Notes on 100+ Recent Technical Interviews I interview a ton of enginee",
+    "Nuevo paper junto al Presidente @JMilei Minimum Viable Scale . El Pres"
    ]
   },
   {
@@ -160,13 +163,13 @@
     "I miss the era of intensely good blogs An all time favorite was that o",
     "MAFIA EP 001",
     "Minimum Viable Superorganism  Melting Asphalt",
-    "My conversation with @dkhos, CEO of Uber. Dara took over in 2017, when",
     "Open-sourcing Revolut’s talent system How we built Europe's most valuable private tech company from",
     "Spotify's Chief Architect just showed how they ship 4,5K deployments d",
     "The Refragmentation",
     "The Origins of Wokeness",
     "What You Can't Say",
-    "how I’m building an agent company inside my agency. the structure look"
+    "How Quake ruined id Software. There has been a lot of praise of Quake",
+    "Nuevo paper junto al Presidente @JMilei Minimum Viable Scale . El Pres"
    ]
   },
   {
@@ -191,27 +194,21 @@
     "over-the-weekend-my-team-at-stripe-converted"
    ],
    "unread": [
-    "AI closed 90% of your support tickets. you released 10 new features th",
     "AI’s Biggest Winners Have the Lowest Margins",
     "Andrew Ng 100% of my tasks are now done by AI agents - hype has exceed",
     "Franz Bruckhoff en X I'm leaving X for some time to focus on building. But before I leave, I want to share some thoughts on where we are with AI right now. If you are building with AI, then this is for you.I wish I had at least 1% of @levelsio's",
-    "Godfather of AI If you sleep well tonight, you may not have understood",
     "How ChatGPT Optimizes its Agent Loop Harness, API, and Inference",
     "How to Convince Investors",
     "Learning to Replicate Expert Judgment in Financial Tasks",
     "MEMORY IS THE MOAT @nikesharora, Chairman &amp; CEO of @PaloAltoNtwks ",
     "Meet Hiroki (@tomiyasu16). A broccoli farmer running his farm with GPT",
     "Maybe Intelligence Ain't All That",
-    "Muy buena charla de Anthropic sobre el futuro de MCP. Los agentes func",
-    "Muy buen artículo de OpenAI sobre Harness Engineering y Codex. Explica",
     "Silicon Valley has much to learn from the spreadsheet jockeys it despises",
     "The Self-Driving Company",
     "The case for headcount in the age of AI",
-    "The most basic way AI could blow up imo. I'm not saying it does but th",
-    "This Chinese guy created agents in Claude Code for landing pages and s",
-    "This is my sixth conversation with @GavinSBaker. As always with Gavin,",
-    "Today, we're introducing Lassie and $47M in funding led by a16z. We're",
-    "it is simultaneously possible to spend a lot on AI and still underuse "
+    "it is simultaneously possible to spend a lot on AI and still underuse ",
+    "Anthropic describe opus 4.7 como un modelo orientado a complex reasoni",
+    "Good take My guess is - demand for intelligence is near infinite - but"
    ]
   },
   {
@@ -237,7 +234,6 @@
     "Charisma  Power",
     "How to Disagree",
     "How to articulate yourself intelligently",
-    "My current custom prompt with some updates via @pmarca Be organized, a",
     "Putting Ideas into Words",
     "Tim Ferriss en X There is a process that I have used, and still use, to reignite life...Create two timelines—6 months and 12 months—and list up to five things you dream of having (including, but not limited to, material wants house, car, clothin",
     "What to Do",
@@ -273,7 +269,12 @@
     "How the Glorious Revolution crushed the NIMBYs",
     "How to Make Wealth",
     "MEMORY IS THE MOAT @nikesharora, Chairman &amp; CEO of @PaloAltoNtwks ",
-    "Shelling Out The Origins of Money"
+    "Shelling Out The Origins of Money",
+    "CODEX SKILL THAT FINDS YOUR STARTUP’S FIRST CUSTOMERS! I made a Codex",
+    "David Siegel was programming supercomputers at age 12 at NYU. By 40 he",
+    "LIQUIDITY Bill Ackman joins the Besties! -- Investment evolution activ",
+    "The most basic way AI could blow up imo. I'm not saying it does but th",
+    "SpaceX a clôturé son premier jour de cotation à 2 100 milliards de dol"
    ]
   },
   {
@@ -325,7 +326,9 @@
     "How Quake ruined id Software. There has been a lot of praise of Quake ",
     "Startup = Growth",
     "Students are doing worse than you think",
-    "What I've Learned from Users"
+    "What I've Learned from Users",
+    "AI closed 90% of your support tickets. you released 10 new features th",
+    "How Quake ruined id Software. There has been a lot of praise of Quake"
    ]
   },
   {
@@ -379,7 +382,9 @@
     "Anthropic paga a los ingenieros más de $750,000 al año para entender c",
     "How to Start a Startup",
     "Open-sourcing Revolut’s talent system How we built Europe's most valuable private tech company from",
-    "The strange disappearance of Japan’s animators"
+    "The strange disappearance of Japan’s animators",
+    "LIQUIDITY Bill Ackman joins the Besties! -- Investment evolution activ",
+    "Notes on 100+ Recent Technical Interviews I interview a ton of enginee"
    ]
   },
   {
@@ -404,9 +409,10 @@
     "Be Good",
     "How to spot a monopoly - Works in Progress Magazine",
     "Investor Herd Dynamics",
-    "This is my sixth conversation with @GavinSBaker. As always with Gavin,",
     "You have been mislead about lightbulbs (Maurycy's blog)",
-    "continuing my war on paid software that should be free, today's victim"
+    "continuing my war on paid software that should be free, today's victim",
+    "He recibido esta noche un cargamento de 12 cajas de Estambul, cada una",
+    "The most basic way AI could blow up imo. I'm not saying it does but th"
    ]
   },
   {
@@ -426,7 +432,6 @@
     "signaling-on-the-internet"
    ],
    "unread": [
-    "As two of the largest forces in equity markets -- growing index owners",
     "China’s mysterious new billionaires are conquering the world",
     "Foreign Funds Help Make Housing Unaffordable - McCombs News and Magazine",
     "Franchising has quietly made countless Americans rich",
@@ -491,7 +496,6 @@
     "AI’s Biggest Winners Have the Lowest Margins",
     "Airplane-engine maintenance is now a money spinner",
     "America can dominate Shenzhen. A call for factory abundance.",
-    "As two of the largest forces in equity markets -- growing index owners",
     "China’s mysterious new billionaires are conquering the world",
     "Foreign Funds Help Make Housing Unaffordable - McCombs News and Magazine",
     "Franchising has quietly made countless Americans rich",
@@ -501,10 +505,10 @@
     "Inequality and Risk",
     "Silicon Valley has much to learn from the spreadsheet jockeys it despises",
     "The developing world needs more roads",
-    "The most basic way AI could blow up imo. I'm not saying it does but th",
     "The task is not the job",
     "Wealth The Toxic Byproduct",
-    "Why Token Optimization Is a Gift to the Hyperscalers"
+    "Why Token Optimization Is a Gift to the Hyperscalers",
+    "El que resuelva este problema se llena de guita, lo tiro Las empresas"
    ]
   },
   {
@@ -527,7 +531,8 @@
     "Hiring is Obsolete",
     "Shelling Out The Origins of Money",
     "The Case for Physical Media Ownership",
-    "continuing my war on paid software that should be free, today's victim"
+    "continuing my war on paid software that should be free, today's victim",
+    "El que resuelva este problema se llena de guita, lo tiro Las empresas"
    ]
   },
   {
@@ -576,35 +581,41 @@
     "Anthropic just paid millions to hire Andrej Karpathy. He gave you the ",
     "Ask Claude to document and describe the main flows in your app and out",
     "Because We Can",
-    "Build startups for agents. I think it's the biggest opportunity of the",
     "Career advice in the age of AI",
     "Claude Code creator I don't prompt Claude anymore. I write loops - and",
     "Coding with agents is a trap, and we all fell for it.",
     "En vez de 2 horas de Netflix esta noche, mira esta clase magistral de ",
     "Franz Bruckhoff en X I'm leaving X for some time to focus on building. But before I leave, I want to share some thoughts on where we are with AI right now. If you are building with AI, then this is for you.I wish I had at least 1% of @levelsio's",
-    "Godfather of AI If you sleep well tonight, you may not have understood",
     "How Anthropic runs large-scale code migrations with Claude Code",
     "How ChatGPT Optimizes its Agent Loop Harness, API, and Inference",
     "How LLMs Actually Work",
     "Install These Skills Before Codex Touches Your Xcode Project",
     "Investigating three real-world incidents in our cybersecurity evaluations",
     "Is AI Reasoning Right for the Wrong Reasons?",
-    "La mejor forma de entender un Agente de IA es pensar en un loop. 1) El",
     "Learning to Replicate Expert Judgment in Financial Tasks",
     "Maybe Intelligence Ain't All That",
-    "Muy buena charla de Anthropic sobre el futuro de MCP. Los agentes func",
-    "My current custom prompt with some updates via @pmarca Be organized, a",
     "My simple secret to agentic coding",
     "OpenAI and Hugging Face partner to address security incident during model evaluation",
     "OpenAI’s accidental cyberattack against Hugging Face is science fiction that happened",
     "The Acceleration of Addictiveness",
-    "This Chinese guy created agents in Claude Code for landing pages and s",
-    "Today, we're introducing Lassie and $47M in funding led by a16z. We're",
     "Un truco simple para mejorar tus prompts con Claude agregar una regla ",
     "You can't unit test for taste",
     "Ya no prompteo en Claude Code. Tengo loops corriendo que promptean a F",
+    "Anthropic just paid millions to hire Andrej Karpathy. He gave you the",
+    "Automation is a lie. CLIs are over. The SaaSpocalypse is dumb. A year",
+    "Build startups for agents. I think it's the biggest opportunity of the",
+    "CODEX SKILL THAT FINDS YOUR STARTUP’S FIRST CUSTOMERS! I made a Codex",
+    "Codex has transformed how I run my companies. I have almost 40 busines",
+    "Hay un repo que ya tiene más de 142k stars y +14k forks en GitHub. Tom",
+    "Lots of people asked how I used Fable to edit its own launch video so",
+    "Muy buena charla de Anthropic sobre el futuro de MCP. Los agentes func",
+    "Muy buen artículo de OpenAI sobre Harness Engineering y Codex. Explica",
+    "Tengo un sideproject por ahí medio muerto y a veces lo uso de laborato",
+    "This Chinese guy created agents in Claude Code for landing pages and s",
     "tenían un agente con &gt; 400 líneas de system prompt &gt; 12 tools &g",
-    "🚨ATENTOS A ESTA LOCURA🚨 Alguien ha creado Un harness de código abier"
+    "🚨ATENTOS A ESTA LOCURA🚨 Alguien ha creado Un harness de código abier",
+    "instead of watching 2 hours of Netflix tonight, watch this 40-minute m",
+    "🔥 Les comento mi nuevo proyecto HEDGE FUND IEM Les enseño el diagrama"
    ]
   },
   {
@@ -623,7 +634,6 @@
     "how-to-do-what-you-love"
    ],
    "unread": [
-    "Chamath Palihapitiya @chamath Bro, there is no failure. That is what o",
     "Early Work",
     "Founder Mode",
     "GRIP STRENGTH",
@@ -642,7 +652,10 @@
     "When To Do What You Love",
     "Working on Lifeline. A timeline for your personal, work, and social li",
     "What You'll Wish You'd Known",
-    "What You (Want to)* Want"
+    "What You (Want to)* Want",
+    "Artículo de @RyanHoliday",
+    "Chamath Palihapitiya @chamath Bro, there is no failure. That is what o",
+    "You can’t outwork the whole world. There’s always going to be someone"
    ]
   },
   {
@@ -661,7 +674,8 @@
     "today-is-a-special-day-for-me-the-5-year-anniv"
    ],
    "unread": [
-    "For the Brain, Cash Is Good, Status Is Better"
+    "For the Brain, Cash Is Good, Status Is Better",
+    "CEO of Citadel no one is more wrong than I am today , he built the mos"
    ]
   },
   {
@@ -680,34 +694,42 @@
    ],
    "unread": [
     "A harness for every task dynamic workflows in Claude Code",
-    "2) Understand and refactor a codebase Prompt “Think like a senior engi",
     "Anthropic just paid millions to hire Andrej Karpathy. He gave you the ",
     "Anthropic pays $750K year per senior engineer. The creator of Claude C",
     "Anthropic paga a los ingenieros más de $750,000 al año para entender c",
     "Ask Claude to document and describe the main flows in your app and out",
     "Attention is all we have",
-    "Bill Ackman literally gave a 44-minute masterclass that explains money",
     "Claude Code creator I don't prompt Claude anymore. I write loops - and",
-    "Codex has transformed how I run my companies. I have almost 40 busines",
     "Coding with agents is a trap, and we all fell for it.",
     "En vez de 2 horas de Netflix esta noche, mira esta clase magistral de ",
     "Fintech Engineering Handbook",
     "How Anthropic runs large-scale code migrations with Claude Code",
-    "I've started doing a lot of async learning where I'll take every inter",
     "Install These Skills Before Codex Touches Your Xcode Project",
     "Inventing the Future, One Lisp Machine at a Time  Between People & Machine",
-    "La mejor forma de entender un Agente de IA es pensar en un loop. 1) El",
     "Meet Hiroki (@tomiyasu16). A broccoli farmer running his farm with GPT",
     "Mejores libros que leí este último tiempo 1) Designing Data-Intensive ",
     "Minimum Viable Superorganism  Melting Asphalt",
-    "Muy buen artículo de OpenAI sobre Harness Engineering y Codex. Explica",
     "My simple secret to agentic coding",
-    "Something I have been thinking about in the past, the best engineers I",
     "Spotify's Chief Architect just showed how they ship 4,5K deployments d",
     "The Self-Driving Company",
     "The more I use tools like Codex and Openclaw, the more I hate MCPs. In",
     "The most profitable skill of the 21st century (not AI)",
-    "Ya no prompteo en Claude Code. Tengo loops corriendo que promptean a F"
+    "Ya no prompteo en Claude Code. Tengo loops corriendo que promptean a F",
+    "2) Understand and refactor a codebase Prompt “Think like a senior engi",
+    "Anthropic just paid millions to hire Andrej Karpathy. He gave you the",
+    "Bill Ackman literally gave a 44-minute masterclass that explains money",
+    "CEO of Citadel no one is more wrong than I am today , he built the mos",
+    "Hay un repo que ya tiene más de 142k stars y +14k forks en GitHub. Tom",
+    "I've started doing a lot of async learning where I'll take every inter",
+    "En vez de 2 horas de Netflix esta noche, mira esta clase magistral de",
+    "MEMORY IS THE MOAT @nikesharora, Chairman &amp; CEO of @PaloAltoNtwks",
+    "Lots of people asked how I used Fable to edit its own launch video so",
+    "Muy buen artículo de OpenAI sobre Harness Engineering y Codex. Explica",
+    "Something I have been thinking about in the past, the best engineers I",
+    "Tengo un sideproject por ahí medio muerto y a veces lo uso de laborato",
+    "tenían un agente con &gt; 400 líneas de system prompt &gt; 12 tools &g",
+    "how I’m building an agent company inside my agency. the structure look",
+    "instead of watching 2 hours of Netflix tonight, watch this 40-minute m"
    ]
   },
   {
@@ -729,7 +751,9 @@
     "Strange new EV-makers keep appearing in China",
     "The developing world needs more roads",
     "The world’s most complex machine - Works in Progress Magazine",
-    "Why American data centers can't plug in"
+    "Why American data centers can't plug in",
+    "Matthew Smith has spent the last 18 months modeling every well, pipeli",
+    "This is my sixth conversation with @GavinSBaker. As always with Gavin,"
    ]
   },
   {
@@ -756,7 +780,8 @@
     "The Need to Read",
     "The Risk of Discovery",
     "The most profitable skill of the 21st century (not AI)",
-    "What You'll Wish You'd Known"
+    "What You'll Wish You'd Known",
+    "Si hoy tuviese que aprender Claude Code, arrancaría por esto 1) Agent"
    ]
   },
   {
@@ -782,7 +807,9 @@
     "The Need to Read",
     "The value of technological progress - Works in Progress Magazine",
     "What I've Learned from Users",
-    "You can't unit test for taste"
+    "You can't unit test for taste",
+    "He recibido esta noche un cargamento de 12 cajas de Estambul, cada una",
+    "We've been thinking about the best way to use screen data for a while"
    ]
   },
   {
@@ -798,18 +825,18 @@
     "the-speed-of-science"
    ],
    "unread": [
-    "2) Understand and refactor a codebase Prompt “Think like a senior engi",
     "Anatomy of a Frontier Lab Agent Intrusion A Technical Timeline of the July 2026 Incident",
-    "Cuando varios agentes trabajan sobre el mismo código, aparece un probl",
     "Fintech Engineering Handbook",
-    "Gran idea esta. Cuando un agente implementa algo, siempre aparecen dec",
     "Investigating three real-world incidents in our cybersecurity evaluations",
     "MAFIA EP 001",
     "Medieval-style fortifications are back in the Sahel",
     "OpenAI and Hugging Face partner to address security incident during model evaluation",
     "OpenAI’s accidental cyberattack against Hugging Face is science fiction that happened",
     "Severance",
-    "Why American data centers can't plug in"
+    "Why American data centers can't plug in",
+    "Cuando varios agentes trabajan sobre el mismo código, aparece un probl",
+    "Matthew Smith has spent the last 18 months modeling every well, pipeli",
+    "Something I have been thinking about in the past, the best engineers I"
    ]
   },
   {
@@ -824,18 +851,15 @@
    ],
    "unread": [
     "Amanda Orson en X The faster technology moves, the more I think about Bezos' questionWhat won't change in the next 10 yearsThings I've been writing down over time- Humans will always need shelter, food, energy, and healthcare.- The desire for ow",
-    "Bill Ackman literally gave a 44-minute masterclass that explains money",
-    "Codex has transformed how I run my companies. I have almost 40 busines",
     "Don't Talk to Corp Dev",
-    "Gran idea esta. Cuando un agente implementa algo, siempre aparecen dec",
     "Good and Bad Procrastination",
     "How to remember everything you read (stop trying)",
-    "I've started doing a lot of async learning where I'll take every inter",
-    "My conversation with @dkhos, CEO of Uber. Dara took over in 2017, when",
     "Socioeconomic Status and Intimate Relationships",
     "Startup = Growth",
     "Working on Lifeline. A timeline for your personal, work, and social li",
-    "You can’t outwork the whole world. There’s always going to be someone "
+    "You can’t outwork the whole world. There’s always going to be someone ",
+    "Bill Ackman literally gave a 44-minute masterclass that explains money",
+    "Codex has transformed how I run my companies. I have almost 40 busines"
    ]
   },
   {
@@ -877,6 +901,8 @@
     "Mejores libros que leí este último tiempo 1) Designing Data-Intensive ",
     "The more I use tools like Codex and Openclaw, the more I hate MCPs. In",
     "The invention of buses - Works in Progress Magazine",
+    "2) Understand and refactor a codebase Prompt “Think like a senior engi",
+    "Si hoy tuviese que aprender Claude Code, arrancaría por esto 1) Agent",
     "🚨ATENTOS A ESTA LOCURA🚨 Alguien ha creado Un harness de código abier"
    ]
   },
@@ -890,11 +916,125 @@
    ],
    "unread": [
     "Agentic AI—The Killer Use Case for Blockchain and Crypto",
-    "Build startups for agents. I think it's the biggest opportunity of the",
     "Don't Talk to Corp Dev",
     "How to spot a monopoly - Works in Progress Magazine",
     "Strange new EV-makers keep appearing in China",
-    "The world’s most complex machine - Works in Progress Magazine"
+    "The world’s most complex machine - Works in Progress Magazine",
+    "As two of the largest forces in equity markets -- growing index owners",
+    "MEMORY IS THE MOAT @nikesharora, Chairman &amp; CEO of @PaloAltoNtwks",
+    "SpaceX a clôturé son premier jour de cotation à 2 100 milliards de dol"
+   ]
+  },
+  {
+   "name": "Aprendizaje denso en lugar de consumo pasivo",
+   "gloss": "",
+   "read": [],
+   "unread": [
+    "I've started doing a lot of async learning where I'll take every inter"
+   ]
+  },
+  {
+   "name": "Contención como condición de despliegue de capacidades frontera",
+   "gloss": "",
+   "read": [],
+   "unread": []
+  },
+  {
+   "name": "El contexto manda sobre la capacidad del modelo",
+   "gloss": "",
+   "read": [],
+   "unread": [
+    "Automation is a lie. CLIs are over. The SaaSpocalypse is dumb. A year",
+    "En vez de 2 horas de Netflix esta noche, mira esta clase magistral de",
+    "Muy buena charla de Anthropic sobre el futuro de MCP. Los agentes func",
+    "🔥 Les comento mi nuevo proyecto HEDGE FUND IEM Les enseño el diagrama"
+   ]
+  },
+  {
+   "name": "Estratificación de la inteligencia por precio",
+   "gloss": "",
+   "read": [],
+   "unread": [
+    "Good take My guess is - demand for intelligence is near infinite - but"
+   ]
+  },
+  {
+   "name": "Ficción especulativa como método prospectivo",
+   "gloss": "",
+   "read": [],
+   "unread": []
+  },
+  {
+   "name": "Fortunas construidas en negocios invisibles y equipos mínimos",
+   "gloss": "",
+   "read": [],
+   "unread": [
+    "David Siegel was programming supercomputers at age 12 at NYU. By 40 he",
+    "This Chinese guy created agents in Claude Code for landing pages and s",
+    "how I’m building an agent company inside my agency. the structure look"
+   ]
+  },
+  {
+   "name": "Instrumentos financieros nuevos como formas viejas redefinidas",
+   "gloss": "",
+   "read": [],
+   "unread": []
+  },
+  {
+   "name": "La energía física como cuello de botella del cómputo",
+   "gloss": "",
+   "read": [],
+   "unread": [
+    "This is my sixth conversation with @GavinSBaker. As always with Gavin,"
+   ]
+  },
+  {
+   "name": "La filosofía como disputa de definiciones",
+   "gloss": "",
+   "read": [],
+   "unread": []
+  },
+  {
+   "name": "La valuación y el reporting como narrativa a auditar",
+   "gloss": "",
+   "read": [],
+   "unread": [
+    "Los directivos de Mercado Libre deberían tomar nota de la llamada con"
+   ]
+  },
+  {
+   "name": "Mercados como agregadores falibles de información",
+   "gloss": "",
+   "read": [],
+   "unread": [
+    "As two of the largest forces in equity markets -- growing index owners",
+    "Los directivos de Mercado Libre deberían tomar nota de la llamada con"
+   ]
+  },
+  {
+   "name": "Pesos abiertos como palanca geopolítica",
+   "gloss": "",
+   "read": [],
+   "unread": []
+  },
+  {
+   "name": "Reacción política contra la IA como riesgo material",
+   "gloss": "",
+   "read": [],
+   "unread": []
+  },
+  {
+   "name": "Reducción mecanicista de lo subjetivo",
+   "gloss": "",
+   "read": [],
+   "unread": []
+  },
+  {
+   "name": "Software rediseñado para consumidores agénticos",
+   "gloss": "",
+   "read": [],
+   "unread": [
+    "Build startups for agents. I think it's the biggest opportunity of the"
    ]
   }
  ],
@@ -910,17 +1050,13 @@
   "A nice way to stay safe is to ask Claude Code to audit your devices I ": 0,
   "A harness for every task dynamic workflows in Claude Code": 16,
   "A must watch from Jamie Dimon.": 0,
-  "A few reflections on the @OpenAI GPT 5.5 event. On Tuesday I was lucky": 0,
   "AI models’ values are very different from most people’s": 20,
-  "AI closed 90% of your support tickets. you released 10 new features th": 34,
   "AI’s Biggest Winners Have the Lowest Margins": 25,
   "Ads Don’t Work That Way": 31,
   "Agentic AI—The Killer Use Case for Blockchain and Crypto": 13,
   "Airplane-engine maintenance is now a money spinner": 22,
   "Amanda Orson en X The faster technology moves, the more I think about Bezos' questionWhat won't change in the next 10 yearsThings I've been writing down over time- Humans will always need shelter, food, energy, and healthcare.- The desire for ow": 17,
-  "2) Understand and refactor a codebase Prompt “Think like a senior engi": 15,
   "America should not imprison frontier AI": 0,
-  "Algo que me resultó muy útil es crear tests para los flujos más import": 0,
   "America can dominate Shenzhen. A call for factory abundance.": 16,
   "Anatomy of a Frontier Lab Agent Intrusion A Technical Timeline of the July 2026 Incident": 17,
   "America’s data-centre backlash puts the AI boom at risk": 19,
@@ -930,38 +1066,28 @@
   "Are stablecoins money?": 0,
   "Anthropic pays $750K year per senior engineer. The creator of Claude C": 21,
   "Anthropic paga a los ingenieros más de $750,000 al año para entender c": 21,
-  "As two of the largest forces in equity markets -- growing index owners": 16,
-  "Anthropic describe opus 4.7 como un modelo orientado a complex reasoni": 0,
   "Ask Claude to document and describe the main flows in your app and out": 16,
   "Attention is all we have": 15,
   "Anthropic AI team just dropped the Prompting Playbook that beats most ": 0,
-  "As many people know, I'm a CTO, and work a lot with my engineering tea": 0,
   "Automation is a lie. CLIs are over. The SaaSpocalypse is dumb. A year ": 0,
   "Así registro mis gastos de forma automática pagando con el móvil 👇": 0,
   "Because We Can": 24,
-  "Bill Ackman literally gave a 44-minute masterclass that explains money": 14,
   "Big Food vs. The People": 37,
   "Be Good": 25,
-  "Build startups for agents. I think it's the biggest opportunity of the": 13,
-  "Chamath Palihapitiya @chamath Bro, there is no failure. That is what o": 10,
   "CODEX SKILL THAT FINDS YOUR STARTUP’S FIRST CUSTOMERS! I made a Codex ": 0,
   "Career advice in the age of AI": 17,
   "Can China dominate AI exports, too?": 0,
-  "CEO of Citadel no one is more wrong than I am today , he built the mos": 0,
   "Charisma  Power": 31,
   "China’s mysterious new billionaires are conquering the world": 16,
   "Can prediction markets win over Wall Street?": 0,
   "Claude Code creator I don't prompt Claude anymore. I write loops - and": 16,
-  "Codex has transformed how I run my companies. I have almost 40 busines": 14,
   "Coding with agents is a trap, and we all fell for it.": 16,
-  "Cuando varios agentes trabajan sobre el mismo código, aparece un probl": 24,
   "Avoiding Death on the Yellow Brick Road": 0,
   "Dario Amodei — Policy on the AI Exponential": 30,
   "Design and Research": 0,
   "Do Things that Don't Scale": 26,
   "Claude FULL COURSE 1 HOUR (Build &amp; Automate Anything)": 0,
   "Don't Talk to Corp Dev": 8,
-  "David Siegel was programming supercomputers at age 12 at NYU. By 40 he": 0,
   "Defining Property": 0,
   "Early Work": 28,
   "El que resuelva este problema se llena de guita, lo tiro Las empresas ": 24,
@@ -975,14 +1101,9 @@
   "Fintech Engineering Handbook": 15,
   "GPT-5.6 Frontier intelligence that scales with your ambition": 0,
   "GOD Mode": 0,
-  "Godfather of AI If you sleep well tonight, you may not have understood": 26,
   "GRIP STRENGTH": 28,
-  "Gran idea esta. Cuando un agente implementa algo, siempre aparecen dec": 12,
   "Good and Bad Procrastination": 25,
-  "He recibido esta noche un cargamento de 12 cajas de Estambul, cada una": 0,
   "Getting started with loops": 0,
-  "Good take My guess is - demand for intelligence is near infinite - but": 0,
-  "Full podcast episode with @rauchg, @maxhodak_, and @bscholl. 40 minute": 0,
   "Hiring is Obsolete": 24,
   "Honesty and the Human Body": 0,
   "Haters": 0,
@@ -998,7 +1119,6 @@
   "How People Get Rich Now": 16,
   "How bacteria solved the mystery of inheritance - Works in Progress Magazine": 0,
   "How You Know": 0,
-  "Hay un repo que ya tiene más de 142k stars y +14k forks en GitHub. Tom": 0,
   "How to Be an Expert in a Changing World": 10,
   "How the Glorious Revolution crushed the NIMBYs": 24,
   "How to Do Philosophy": 0,
@@ -1021,7 +1141,6 @@
   "How we contain Claude across products": 0,
   "How to turn compute into a financial asset": 16,
   "I made a live stock market bubble detector that shows bubble indicator": 0,
-  "I've started doing a lot of async learning where I'll take every inter": 14,
   "Install These Skills Before Codex Touches Your Xcode Project": 16,
   "How we built our knowledge base": 0,
   "Inequality and Risk": 16,
@@ -1035,9 +1154,7 @@
   "Is AI Reasoning Right for the Wrong Reasons?": 10,
   "Investor Herd Dynamics": 23,
   "I’ve had very good results running autoresearch with local qwen 3.6 26": 0,
-  "La mejor forma de entender un Agente de IA es pensar en un loop. 1) El": 16,
   "Lessons from a high-fertility subculture - Works in Progress Magazine": 17,
-  "LIQUIDITY Bill Ackman joins the Besties! -- Investment evolution activ": 0,
   "Link al paper (043537)": 0,
   "Invisible Companies": 0,
   "Letter III - Got Gas": 0,
@@ -1069,25 +1186,18 @@
   "Mall of America": 0,
   "Maybe Intelligence Ain't All That": 26,
   "Mr. Jaynes’ Wild Ride": 0,
-  "Matthew Smith has spent the last 18 months modeling every well, pipeli": 0,
   "Mejores libros que leí este último tiempo 1) Designing Data-Intensive ": 12,
   "Minimum Viable Superorganism  Melting Asphalt": 27,
   "Medieval-style fortifications are back in the Sahel": 18,
-  "Muy buena charla de Anthropic sobre el futuro de MCP. Los agentes func": 26,
   "Neurons Gone Wild  Melting Asphalt": 0,
-  "My current custom prompt with some updates via @pmarca Be organized, a": 24,
-  "Muy buen artículo de OpenAI sobre Harness Engineering y Codex. Explica": 23,
   "My simple secret to agentic coding": 16,
   "Open Weights and American AI Leadership": 0,
-  "My conversation with @dkhos, CEO of Uber. Dara took over in 2017, when": 23,
-  "Notes on 100+ Recent Technical Interviews I interview a ton of enginee": 0,
   "Open-sourcing Revolut’s talent system How we built Europe's most valuable private tech company from": 22,
   "On Grindslop": 0,
   "New podcast, new format. Three founders join us. Waste Tokens, Save Ti": 0,
   "OpenAI Software Engineer Interview 2026": 0,
   "OpenAI and Hugging Face partner to address security incident during model evaluation": 17,
   "On Grindslop 1": 0,
-  "Nuevo paper junto al Presidente @JMilei Minimum Viable Scale . El Pres": 0,
   "OpenAI’s accidental cyberattack against Hugging Face is science fiction that happened": 17,
   "Our position on open-weights models": 0,
   "Putting Ideas into Words": 21,
@@ -1097,10 +1207,8 @@
   "Severance": 30,
   "Projected Presence": 0,
   "Sarah's Wager": 0,
-  "Si quisiera aprender Hermes desde cero, empezaría por estos 6 concepto": 0,
   "Si hoy tuviese que aprender Claude Code, arrancaría por esto 1) Agent ": 0,
   "Socioeconomic Status and Intimate Relationships": 9,
-  "Something I have been thinking about in the past, the best engineers I": 9,
   "Spotify's Chief Architect just showed how they ship 4,5K deployments d": 27,
   "Some Heroes": 0,
   "Silicon Valley has much to learn from the spreadsheet jockeys it despises": 25,
@@ -1108,7 +1216,6 @@
   "Strange new EV-makers keep appearing in China": 10,
   "Technological Opportunity": 19,
   "The AI backlash is only getting started": 0,
-  "Tengo un sideproject por ahí medio muerto y a veces lo uso de laborato": 0,
   "Students are doing worse than you think": 17,
   "The 6 MOST valuable skills to learn in the AGENTIC era and how to lear": 0,
   "The BBC switches off its oldest service": 0,
@@ -1118,7 +1225,6 @@
   "Owen Hatherley, Hope and Defeat": 0,
   "The Great Downzoning - Works in Progress Magazine": 11,
   "The End of Reading Is Here": 19,
-  "SpaceX a clôturé son premier jour de cotation à 2 100 milliards de dol": 0,
   "The Making of a Market Maker": 0,
   "The Actual Reason Why Google “Fell Out” of the AI Race Changes Everything": 0,
   "The Lesson to Unlearn": 17,
@@ -1137,21 +1243,16 @@
   "The developing world needs more roads": 16,
   "The age of the solopreneur": 0,
   "The most profitable skill of the 21st century (not AI)": 15,
-  "The most basic way AI could blow up imo. I'm not saying it does but th": 25,
   "The task is not the job": 22,
   "The invention of buses - Works in Progress Magazine": 8,
   "The strange disappearance of Japan’s animators": 24,
   "The rise of the deserving rich": 16,
   "The world’s most complex machine - Works in Progress Magazine": 10,
   "The value of technological progress - Works in Progress Magazine": 19,
-  "This Chinese guy created agents in Claude Code for landing pages and s": 26,
   "The new rules of context engineering for Claude 5 generation models": 0,
-  "This is my sixth conversation with @GavinSBaker. As always with Gavin,": 27,
   "Tim Ferriss en X There is a process that I have used, and still use, to reignite life...Create two timelines—6 months and 12 months—and list up to five things you dream of having (including, but not limited to, material wants house, car, clothin": 21,
-  "Today, we're introducing Lassie and $47M in funding led by a16z. We're": 26,
   "Un truco simple para mejorar tus prompts con Claude agregar una regla ": 10,
   "Urban expansion in the age of liberalism": 16,
-  "This works really well btw, at the end of your query ask your LLM to s": 0,
   "This is becoming my favorite way to read Twitter.": 0,
   "Today, Ramp raised $750M at a $44B valuation. Last time we grew this f": 0,
   "What Business Can Learn from Open Source": 0,
@@ -1165,7 +1266,6 @@
   "Why American data centers can't plug in": 15,
   "Write Like You Talk": 14,
   "What You Can't Say": 29,
-  "Yesterday was a very surreal day in many ways. Waking up to see that S": 0,
   "Why Token Optimization Is a Gift to the Hyperscalers": 16,
   "You can’t outwork the whole world. There’s always going to be someone ": 17,
   "You can't unit test for taste": 17,
@@ -1174,14 +1274,86 @@
   "Ya no prompteo en Claude Code. Tengo loops corriendo que promptean a F": 16,
   "continuing my war on paid software that should be free, today's victim": 20,
   "What You (Want to)* Want": 21,
-  "how I’m building an agent company inside my agency. the structure look": 35,
   "a16z. Unfinished Business.": 0,
   "it is simultaneously possible to spend a lot on AI and still underuse ": 34,
-  "instead of watching 2 hours of Netflix tonight, watch this 40-minute m": 0,
-  "tenían un agente con &gt; 400 líneas de system prompt &gt; 12 tools &g": 29,
   "here is the entirety of Palantir CEO Alex Karp's televised nervous bre": 0,
-  "🚨ATENTOS A ESTA LOCURA🚨 Alguien ha creado Un harness de código abier": 12,
   "les dejo este video de 20min donde explican 30 conceptos clave de Syst": 0,
-  "🔥 Les comento mi nuevo proyecto HEDGE FUND IEM Les enseño el diagrama": 0
+  "Anthropic describe opus 4.7 como un modelo orientado a complex reasoni": 16,
+  "Algo que me resultó muy útil es crear tests para los flujos más import": 0,
+  "2) Understand and refactor a codebase Prompt “Think like a senior engi": 12,
+  "A nice way to stay safe is to ask Claude Code to audit your devices I": 0,
+  "AI closed 90% of your support tickets. you released 10 new features th": 28,
+  "Artículo de @NainsiDwiv50980": 0,
+  "Artículo de @ChrisHayduk": 0,
+  "A few reflections on the @OpenAI GPT 5.5 event. On Tuesday I was lucky": 0,
+  "@LVMH_Presse The English version for those who would like to read it.": 0,
+  "Anthropic just paid millions to hire Andrej Karpathy. He gave you the": 16,
+  "Artículo de @Muzzlebuster": 0,
+  "Anthropic AI team just dropped the Prompting Playbook that beats most": 0,
+  "Artículo de @Giuliano_Mana": 0,
+  "Artículo de @RyanHoliday": 28,
+  "Artículo de @marcoporracin": 0,
+  "Artículo de @akshay_pachaar": 0,
+  "Artículo de @edels0n": 0,
+  "Artículo de @bidah": 0,
+  "Artículo de @investinyourslv": 0,
+  "Artículo de @saranormous": 0,
+  "Artículo de @mvanhorn": 0,
+  "Artículo de @trq212 (747935)": 0,
+  "As two of the largest forces in equity markets -- growing index owners": 3,
+  "Automation is a lie. CLIs are over. The SaaSpocalypse is dumb. A year": 10,
+  "As many people know, I'm a CTO, and work a lot with my engineering tea": 0,
+  "Bill Ackman literally gave a 44-minute masterclass that explains money": 14,
+  "Build startups for agents. I think it's the biggest opportunity of the": 10,
+  "CODEX SKILL THAT FINDS YOUR STARTUP’S FIRST CUSTOMERS! I made a Codex": 24,
+  "Codex has transformed how I run my companies. I have almost 40 busines": 15,
+  "CEO of Citadel no one is more wrong than I am today , he built the mos": 18,
+  "Artículo de @reidhoffman": 0,
+  "Cuando varios agentes trabajan sobre el mismo código, aparece un probl": 24,
+  "Chamath Palihapitiya @chamath Bro, there is no failure. That is what o": 28,
+  "David Siegel was programming supercomputers at age 12 at NYU. By 40 he": 14,
+  "Full podcast episode with @rauchg, @maxhodak_, and @bscholl. 40 minute": 0,
+  "El que resuelva este problema se llena de guita, lo tiro Las empresas": 20,
+  "He recibido esta noche un cargamento de 12 cajas de Estambul, cada una": 19,
+  "Hay un repo que ya tiene más de 142k stars y +14k forks en GitHub. Tom": 16,
+  "How Quake ruined id Software. There has been a lot of praise of Quake": 30,
+  "Good take My guess is - demand for intelligence is near infinite - but": 16,
+  "Godfather of AI If you sleep well tonight, you may not have understood": 0,
+  "Gran idea esta. Cuando un agente implementa algo, siempre aparecen dec": 0,
+  "I've started doing a lot of async learning where I'll take every inter": 9,
+  "En vez de 2 horas de Netflix esta noche, mira esta clase magistral de": 9,
+  "Los directivos de Mercado Libre deberían tomar nota de la llamada con": 0,
+  "La mejor forma de entender un Agente de IA es pensar en un loop. 1) El": 0,
+  "LIQUIDITY Bill Ackman joins the Besties! -- Investment evolution activ": 26,
+  "Me and codex were busy. 🔊 — Sonos 🗃️ — WhatsApp 🪶 — X archive 🧰 —": 0,
+  "MEMORY IS THE MOAT @nikesharora, Chairman &amp; CEO of @PaloAltoNtwks": 12,
+  "Matthew Smith has spent the last 18 months modeling every well, pipeli": 15,
+  "Lots of people asked how I used Fable to edit its own launch video so": 16,
+  "Mejores libros que leí este último tiempo 1) Designing Data-Intensive": 0,
+  "Muy buena charla de Anthropic sobre el futuro de MCP. Los agentes func": 10,
+  "My current custom prompt with some updates via @pmarca Be organized, a": 0,
+  "Muy buen artículo de OpenAI sobre Harness Engineering y Codex. Explica": 16,
+  "Notes on 100+ Recent Technical Interviews I interview a ton of enginee": 30,
+  "Si hoy tuviese que aprender Claude Code, arrancaría por esto 1) Agent": 9,
+  "Nuevo paper junto al Presidente @JMilei Minimum Viable Scale . El Pres": 35,
+  "Si quisiera aprender Hermes desde cero, empezaría por estos 6 concepto": 0,
+  "Something I have been thinking about in the past, the best engineers I": 15,
+  "Tengo un sideproject por ahí medio muerto y a veces lo uso de laborato": 16,
+  "The most basic way AI could blow up imo. I'm not saying it does but th": 25,
+  "SpaceX a clôturé son premier jour de cotation à 2 100 milliards de dol": 16,
+  "My conversation with @dkhos, CEO of Uber. Dara took over in 2017, when": 0,
+  "This works really well btw, at the end of your query ask your LLM to s": 0,
+  "This is my sixth conversation with @GavinSBaker. As always with Gavin,": 8,
+  "This Chinese guy created agents in Claude Code for landing pages and s": 10,
+  "Un truco simple para mejorar tus prompts con Claude agregar una regla": 0,
+  "We've been thinking about the best way to use screen data for a while": 7,
+  "You can’t outwork the whole world. There’s always going to be someone": 28,
+  "tenían un agente con &gt; 400 líneas de system prompt &gt; 12 tools &g": 16,
+  "🚨ATENTOS A ESTA LOCURA🚨 Alguien ha creado Un harness de código abier": 12,
+  "how I’m building an agent company inside my agency. the structure look": 9,
+  "Yesterday was a very surreal day in many ways. Waking up to see that S": 0,
+  "instead of watching 2 hours of Netflix tonight, watch this 40-minute m": 16,
+  "Today, we're introducing Lassie and $47M in funding led by a16z. We're": 0,
+  "🔥 Les comento mi nuevo proyecto HEDGE FUND IEM Les enseño el diagrama": 10
  }
 }

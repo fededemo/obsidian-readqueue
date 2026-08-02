@@ -335,8 +335,13 @@ export function allocateFilename(
  */
 export function displayTitle(item: XItem): string {
   const firstLine = textWithoutLinks((item.text.split("\n")[0] ?? "").trim());
-  if (firstLine.length >= 10 && firstLine.length <= 100) return firstLine;
-  return noteTitle(item);
+  const words = firstLine.split(/\s+/).filter(Boolean).length;
+  // Una línea que termina en `:` es el pie de una lista —"Andrew Ng:"— y una de
+  // tres palabras es una etiqueta. Ninguna de las dos sirve de título, y usarlas
+  // sería peor que el nombre de archivo cortado que reemplazan.
+  const esTitular =
+    firstLine.length >= 25 && firstLine.length <= 100 && words >= 4 && !firstLine.endsWith(":");
+  return esTitular ? firstLine : noteTitle(item);
 }
 
 export interface XNote {

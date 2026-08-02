@@ -78,27 +78,12 @@
   "concepts": []
  },
  {
-  "note": "A few reflections on the @OpenAI GPT 5.5 event. On Tuesday I was lucky",
-  "path": "Inbox/Web/A few reflections on the @OpenAI GPT 5.5 event. On Tuesday I was lucky.md",
-  "topic": "tech",
-  "concepts": []
- },
- {
   "note": "AI models’ values are very different from most people’s",
   "path": "Inbox/Web/AI models’ values are very different from most people’s.md",
   "topic": "tech",
   "concepts": [
    "Herramientas sin agencia propia",
    "Discriminación de precios y opacidad algorítmica"
-  ]
- },
- {
-  "note": "AI closed 90% of your support tickets. you released 10 new features th",
-  "path": "Inbox/Web/AI closed 90% of your support tickets. you released 10 new features th.md",
-  "topic": "producto",
-  "concepts": [
-   "Adopción de IA sin impacto material inmediato",
-   "Sobrecapacidad e incompetencia a escala"
   ]
  },
  {
@@ -147,24 +132,9 @@
   ]
  },
  {
-  "note": "2) Understand and refactor a codebase Prompt “Think like a senior engi",
-  "path": "Inbox/Web/2) Understand and refactor a codebase Prompt “Think like a senior engi.md",
-  "topic": "tech",
-  "concepts": [
-   "Compounding de capital humano y tecnológico",
-   "Punto único de fallo por dependencia humana"
-  ]
- },
- {
   "note": "America should not imprison frontier AI",
   "path": "Inbox/Web/America should not imprison frontier AI.md",
   "topic": "macro",
-  "concepts": []
- },
- {
-  "note": "Algo que me resultó muy útil es crear tests para los flujos más import",
-  "path": "Inbox/Web/Algo que me resultó muy útil es crear tests para los flujos más import.md",
-  "topic": "tech",
   "concepts": []
  },
  {
@@ -243,21 +213,6 @@
   ]
  },
  {
-  "note": "As two of the largest forces in equity markets -- growing index owners",
-  "path": "Inbox/Web/As two of the largest forces in equity markets -- growing index owners.md",
-  "topic": "macro",
-  "concepts": [
-   "Concentración de riqueza en individuos y plataformas",
-   "Captura de valor desigual en cadenas globales"
-  ]
- },
- {
-  "note": "Anthropic describe opus 4.7 como un modelo orientado a complex reasoni",
-  "path": "Inbox/Web/Anthropic describe opus 4.7 como un modelo orientado a complex reasoni.md",
-  "topic": "tech",
-  "concepts": []
- },
- {
   "note": "Ask Claude to document and describe the main flows in your app and out",
   "path": "Inbox/Web/Ask Claude to document and describe the main flows in your app and out.md",
   "topic": "tech",
@@ -278,12 +233,6 @@
  {
   "note": "Anthropic AI team just dropped the Prompting Playbook that beats most ",
   "path": "Inbox/Web/Anthropic AI team just dropped the Prompting Playbook that beats most .md",
-  "topic": "tech",
-  "concepts": []
- },
- {
-  "note": "As many people know, I'm a CTO, and work a lot with my engineering tea",
-  "path": "Inbox/Web/As many people know, I'm a CTO, and work a lot with my engineering tea.md",
   "topic": "tech",
   "concepts": []
  },
@@ -309,15 +258,6 @@
   ]
  },
  {
-  "note": "Bill Ackman literally gave a 44-minute masterclass that explains money",
-  "path": "Inbox/Web/Bill Ackman literally gave a 44-minute masterclass that explains money.md",
-  "topic": "macro",
-  "concepts": [
-   "Compounding de capital humano y tecnológico",
-   "Asignación de un recurso finito"
-  ]
- },
- {
   "note": "Big Food vs. The People",
   "path": "Inbox/Web/Big Food vs. The People.md",
   "topic": "macro",
@@ -333,23 +273,6 @@
   "concepts": [
    "Ventaja competitiva imitable erosionándose",
    "Motivación intrínseca y trabajo significativo"
-  ]
- },
- {
-  "note": "Build startups for agents. I think it's the biggest opportunity of the",
-  "path": "Inbox/Web/Build startups for agents. I think it's the biggest opportunity of the.md",
-  "topic": "producto",
-  "concepts": [
-   "Herramientas sin agencia propia",
-   "Poder de mercado y contra-posicionamiento"
-  ]
- },
- {
-  "note": "Chamath Palihapitiya @chamath Bro, there is no failure. That is what o",
-  "path": "Inbox/Web/Chamath Palihapitiya @chamath Bro, there is no failure. That is what o.md",
-  "topic": "personal",
-  "concepts": [
-   "Identidad como precondición del cambio personal"
   ]
  },
  {
@@ -371,12 +294,6 @@
   "note": "Can China dominate AI exports, too?",
   "path": "Inbox/Web/Can China dominate AI exports, too?.md",
   "topic": "macro",
-  "concepts": []
- },
- {
-  "note": "CEO of Citadel no one is more wrong than I am today , he built the mos",
-  "path": "Inbox/Web/CEO of Citadel no one is more wrong than I am today , he built the mos.md",
-  "topic": "producto",
   "concepts": []
  },
  {
@@ -413,30 +330,12 @@
   ]
  },
  {
-  "note": "Codex has transformed how I run my companies. I have almost 40 busines",
-  "path": "Inbox/Web/Codex has transformed how I run my companies. I have almost 40 busines.md",
-  "topic": "producto",
-  "concepts": [
-   "Asignación de un recurso finito",
-   "Compounding de capital humano y tecnológico"
-  ]
- },
- {
   "note": "Coding with agents is a trap, and we all fell for it.",
   "path": "Inbox/Web/Coding with agents is a trap, and we all fell for it..md",
   "topic": "tech",
   "concepts": [
    "Herramientas sin agencia propia",
    "Compounding de capital humano y tecnológico"
-  ]
- },
- {
-  "note": "Cuando varios agentes trabajan sobre el mismo código, aparece un probl",
-  "path": "Inbox/Web/Cuando varios agentes trabajan sobre el mismo código, aparece un probl.md",
-  "topic": "tech",
-  "concepts": [
-   "Punto único de fallo por dependencia humana",
-   "Sobrecapacidad e incompetencia a escala"
   ]
  },
  {
@@ -483,12 +382,6 @@
    "Poder de mercado y contra-posicionamiento",
    "Asignación de un recurso finito"
   ]
- },
- {
-  "note": "David Siegel was programming supercomputers at age 12 at NYU. By 40 he",
-  "path": "Inbox/Web/David Siegel was programming supercomputers at age 12 at NYU. By 40 he.md",
-  "topic": "producto",
-  "concepts": []
  },
  {
   "note": "Defining Property",
@@ -599,30 +492,12 @@
   "concepts": []
  },
  {
-  "note": "Godfather of AI If you sleep well tonight, you may not have understood",
-  "path": "Inbox/Web/Godfather of AI If you sleep well tonight, you may not have understood.md",
-  "topic": "tech",
-  "concepts": [
-   "Herramientas sin agencia propia",
-   "Adopción de IA sin impacto material inmediato"
-  ]
- },
- {
   "note": "GRIP STRENGTH",
   "path": "Inbox/Web/GRIP STRENGTH.md",
   "topic": "cultura",
   "concepts": [
    "Identidad como precondición del cambio personal",
    "Incomodidad deliberada como motor de mejora"
-  ]
- },
- {
-  "note": "Gran idea esta. Cuando un agente implementa algo, siempre aparecen dec",
-  "path": "Inbox/Web/Gran idea esta. Cuando un agente implementa algo, siempre aparecen dec.md",
-  "topic": "tech",
-  "concepts": [
-   "Punto único de fallo por dependencia humana",
-   "Asignación de un recurso finito"
   ]
  },
  {
@@ -635,27 +510,9 @@
   ]
  },
  {
-  "note": "He recibido esta noche un cargamento de 12 cajas de Estambul, cada una",
-  "path": "Inbox/Web/He recibido esta noche un cargamento de 12 cajas de Estambul, cada una.md",
-  "topic": "otros",
-  "concepts": []
- },
- {
   "note": "Getting started with loops",
   "path": "Inbox/Web/Getting started with loops.md",
   "topic": "tech",
-  "concepts": []
- },
- {
-  "note": "Good take My guess is - demand for intelligence is near infinite - but",
-  "path": "Inbox/Web/Good take My guess is - demand for intelligence is near infinite - but.md",
-  "topic": "tech",
-  "concepts": []
- },
- {
-  "note": "Full podcast episode with @rauchg, @maxhodak_, and @bscholl. 40 minute",
-  "path": "Inbox/Web/Full podcast episode with @rauchg, @maxhodak_, and @bscholl. 40 minute.md",
-  "topic": "producto",
   "concepts": []
  },
  {
@@ -766,12 +623,6 @@
   "note": "How You Know",
   "path": "Inbox/Web/How You Know.md",
   "topic": "personal",
-  "concepts": []
- },
- {
-  "note": "Hay un repo que ya tiene más de 142k stars y +14k forks en GitHub. Tom",
-  "path": "Inbox/Web/Hay un repo que ya tiene más de 142k stars y +14k forks en GitHub. Tom.md",
-  "topic": "tech",
   "concepts": []
  },
  {
@@ -958,15 +809,6 @@
   "concepts": []
  },
  {
-  "note": "I've started doing a lot of async learning where I'll take every inter",
-  "path": "Inbox/Web/I've started doing a lot of async learning where I'll take every inter.md",
-  "topic": "personal",
-  "concepts": [
-   "Compounding de capital humano y tecnológico",
-   "Asignación de un recurso finito"
-  ]
- },
- {
   "note": "Install These Skills Before Codex Touches Your Xcode Project",
   "path": "Inbox/Web/Install These Skills Before Codex Touches Your Xcode Project.md",
   "topic": "tech",
@@ -1065,15 +907,6 @@
   "concepts": []
  },
  {
-  "note": "La mejor forma de entender un Agente de IA es pensar en un loop. 1) El",
-  "path": "Inbox/Web/La mejor forma de entender un Agente de IA es pensar en un loop. 1) El.md",
-  "topic": "tech",
-  "concepts": [
-   "Herramientas sin agencia propia",
-   "Compounding de capital humano y tecnológico"
-  ]
- },
- {
   "note": "Lessons from a high-fertility subculture - Works in Progress Magazine",
   "path": "Inbox/Web/Lessons from a high-fertility subculture - Works in Progress Magazine.md",
   "topic": "macro",
@@ -1081,12 +914,6 @@
    "Identidad como precondición del cambio personal",
    "Aprendizaje amplio antes que especialización temprana"
   ]
- },
- {
-  "note": "LIQUIDITY Bill Ackman joins the Besties! -- Investment evolution activ",
-  "path": "Inbox/Web/LIQUIDITY Bill Ackman joins the Besties! -- Investment evolution activ.md",
-  "topic": "producto",
-  "concepts": []
  },
  {
   "note": "Link al paper (043537)",
@@ -1293,12 +1120,6 @@
   "concepts": []
  },
  {
-  "note": "Matthew Smith has spent the last 18 months modeling every well, pipeli",
-  "path": "Inbox/Web/Matthew Smith has spent the last 18 months modeling every well, pipeli.md",
-  "topic": "macro",
-  "concepts": []
- },
- {
   "note": "Mejores libros que leí este último tiempo 1) Designing Data-Intensive ",
   "path": "Inbox/Web/Mejores libros que leí este último tiempo 1) Designing Data-Intensive .md",
   "topic": "tech",
@@ -1326,37 +1147,10 @@
   ]
  },
  {
-  "note": "Muy buena charla de Anthropic sobre el futuro de MCP. Los agentes func",
-  "path": "Inbox/Web/Muy buena charla de Anthropic sobre el futuro de MCP. Los agentes func.md",
-  "topic": "tech",
-  "concepts": [
-   "Herramientas sin agencia propia",
-   "Adopción de IA sin impacto material inmediato"
-  ]
- },
- {
   "note": "Neurons Gone Wild  Melting Asphalt",
   "path": "Inbox/Web/Neurons Gone Wild  Melting Asphalt.md",
   "topic": "ciencia",
   "concepts": []
- },
- {
-  "note": "My current custom prompt with some updates via @pmarca Be organized, a",
-  "path": "Inbox/Web/My current custom prompt with some updates via @pmarca Be organized, a.md",
-  "topic": "personal",
-  "concepts": [
-   "Herramientas sin agencia propia",
-   "Autoconciencia como base de vínculos"
-  ]
- },
- {
-  "note": "Muy buen artículo de OpenAI sobre Harness Engineering y Codex. Explica",
-  "path": "Inbox/Web/Muy buen artículo de OpenAI sobre Harness Engineering y Codex. Explica.md",
-  "topic": "tech",
-  "concepts": [
-   "Adopción de IA sin impacto material inmediato",
-   "Compounding de capital humano y tecnológico"
-  ]
  },
  {
   "note": "My simple secret to agentic coding",
@@ -1371,21 +1165,6 @@
   "note": "Open Weights and American AI Leadership",
   "path": "Inbox/Web/Open Weights and American AI Leadership.md",
   "topic": "macro",
-  "concepts": []
- },
- {
-  "note": "My conversation with @dkhos, CEO of Uber. Dara took over in 2017, when",
-  "path": "Inbox/Web/My conversation with @dkhos, CEO of Uber. Dara took over in 2017, when.md",
-  "topic": "producto",
-  "concepts": [
-   "Cultura organizacional como ventaja fundamental",
-   "Asignación de un recurso finito"
-  ]
- },
- {
-  "note": "Notes on 100+ Recent Technical Interviews I interview a ton of enginee",
-  "path": "Inbox/Web/Notes on 100+ Recent Technical Interviews I interview a ton of enginee.md",
-  "topic": "producto",
   "concepts": []
  },
  {
@@ -1428,12 +1207,6 @@
   "note": "On Grindslop 1",
   "path": "Inbox/Web/On Grindslop 1.md",
   "topic": "cultura",
-  "concepts": []
- },
- {
-  "note": "Nuevo paper junto al Presidente @JMilei Minimum Viable Scale . El Pres",
-  "path": "Inbox/Web/Nuevo paper junto al Presidente @JMilei Minimum Viable Scale . El Pres.md",
-  "topic": "macro",
   "concepts": []
  },
  {
@@ -1509,12 +1282,6 @@
   "concepts": []
  },
  {
-  "note": "Si quisiera aprender Hermes desde cero, empezaría por estos 6 concepto",
-  "path": "Inbox/Web/Si quisiera aprender Hermes desde cero, empezaría por estos 6 concepto.md",
-  "topic": "tech",
-  "concepts": []
- },
- {
   "note": "Si hoy tuviese que aprender Claude Code, arrancaría por esto 1) Agent ",
   "path": "Inbox/Web/Si hoy tuviese que aprender Claude Code, arrancaría por esto 1) Agent .md",
   "topic": "tech",
@@ -1527,14 +1294,6 @@
   "concepts": [
    "Path dependence y límites de transformar personas",
    "Asignación de un recurso finito"
-  ]
- },
- {
-  "note": "Something I have been thinking about in the past, the best engineers I",
-  "path": "Inbox/Web/Something I have been thinking about in the past, the best engineers I.md",
-  "topic": "tech",
-  "concepts": [
-   "Compounding de capital humano y tecnológico"
   ]
  },
  {
@@ -1592,12 +1351,6 @@
   "note": "The AI backlash is only getting started",
   "path": "Inbox/Web/The AI backlash is only getting started.md",
   "topic": "macro",
-  "concepts": []
- },
- {
-  "note": "Tengo un sideproject por ahí medio muerto y a veces lo uso de laborato",
-  "path": "Inbox/Web/Tengo un sideproject por ahí medio muerto y a veces lo uso de laborato.md",
-  "topic": "producto",
   "concepts": []
  },
  {
@@ -1667,12 +1420,6 @@
    "Distinción entre experiencia valiosa y desechable",
    "Progreso como proceso recursivo e imperfecto"
   ]
- },
- {
-  "note": "SpaceX a clôturé son premier jour de cotation à 2 100 milliards de dol",
-  "path": "Inbox/Web/SpaceX a clôturé son premier jour de cotation à 2 100 milliards de dol.md",
-  "topic": "producto",
-  "concepts": []
  },
  {
   "note": "The Making of a Market Maker",
@@ -1816,15 +1563,6 @@
   ]
  },
  {
-  "note": "The most basic way AI could blow up imo. I'm not saying it does but th",
-  "path": "Inbox/Web/The most basic way AI could blow up imo. I'm not saying it does but th.md",
-  "topic": "producto",
-  "concepts": [
-   "Adopción de IA sin impacto material inmediato",
-   "Captura de valor desigual en cadenas globales"
-  ]
- },
- {
   "note": "The task is not the job",
   "path": "Inbox/Web/The task is not the job.md",
   "topic": "macro",
@@ -1879,28 +1617,10 @@
   ]
  },
  {
-  "note": "This Chinese guy created agents in Claude Code for landing pages and s",
-  "path": "Inbox/Web/This Chinese guy created agents in Claude Code for landing pages and s.md",
-  "topic": "producto",
-  "concepts": [
-   "Adopción de IA sin impacto material inmediato",
-   "Herramientas sin agencia propia"
-  ]
- },
- {
   "note": "The new rules of context engineering for Claude 5 generation models",
   "path": "Inbox/Web/The new rules of context engineering for Claude 5 generation models.md",
   "topic": "tech",
   "concepts": []
- },
- {
-  "note": "This is my sixth conversation with @GavinSBaker. As always with Gavin,",
-  "path": "Inbox/Web/This is my sixth conversation with @GavinSBaker. As always with Gavin,.md",
-  "topic": "tech",
-  "concepts": [
-   "Adopción de IA sin impacto material inmediato",
-   "Ventaja competitiva imitable erosionándose"
-  ]
  },
  {
   "note": "Tim Ferriss en X There is a process that I have used, and still use, to reignite life...Create two timelines—6 months and 12 months—and list up to five things you dream of having (including, but not limited to, material wants house, car, clothin",
@@ -1909,15 +1629,6 @@
   "concepts": [
    "Autoconciencia como base de vínculos",
    "Identidad como precondición del cambio personal"
-  ]
- },
- {
-  "note": "Today, we're introducing Lassie and $47M in funding led by a16z. We're",
-  "path": "Inbox/Web/Today, we're introducing Lassie and $47M in funding led by a16z. We're.md",
-  "topic": "producto",
-  "concepts": [
-   "Adopción de IA sin impacto material inmediato",
-   "Herramientas sin agencia propia"
   ]
  },
  {
@@ -1936,12 +1647,6 @@
    "Instituciones como barreras invisibles",
    "Path dependence y límites de transformar personas"
   ]
- },
- {
-  "note": "This works really well btw, at the end of your query ask your LLM to s",
-  "path": "Inbox/Web/This works really well btw, at the end of your query ask your LLM to s.md",
-  "topic": "tech",
-  "concepts": []
  },
  {
   "note": "This is becoming my favorite way to read Twitter.",
@@ -2048,12 +1753,6 @@
   ]
  },
  {
-  "note": "Yesterday was a very surreal day in many ways. Waking up to see that S",
-  "path": "Inbox/Web/Yesterday was a very surreal day in many ways. Waking up to see that S.md",
-  "topic": "tech",
-  "concepts": []
- },
- {
   "note": "Why Token Optimization Is a Gift to the Hyperscalers",
   "path": "Inbox/Web/Why Token Optimization Is a Gift to the Hyperscalers.md",
   "topic": "tech",
@@ -2123,15 +1822,6 @@
   ]
  },
  {
-  "note": "how I’m building an agent company inside my agency. the structure look",
-  "path": "Inbox/Web/how I’m building an agent company inside my agency. the structure look.md",
-  "topic": "producto",
-  "concepts": [
-   "Cultura organizacional como ventaja fundamental",
-   "Sobrecapacidad e incompetencia a escala"
-  ]
- },
- {
   "note": "a16z. Unfinished Business.",
   "path": "Inbox/Web/a16z. Unfinished Business..md",
   "topic": "producto",
@@ -2147,34 +1837,10 @@
   ]
  },
  {
-  "note": "instead of watching 2 hours of Netflix tonight, watch this 40-minute m",
-  "path": "Inbox/Web/instead of watching 2 hours of Netflix tonight, watch this 40-minute m.md",
-  "topic": "tech",
-  "concepts": []
- },
- {
-  "note": "tenían un agente con &gt; 400 líneas de system prompt &gt; 12 tools &g",
-  "path": "Inbox/Web/tenían un agente con &gt; 400 líneas de system prompt &gt; 12 tools &g.md",
-  "topic": "tech",
-  "concepts": [
-   "Sobrecapacidad e incompetencia a escala",
-   "Herramientas sin agencia propia"
-  ]
- },
- {
   "note": "here is the entirety of Palantir CEO Alex Karp's televised nervous bre",
   "path": "Inbox/Web/here is the entirety of Palantir CEO Alex Karp's televised nervous bre.md",
   "topic": "producto",
   "concepts": []
- },
- {
-  "note": "🚨ATENTOS A ESTA LOCURA🚨 Alguien ha creado Un harness de código abier",
-  "path": "Inbox/Web/🚨ATENTOS A ESTA LOCURA🚨 Alguien ha creado Un harness de código abier.md",
-  "topic": "tech",
-  "concepts": [
-   "Herramientas sin agencia propia",
-   "Inventar la técnica, no aplicarla"
-  ]
  },
  {
   "note": "les dejo este video de 20min donde explican 30 conceptos clave de Syst",
@@ -2183,9 +1849,598 @@
   "concepts": []
  },
  {
+  "note": "Anthropic describe opus 4.7 como un modelo orientado a complex reasoni",
+  "path": "Inbox/Web/Anthropic describe opus 4.7 como un modelo orientado a complex reasoni.md",
+  "topic": "tech",
+  "concepts": [
+   "Adopción de IA sin impacto material inmediato"
+  ]
+ },
+ {
+  "note": "Algo que me resultó muy útil es crear tests para los flujos más import",
+  "path": "Inbox/Web/Algo que me resultó muy útil es crear tests para los flujos más import.md",
+  "topic": "tech",
+  "concepts": []
+ },
+ {
+  "note": "2) Understand and refactor a codebase Prompt “Think like a senior engi",
+  "path": "Inbox/Web/2) Understand and refactor a codebase Prompt “Think like a senior engi.md",
+  "topic": "tech",
+  "concepts": [
+   "Inventar la técnica, no aplicarla",
+   "Compounding de capital humano y tecnológico"
+  ]
+ },
+ {
+  "note": "A nice way to stay safe is to ask Claude Code to audit your devices I",
+  "path": "Inbox/Web/A nice way to stay safe is to ask Claude Code to audit your devices I.md",
+  "topic": "tech",
+  "concepts": []
+ },
+ {
+  "note": "AI closed 90% of your support tickets. you released 10 new features th",
+  "path": "Inbox/Web/AI closed 90% of your support tickets. you released 10 new features th.md",
+  "topic": "producto",
+  "concepts": [
+   "Crecimiento que oculta disfunción",
+   "Sobrecapacidad e incompetencia a escala"
+  ]
+ },
+ {
+  "note": "Artículo de @NainsiDwiv50980",
+  "path": "Inbox/Web/Artículo de @NainsiDwiv50980.md",
+  "topic": "otros",
+  "concepts": []
+ },
+ {
+  "note": "Artículo de @ChrisHayduk",
+  "path": "Inbox/Web/Artículo de @ChrisHayduk.md",
+  "topic": "otros",
+  "concepts": []
+ },
+ {
+  "note": "A few reflections on the @OpenAI GPT 5.5 event. On Tuesday I was lucky",
+  "path": "Inbox/Web/A few reflections on the @OpenAI GPT 5.5 event. On Tuesday I was lucky.md",
+  "topic": "tech",
+  "concepts": []
+ },
+ {
+  "note": "@LVMH_Presse The English version for those who would like to read it.",
+  "path": "Inbox/Web/@LVMH_Presse The English version for those who would like to read it..md",
+  "topic": "macro",
+  "concepts": []
+ },
+ {
+  "note": "Anthropic just paid millions to hire Andrej Karpathy. He gave you the",
+  "path": "Inbox/Web/Anthropic just paid millions to hire Andrej Karpathy. He gave you the.md",
+  "topic": "producto",
+  "concepts": [
+   "Herramientas sin agencia propia",
+   "Compounding de capital humano y tecnológico"
+  ]
+ },
+ {
+  "note": "Artículo de @Muzzlebuster",
+  "path": "Inbox/Web/Artículo de @Muzzlebuster.md",
+  "topic": "otros",
+  "concepts": []
+ },
+ {
+  "note": "Anthropic AI team just dropped the Prompting Playbook that beats most",
+  "path": "Inbox/Web/Anthropic AI team just dropped the Prompting Playbook that beats most.md",
+  "topic": "tech",
+  "concepts": []
+ },
+ {
+  "note": "Artículo de @Giuliano_Mana",
+  "path": "Inbox/Web/Artículo de @Giuliano_Mana.md",
+  "topic": "otros",
+  "concepts": []
+ },
+ {
+  "note": "Artículo de @RyanHoliday",
+  "path": "Inbox/Web/Artículo de @RyanHoliday.md",
+  "topic": "personal",
+  "concepts": [
+   "Identidad como precondición del cambio personal",
+   "Incomodidad deliberada como motor de mejora"
+  ]
+ },
+ {
+  "note": "Artículo de @marcoporracin",
+  "path": "Inbox/Web/Artículo de @marcoporracin.md",
+  "topic": "otros",
+  "concepts": []
+ },
+ {
+  "note": "Artículo de @akshay_pachaar",
+  "path": "Inbox/Web/Artículo de @akshay_pachaar.md",
+  "topic": "otros",
+  "concepts": []
+ },
+ {
+  "note": "Artículo de @edels0n",
+  "path": "Inbox/Web/Artículo de @edels0n.md",
+  "topic": "otros",
+  "concepts": []
+ },
+ {
+  "note": "Artículo de @bidah",
+  "path": "Inbox/Web/Artículo de @bidah.md",
+  "topic": "otros",
+  "concepts": []
+ },
+ {
+  "note": "Artículo de @investinyourslv",
+  "path": "Inbox/Web/Artículo de @investinyourslv.md",
+  "topic": "producto",
+  "concepts": []
+ },
+ {
+  "note": "Artículo de @saranormous",
+  "path": "Inbox/Web/Artículo de @saranormous.md",
+  "topic": "otros",
+  "concepts": []
+ },
+ {
+  "note": "Artículo de @mvanhorn",
+  "path": "Inbox/Web/Artículo de @mvanhorn.md",
+  "topic": "otros",
+  "concepts": []
+ },
+ {
+  "note": "Artículo de @trq212 (747935)",
+  "path": "Inbox/Web/Artículo de @trq212 (747935).md",
+  "topic": "otros",
+  "concepts": []
+ },
+ {
+  "note": "As two of the largest forces in equity markets -- growing index owners",
+  "path": "Inbox/Web/As two of the largest forces in equity markets -- growing index owners.md",
+  "topic": "producto",
+  "concepts": [
+   "Poder de mercado y contra-posicionamiento",
+   "Mercados como agregadores falibles de información"
+  ]
+ },
+ {
+  "note": "Automation is a lie. CLIs are over. The SaaSpocalypse is dumb. A year",
+  "path": "Inbox/Web/Automation is a lie. CLIs are over. The SaaSpocalypse is dumb. A year.md",
+  "topic": "tech",
+  "concepts": [
+   "Herramientas sin agencia propia",
+   "El contexto manda sobre la capacidad del modelo"
+  ]
+ },
+ {
+  "note": "As many people know, I'm a CTO, and work a lot with my engineering tea",
+  "path": "Inbox/Web/As many people know, I'm a CTO, and work a lot with my engineering tea.md",
+  "topic": "tech",
+  "concepts": []
+ },
+ {
+  "note": "Bill Ackman literally gave a 44-minute masterclass that explains money",
+  "path": "Inbox/Web/Bill Ackman literally gave a 44-minute masterclass that explains money.md",
+  "topic": "personal",
+  "concepts": [
+   "Compounding de capital humano y tecnológico",
+   "Asignación de un recurso finito"
+  ]
+ },
+ {
+  "note": "Build startups for agents. I think it's the biggest opportunity of the",
+  "path": "Inbox/Web/Build startups for agents. I think it's the biggest opportunity of the.md",
+  "topic": "producto",
+  "concepts": [
+   "Herramientas sin agencia propia",
+   "Software rediseñado para consumidores agénticos"
+  ]
+ },
+ {
+  "note": "CODEX SKILL THAT FINDS YOUR STARTUP’S FIRST CUSTOMERS! I made a Codex",
+  "path": "Inbox/Web/CODEX SKILL THAT FINDS YOUR STARTUP’S FIRST CUSTOMERS! I made a Codex.md",
+  "topic": "producto",
+  "concepts": [
+   "Herramientas sin agencia propia",
+   "Poder empresarial mediante integración vertical"
+  ]
+ },
+ {
+  "note": "Codex has transformed how I run my companies. I have almost 40 busines",
+  "path": "Inbox/Web/Codex has transformed how I run my companies. I have almost 40 busines.md",
+  "topic": "producto",
+  "concepts": [
+   "Herramientas sin agencia propia",
+   "Asignación de un recurso finito"
+  ]
+ },
+ {
+  "note": "CEO of Citadel no one is more wrong than I am today , he built the mos",
+  "path": "Inbox/Web/CEO of Citadel no one is more wrong than I am today , he built the mos.md",
+  "topic": "personal",
+  "concepts": [
+   "Incentivos económicos alineados con desempeño",
+   "Compounding de capital humano y tecnológico"
+  ]
+ },
+ {
+  "note": "Artículo de @reidhoffman",
+  "path": "Inbox/Web/Artículo de @reidhoffman.md",
+  "topic": "producto",
+  "concepts": []
+ },
+ {
+  "note": "Cuando varios agentes trabajan sobre el mismo código, aparece un probl",
+  "path": "Inbox/Web/Cuando varios agentes trabajan sobre el mismo código, aparece un probl.md",
+  "topic": "tech",
+  "concepts": [
+   "Sobrecapacidad e incompetencia a escala",
+   "Punto único de fallo por dependencia humana"
+  ]
+ },
+ {
+  "note": "Chamath Palihapitiya @chamath Bro, there is no failure. That is what o",
+  "path": "Inbox/Web/Chamath Palihapitiya @chamath Bro, there is no failure. That is what o.md",
+  "topic": "personal",
+  "concepts": [
+   "Identidad como precondición del cambio personal",
+   "Incomodidad deliberada como motor de mejora"
+  ]
+ },
+ {
+  "note": "David Siegel was programming supercomputers at age 12 at NYU. By 40 he",
+  "path": "Inbox/Web/David Siegel was programming supercomputers at age 12 at NYU. By 40 he.md",
+  "topic": "macro",
+  "concepts": [
+   "Fortunas construidas en negocios invisibles y equipos mínimos",
+   "Poder empresarial mediante integración vertical"
+  ]
+ },
+ {
+  "note": "Full podcast episode with @rauchg, @maxhodak_, and @bscholl. 40 minute",
+  "path": "Inbox/Web/Full podcast episode with @rauchg, @maxhodak_, and @bscholl. 40 minute.md",
+  "topic": "tech",
+  "concepts": []
+ },
+ {
+  "note": "El que resuelva este problema se llena de guita, lo tiro Las empresas",
+  "path": "Inbox/Web/El que resuelva este problema se llena de guita, lo tiro Las empresas.md",
+  "topic": "producto",
+  "concepts": [
+   "Captura de valor desigual en cadenas globales",
+   "Costos de cambio y efectos de red como barrera"
+  ]
+ },
+ {
+  "note": "He recibido esta noche un cargamento de 12 cajas de Estambul, cada una",
+  "path": "Inbox/Web/He recibido esta noche un cargamento de 12 cajas de Estambul, cada una.md",
+  "topic": "cultura",
+  "concepts": [
+   "Ventaja competitiva imitable erosionándose",
+   "Distinción entre experiencia valiosa y desechable"
+  ]
+ },
+ {
+  "note": "Hay un repo que ya tiene más de 142k stars y +14k forks en GitHub. Tom",
+  "path": "Inbox/Web/Hay un repo que ya tiene más de 142k stars y +14k forks en GitHub. Tom.md",
+  "topic": "tech",
+  "concepts": [
+   "Herramientas sin agencia propia",
+   "Compounding de capital humano y tecnológico"
+  ]
+ },
+ {
+  "note": "How Quake ruined id Software. There has been a lot of praise of Quake",
+  "path": "Inbox/Web/How Quake ruined id Software. There has been a lot of praise of Quake.md",
+  "topic": "cultura",
+  "concepts": [
+   "Cultura organizacional como ventaja fundamental",
+   "Crecimiento que oculta disfunción"
+  ]
+ },
+ {
+  "note": "Good take My guess is - demand for intelligence is near infinite - but",
+  "path": "Inbox/Web/Good take My guess is - demand for intelligence is near infinite - but.md",
+  "topic": "tech",
+  "concepts": [
+   "Estratificación de la inteligencia por precio",
+   "Adopción de IA sin impacto material inmediato"
+  ]
+ },
+ {
+  "note": "Godfather of AI If you sleep well tonight, you may not have understood",
+  "path": "Inbox/Web/Godfather of AI If you sleep well tonight, you may not have understood.md",
+  "topic": "tech",
+  "concepts": []
+ },
+ {
+  "note": "Gran idea esta. Cuando un agente implementa algo, siempre aparecen dec",
+  "path": "Inbox/Web/Gran idea esta. Cuando un agente implementa algo, siempre aparecen dec.md",
+  "topic": "tech",
+  "concepts": []
+ },
+ {
+  "note": "I've started doing a lot of async learning where I'll take every inter",
+  "path": "Inbox/Web/I've started doing a lot of async learning where I'll take every inter.md",
+  "topic": "personal",
+  "concepts": [
+   "Aprendizaje denso en lugar de consumo pasivo",
+   "Compounding de capital humano y tecnológico"
+  ]
+ },
+ {
+  "note": "En vez de 2 horas de Netflix esta noche, mira esta clase magistral de",
+  "path": "Inbox/Web/En vez de 2 horas de Netflix esta noche, mira esta clase magistral de.md",
+  "topic": "tech",
+  "concepts": [
+   "El contexto manda sobre la capacidad del modelo",
+   "Compounding de capital humano y tecnológico"
+  ]
+ },
+ {
+  "note": "Los directivos de Mercado Libre deberían tomar nota de la llamada con",
+  "path": "Inbox/Web/Los directivos de Mercado Libre deberían tomar nota de la llamada con.md",
+  "topic": "producto",
+  "concepts": [
+   "La valuación y el reporting como narrativa a auditar",
+   "Mercados como agregadores falibles de información"
+  ]
+ },
+ {
+  "note": "La mejor forma de entender un Agente de IA es pensar en un loop. 1) El",
+  "path": "Inbox/Web/La mejor forma de entender un Agente de IA es pensar en un loop. 1) El.md",
+  "topic": "tech",
+  "concepts": []
+ },
+ {
+  "note": "LIQUIDITY Bill Ackman joins the Besties! -- Investment evolution activ",
+  "path": "Inbox/Web/LIQUIDITY Bill Ackman joins the Besties! -- Investment evolution activ.md",
+  "topic": "producto",
+  "concepts": [
+   "Poder empresarial mediante integración vertical",
+   "Selección y retención de talento como inversión"
+  ]
+ },
+ {
+  "note": "Me and codex were busy. 🔊 — Sonos 🗃️ — WhatsApp 🪶 — X archive 🧰 —",
+  "path": "Inbox/Web/Me and codex were busy. 🔊 — Sonos 🗃️ — WhatsApp 🪶 — X archive 🧰 —.md",
+  "topic": "tech",
+  "concepts": []
+ },
+ {
+  "note": "MEMORY IS THE MOAT @nikesharora, Chairman &amp; CEO of @PaloAltoNtwks",
+  "path": "Inbox/Web/MEMORY IS THE MOAT @nikesharora, Chairman &amp; CEO of @PaloAltoNtwks.md",
+  "topic": "producto",
+  "concepts": [
+   "Compounding de capital humano y tecnológico",
+   "Poder de mercado y contra-posicionamiento"
+  ]
+ },
+ {
+  "note": "Matthew Smith has spent the last 18 months modeling every well, pipeli",
+  "path": "Inbox/Web/Matthew Smith has spent the last 18 months modeling every well, pipeli.md",
+  "topic": "macro",
+  "concepts": [
+   "Concentración geográfica como vulnerabilidad estratégica",
+   "Punto único de fallo por dependencia humana"
+  ]
+ },
+ {
+  "note": "Lots of people asked how I used Fable to edit its own launch video so",
+  "path": "Inbox/Web/Lots of people asked how I used Fable to edit its own launch video so.md",
+  "topic": "tech",
+  "concepts": [
+   "Herramientas sin agencia propia",
+   "Compounding de capital humano y tecnológico"
+  ]
+ },
+ {
+  "note": "Mejores libros que leí este último tiempo 1) Designing Data-Intensive",
+  "path": "Inbox/Web/Mejores libros que leí este último tiempo 1) Designing Data-Intensive.md",
+  "topic": "producto",
+  "concepts": []
+ },
+ {
+  "note": "Muy buena charla de Anthropic sobre el futuro de MCP. Los agentes func",
+  "path": "Inbox/Web/Muy buena charla de Anthropic sobre el futuro de MCP. Los agentes func.md",
+  "topic": "tech",
+  "concepts": [
+   "Herramientas sin agencia propia",
+   "El contexto manda sobre la capacidad del modelo"
+  ]
+ },
+ {
+  "note": "My current custom prompt with some updates via @pmarca Be organized, a",
+  "path": "Inbox/Web/My current custom prompt with some updates via @pmarca Be organized, a.md",
+  "topic": "personal",
+  "concepts": []
+ },
+ {
+  "note": "Muy buen artículo de OpenAI sobre Harness Engineering y Codex. Explica",
+  "path": "Inbox/Web/Muy buen artículo de OpenAI sobre Harness Engineering y Codex. Explica.md",
+  "topic": "tech",
+  "concepts": [
+   "Herramientas sin agencia propia",
+   "Compounding de capital humano y tecnológico"
+  ]
+ },
+ {
+  "note": "Notes on 100+ Recent Technical Interviews I interview a ton of enginee",
+  "path": "Inbox/Web/Notes on 100+ Recent Technical Interviews I interview a ton of enginee.md",
+  "topic": "producto",
+  "concepts": [
+   "Sobrecapacidad e incompetencia a escala",
+   "Selección y retención de talento como inversión"
+  ]
+ },
+ {
+  "note": "Si hoy tuviese que aprender Claude Code, arrancaría por esto 1) Agent",
+  "path": "Inbox/Web/Si hoy tuviese que aprender Claude Code, arrancaría por esto 1) Agent.md",
+  "topic": "tech",
+  "concepts": [
+   "Aprendizaje amplio antes que especialización temprana",
+   "Inventar la técnica, no aplicarla"
+  ]
+ },
+ {
+  "note": "Nuevo paper junto al Presidente @JMilei Minimum Viable Scale . El Pres",
+  "path": "Inbox/Web/Nuevo paper junto al Presidente @JMilei Minimum Viable Scale . El Pres.md",
+  "topic": "macro",
+  "concepts": [
+   "Sobrecapacidad e incompetencia a escala",
+   "Cultura organizacional como ventaja fundamental"
+  ]
+ },
+ {
+  "note": "Si quisiera aprender Hermes desde cero, empezaría por estos 6 concepto",
+  "path": "Inbox/Web/Si quisiera aprender Hermes desde cero, empezaría por estos 6 concepto.md",
+  "topic": "tech",
+  "concepts": []
+ },
+ {
+  "note": "Something I have been thinking about in the past, the best engineers I",
+  "path": "Inbox/Web/Something I have been thinking about in the past, the best engineers I.md",
+  "topic": "tech",
+  "concepts": [
+   "Punto único de fallo por dependencia humana",
+   "Compounding de capital humano y tecnológico"
+  ]
+ },
+ {
+  "note": "Tengo un sideproject por ahí medio muerto y a veces lo uso de laborato",
+  "path": "Inbox/Web/Tengo un sideproject por ahí medio muerto y a veces lo uso de laborato.md",
+  "topic": "tech",
+  "concepts": [
+   "Herramientas sin agencia propia",
+   "Compounding de capital humano y tecnológico"
+  ]
+ },
+ {
+  "note": "The most basic way AI could blow up imo. I'm not saying it does but th",
+  "path": "Inbox/Web/The most basic way AI could blow up imo. I'm not saying it does but th.md",
+  "topic": "macro",
+  "concepts": [
+   "Ventaja competitiva imitable erosionándose",
+   "Poder empresarial mediante integración vertical"
+  ]
+ },
+ {
+  "note": "SpaceX a clôturé son premier jour de cotation à 2 100 milliards de dol",
+  "path": "Inbox/Web/SpaceX a clôturé son premier jour de cotation à 2 100 milliards de dol.md",
+  "topic": "macro",
+  "concepts": [
+   "Poder empresarial mediante integración vertical",
+   "Poder de mercado y contra-posicionamiento"
+  ]
+ },
+ {
+  "note": "My conversation with @dkhos, CEO of Uber. Dara took over in 2017, when",
+  "path": "Inbox/Web/My conversation with @dkhos, CEO of Uber. Dara took over in 2017, when.md",
+  "topic": "producto",
+  "concepts": []
+ },
+ {
+  "note": "This works really well btw, at the end of your query ask your LLM to s",
+  "path": "Inbox/Web/This works really well btw, at the end of your query ask your LLM to s.md",
+  "topic": "tech",
+  "concepts": []
+ },
+ {
+  "note": "This is my sixth conversation with @GavinSBaker. As always with Gavin,",
+  "path": "Inbox/Web/This is my sixth conversation with @GavinSBaker. As always with Gavin,.md",
+  "topic": "tech",
+  "concepts": [
+   "La energía física como cuello de botella del cómputo",
+   "Concentración geográfica como vulnerabilidad estratégica"
+  ]
+ },
+ {
+  "note": "This Chinese guy created agents in Claude Code for landing pages and s",
+  "path": "Inbox/Web/This Chinese guy created agents in Claude Code for landing pages and s.md",
+  "topic": "producto",
+  "concepts": [
+   "Fortunas construidas en negocios invisibles y equipos mínimos",
+   "Herramientas sin agencia propia"
+  ]
+ },
+ {
+  "note": "Un truco simple para mejorar tus prompts con Claude agregar una regla",
+  "path": "Inbox/Web/Un truco simple para mejorar tus prompts con Claude agregar una regla.md",
+  "topic": "tech",
+  "concepts": []
+ },
+ {
+  "note": "We've been thinking about the best way to use screen data for a while",
+  "path": "Inbox/Web/We've been thinking about the best way to use screen data for a while.md",
+  "topic": "producto",
+  "concepts": [
+   "Distinción entre experiencia valiosa y desechable"
+  ]
+ },
+ {
+  "note": "You can’t outwork the whole world. There’s always going to be someone",
+  "path": "Inbox/Web/You can’t outwork the whole world. There’s always going to be someone.md",
+  "topic": "personal",
+  "concepts": [
+   "Incomodidad deliberada como motor de mejora",
+   "Identidad como precondición del cambio personal"
+  ]
+ },
+ {
+  "note": "tenían un agente con &gt; 400 líneas de system prompt &gt; 12 tools &g",
+  "path": "Inbox/Web/tenían un agente con &gt; 400 líneas de system prompt &gt; 12 tools &g.md",
+  "topic": "tech",
+  "concepts": [
+   "Compounding de capital humano y tecnológico",
+   "Herramientas sin agencia propia"
+  ]
+ },
+ {
+  "note": "🚨ATENTOS A ESTA LOCURA🚨 Alguien ha creado Un harness de código abier",
+  "path": "Inbox/Web/🚨ATENTOS A ESTA LOCURA🚨 Alguien ha creado Un harness de código abier.md",
+  "topic": "tech",
+  "concepts": [
+   "Inventar la técnica, no aplicarla",
+   "Herramientas sin agencia propia"
+  ]
+ },
+ {
+  "note": "how I’m building an agent company inside my agency. the structure look",
+  "path": "Inbox/Web/how I’m building an agent company inside my agency. the structure look.md",
+  "topic": "producto",
+  "concepts": [
+   "Compounding de capital humano y tecnológico",
+   "Fortunas construidas en negocios invisibles y equipos mínimos"
+  ]
+ },
+ {
+  "note": "Yesterday was a very surreal day in many ways. Waking up to see that S",
+  "path": "Inbox/Web/Yesterday was a very surreal day in many ways. Waking up to see that S.md",
+  "topic": "producto",
+  "concepts": []
+ },
+ {
+  "note": "instead of watching 2 hours of Netflix tonight, watch this 40-minute m",
+  "path": "Inbox/Web/instead of watching 2 hours of Netflix tonight, watch this 40-minute m.md",
+  "topic": "tech",
+  "concepts": [
+   "Herramientas sin agencia propia",
+   "Compounding de capital humano y tecnológico"
+  ]
+ },
+ {
+  "note": "Today, we're introducing Lassie and $47M in funding led by a16z. We're",
+  "path": "Inbox/Web/Today, we're introducing Lassie and $47M in funding led by a16z. We're.md",
+  "topic": "producto",
+  "concepts": []
+ },
+ {
   "note": "🔥 Les comento mi nuevo proyecto HEDGE FUND IEM Les enseño el diagrama",
   "path": "Inbox/Web/🔥 Les comento mi nuevo proyecto HEDGE FUND IEM Les enseño el diagrama.md",
   "topic": "tech",
-  "concepts": []
+  "concepts": [
+   "Herramientas sin agencia propia",
+   "El contexto manda sobre la capacidad del modelo"
+  ]
  }
 ]
