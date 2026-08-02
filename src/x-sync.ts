@@ -63,7 +63,16 @@ const host = (url: string): string => {
   }
 };
 
+/**
+ * X Articles: el formato largo de X. Viven en un dominio de X pero NO son una
+ * auto-referencia — son el contenido. Descartarlos por dominio dejaba 92 notas
+ * como `reference` y sin siquiera el link: el cuerpo quedaba en un `t.co` pelado
+ * y ni el clasificador de topics podía sacarles nada.
+ */
+const X_ARTICLE = /^https?:\/\/(?:www\.)?(?:x|twitter)\.com\/i\/article\//i;
+
 const isInternal = (url: string): boolean => {
+  if (X_ARTICLE.test(url)) return false;
   const h = host(url);
   return h === "x.com" || h === "twitter.com" || h.endsWith(".x.com");
 };
@@ -155,6 +164,21 @@ export function itemKey(item: XItem): string {
   return ext[0] ? canonicalizeUrl(ext[0]) : `tweet:${item.id}`;
 }
 
+/**
+ * Todas las identidades bajo las que este ítem puede estar ya en la vault.
+ *
+ * Un tweet que apunta a un X Article se identifica por el artículo, pero si Fede
+ * ya clippeó ese artículo con Web Clipper la nota quedó guardada con la URL del
+ * TWEET. Con una sola clave no matchean: el sync escribe el duplicado, el dedupe
+ * del plugin lo manda a la papelera un segundo después, y en el próximo sync
+ * vuelve a faltar. Pasó con 6 notas, en loop.
+ */
+export function itemKeys(item: XItem): string[] {
+  const primary = itemKey(item);
+  const byTweet = `tweet:${item.id}`;
+  return primary === byTweet ? [primary] : [primary, byTweet];
+}
+
 const STATUS_URL = /^https?:\/\/(?:www\.)?(?:x|twitter)\.com\/[^/]+\/status\/(\d+)/i;
 
 /**
@@ -169,6 +193,39 @@ const STATUS_URL = /^https?:\/\/(?:www\.)?(?:x|twitter)\.com\/[^/]+\/status\/(\d
 export function keyFromVaultUrl(url: string): string {
   const id = STATUS_URL.exec(url)?.[1];
   return id ? `tweet:${id}` : canonicalizeUrl(url);
+}
+
+/**
+ * TODAS las claves bajo las que una nota de la vault puede reconocerse.
+ *
+ * Un mismo tweet se identifica distinto según lo que lleve adentro: por su id si
+ * no tiene link externo, por la URL de destino si lo tiene. Una nota vieja
+ * guardada con `url: <tweet>` y un ítem que ahora resuelve a un X Article no
+ * matchean si se elige una sola forma — y el sync escribe un duplicado que el
+ * dedupe del plugin borra un segundo después, en loop. Indexar por las dos
+ * cierra el círculo.
+ */
+export function vaultUrlKeys(url: string): string[] {
+  const canonical = canonicalizeUrl(url);
+  const id = STATUS_URL.exec(url)?.[1];
+  return id ? [canonical, `tweet:${id}`] : [canonical];
+}
+
+/**
+ * Título de la nota. Un tweet sin texto propio —solo un link— igual merece un
+ * nombre: "sin-titulo (167475)" en la cola de lectura no dice nada y hace que
+ * la cola parezca rota.
+ */
+export function noteTitle(item: XItem): string {
+  const base = noteBasename(item.text);
+  if (base !== "sin-titulo") return base;
+  const handle = item.authorHandle ? `@${item.authorHandle}` : "X";
+  if (item.urls.some((u) => X_ARTICLE.test(u))) return `Artículo de ${handle}`;
+  if (externalUrls(item).length > 0) return `Link de ${handle}`;
+  if (item.mediaTypes.some((t) => t === "video" || t === "animated_gif")) {
+    return `Video de ${handle}`;
+  }
+  return `Post de ${handle}`;
 }
 
 /**
@@ -296,12 +353,13 @@ export function planSync(
   const seen = new Set<string>();
 
   for (const item of items) {
-    const key = itemKey(item);
-    if (existingKeys.has(key) || seen.has(key)) {
+    const keys = itemKeys(item);
+    const key = keys[0] as string;
+    if (keys.some((k) => existingKeys.has(k) || seen.has(k))) {
       plan.duplicates++;
       continue;
     }
-    seen.add(key);
+    for (const k of keys) seen.add(k);
     const t = triage(item, opts);
     plan.byKind[t.kind]++;
     if (t.destination === "queue") plan.toQueue++;

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { canonicalizeUrl } from "../src/url-canon";
 import {
   allocateFilename,
   classify,
@@ -7,6 +8,8 @@ import {
   itemKey,
   keyFromVaultUrl,
   noteBasename,
+  noteTitle,
+  vaultUrlKeys,
   planSync,
   renderNote,
   textWithoutLinks,
@@ -74,6 +77,21 @@ describe("classify", () => {
   it("video gana sobre link externo cuando hay ambos", () => {
     const item = mk({ mediaTypes: ["video"], urls: ["https://ssrn.com/abstract=1"] });
     expect(classify(item)).toBe("watch");
+  });
+
+  it("un X Article es lectura, no una auto-referencia a x.com", () => {
+    // 92 casos reales quedaban como reference y sin link: el tweet solo dice
+    // "https://t.co/xxx" y el artículo entero se perdía por filtrar por dominio.
+    const item = mk({
+      text: "https://t.co/GFF2O1PhOh",
+      urls: ["http://x.com/i/article/2059643924369604611"],
+    });
+    expect(classify(item)).toBe("read");
+    expect(externalUrls(item)).toEqual(["http://x.com/i/article/2059643924369604611"]);
+  });
+
+  it("un link a un status de X sigue siendo interno", () => {
+    expect(externalUrls(mk({ urls: ["https://x.com/u/status/123"] }))).toEqual([]);
   });
 
   it("repos y tiendas son referencia, no lectura", () => {
@@ -189,6 +207,37 @@ describe("noteBasename", () => {
   });
 });
 
+describe("vaultUrlKeys", () => {
+  it("indexa el tweet por sus dos formas, así el sync no oscila", () => {
+    // El caso real: una nota vieja guardada con `url: <tweet>` frente a un ítem
+    // que ahora resuelve a un X Article. Con una sola forma no matchean, el
+    // sync escribe el duplicado y el dedupe del plugin lo borra — en loop.
+    const keys = vaultUrlKeys("https://x.com/alguien/status/123");
+    expect(keys).toContain("tweet:123");
+    expect(keys).toContain(canonicalizeUrl("https://x.com/alguien/status/123"));
+  });
+
+  it("una URL común tiene una sola forma", () => {
+    expect(vaultUrlKeys("https://ssrn.com/abstract=1")).toHaveLength(1);
+  });
+});
+
+describe("noteTitle", () => {
+  it("un tweet sin texto propio no se llama 'sin-titulo'", () => {
+    expect(noteTitle(mk({ text: "https://t.co/a", urls: ["http://x.com/i/article/9"] })))
+      .toBe("Artículo de @alguien");
+    expect(noteTitle(mk({ text: "https://t.co/a", urls: ["https://ssrn.com/a"] })))
+      .toBe("Link de @alguien");
+    expect(noteTitle(mk({ text: "https://t.co/a", mediaTypes: ["video"] })))
+      .toBe("Video de @alguien");
+    expect(noteTitle(mk({ text: "https://t.co/a" }))).toBe("Post de @alguien");
+  });
+
+  it("cuando hay texto, el texto manda", () => {
+    expect(noteTitle(mk({ text: "una idea concreta" }))).toBe("una idea concreta");
+  });
+});
+
 describe("allocateFilename", () => {
   it("colisiones sucesivas del mismo nombre no se pisan", () => {
     const used = new Set<string>();
@@ -248,6 +297,16 @@ describe("planSync", () => {
     expect(plan.byKind).toEqual({ read: 2, watch: 1, reference: 1 });
     expect(plan.toQueue).toBe(2);
     expect(plan.toLegacy).toBe(2);
+  });
+
+  it("un artículo ya clippeado por Web Clipper no se vuelve a escribir", () => {
+    // El caso real: la nota vieja se guardó con la URL del tweet, pero el ítem
+    // ahora se identifica por la URL del X Article. Sin chequear las dos
+    // identidades el sync entra en loop con el dedupe del plugin.
+    const item = mk({ id: "777", urls: ["http://x.com/i/article/999"] });
+    const plan = planSync([item], new Set(["tweet:777"]), { now: NOW });
+    expect(plan.duplicates).toBe(1);
+    expect(plan.items).toHaveLength(0);
   });
 
   it("no explota con lote vacío", () => {

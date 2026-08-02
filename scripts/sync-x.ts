@@ -18,10 +18,10 @@ import { homedir } from "node:os";
 import { addToUrlIndex, type UrlIndex } from "../src/url-canon";
 import {
   allocateFilename,
-  keyFromVaultUrl,
-  noteBasename,
+  noteTitle,
   planSync,
   renderNote,
+  vaultUrlKeys,
   type XItem,
 } from "../src/x-sync";
 
@@ -123,10 +123,14 @@ function existingKeys(): Set<string> {
       }
       if (!e.name.endsWith(".md")) continue;
       const text = readFileSync(join(abs, e.name), "utf-8");
-      for (const field of ["url", "targetUrl"]) {
+      // `source` va incluido a propósito: el template viejo del Web Clipper
+      // guarda la URL ahí y no en `url`. El plugin ya lo resuelve así
+      // (`articleFromFile`); si acá no, el sync ve como nueva una nota que ya
+      // existe y el dedupe del plugin la borra apenas se escribe.
+      for (const field of ["url", "targetUrl", "source"]) {
         const m = text.match(new RegExp(`^${field}:\\s*"?([^"\\s]+)"?`, "m"));
-        if (m?.[1]) {
-          keys.add(keyFromVaultUrl(m[1]));
+        if (m?.[1] && /^https?:\/\//i.test(m[1])) {
+          for (const k of vaultUrlKeys(m[1])) keys.add(k);
           addToUrlIndex(index, m[1], {
             path: join(rel, e.name),
             title: e.name.replace(/\.md$/, ""),
@@ -195,7 +199,7 @@ for (const { item, triage } of target.slice(0, LIMIT)) {
   const note = renderNote(item, triage, { webFolder: WEB, legacyFolder: LEGACY });
   const dir = join(VAULT, note.folder);
   mkdirSync(dir, { recursive: true });
-  const base = noteBasename(item.text);
+  const base = noteTitle(item);
   const name = allocateFilename(base, usedIn(dir), item.id.slice(-6));
   writeFileSync(
     join(dir, `${name}.md`),
