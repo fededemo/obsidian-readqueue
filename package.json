@@ -14,7 +14,10 @@
     "import-matter": "tsx scripts/import-matter.ts",
     "sync-kindle": "tsx scripts/sync-kindle.ts",
     "build:extension": "cd extension && node esbuild.config.mjs production",
-    "sync-x": "tsx scripts/sync-x.ts"
+    "sync-x": "tsx scripts/sync-x.mts",
+    "sync-x:refetch": "tsx scripts/refetch-x-text.mts",
+    "gardener": "tsx scripts/gardener.mts",
+    "classify-books": "tsx scripts/classify-books.mts"
   },
   "keywords": [
     "obsidian",

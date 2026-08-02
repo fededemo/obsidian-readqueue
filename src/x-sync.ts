@@ -156,6 +156,50 @@ export function triage(item: XItem, opts: TriageOptions = {}): XTriage {
   return { kind, destination: "queue", reason: kind === "watch" ? "video reciente" : "lectura reciente" };
 }
 
+/**
+ * A partir de acá el texto huele a truncado por la API.
+ *
+ * X corta en 280 y engancha un `t.co`; el texto completo viaja aparte y birdclaw
+ * no lo guarda. Medido sobre los 650 de Fede: **ningún tweet supera los 500
+ * caracteres**, lo cual es imposible en un corpus real donde los posts largos
+ * llegan a miles. Un caso concreto: 293 guardados contra 3.247 reales.
+ */
+const TRUNCATION_SUSPECT_MIN = 240;
+
+/**
+ * ¿Vale la pena ir a buscar el texto completo de este tweet?
+ *
+ * Es un **prefiltro**, no un veredicto: la decisión real se toma comparando con
+ * lo que devuelve FxTwitter. Acá solo se evita gastar una request por cada tweet
+ * corto, que por definición no puede estar cortado en 280.
+ */
+export function looksTruncated(item: Pick<XItem, "text" | "urls">): boolean {
+  if (item.text.length < TRUNCATION_SUSPECT_MIN) return false;
+  const trailing = /(https:\/\/t\.co\/\w+)\s*$/.exec(item.text);
+  if (!trailing) return false;
+  // Si lo último es un link a algo externo, el tweet termina ahí a propósito.
+  // El corte de X engancha un puntero a su propio contenido (foto, video, hilo).
+  return item.urls.every((u) => !u || isInternal(u) || !item.text.endsWith(u));
+}
+
+/**
+ * Reemplaza la cita del tweet dejando el resto de la nota intacto.
+ *
+ * Se toca solo el primer bloque `>`: lo que sigue es la atribución al autor y la
+ * lista de links, y el frontmatter ya trae `topic`, `tldr` y `shelfLife` que
+ * costaron plata. Regenerar la nota entera los perdería.
+ */
+export function replaceQuoteBlock(body: string, text: string): string {
+  const lines = body.split("\n");
+  let start = 0;
+  while (start < lines.length && (lines[start] ?? "").trim() === "") start++;
+  if (!/^>/.test(lines[start] ?? "")) return body;
+  let end = start;
+  while (end < lines.length && /^>/.test(lines[end] ?? "")) end++;
+  const quoted = text.split("\n").map((l) => (l ? `> ${l}` : ">"));
+  return [...lines.slice(0, start), ...quoted, ...lines.slice(end)].join("\n");
+}
+
 /** Clave canónica para deduplicar contra lo que ya está en la vault. */
 export function itemKey(item: XItem): string {
   const ext = externalUrls(item);
@@ -277,6 +321,24 @@ export function allocateFilename(
   }
 }
 
+/**
+ * Título para mostrar en la cola, distinto del nombre de archivo.
+ *
+ * El nombre de archivo son los primeros 70 caracteres saneados, que en un post
+ * largo corta a mitad de palabra. La primera línea de un tweet, en cambio, suele
+ * ser el titular —"how I'm building an agent company inside my agency."— y ahora
+ * que recuperamos el texto completo esa línea está disponible de verdad.
+ *
+ * Va en el frontmatter y no en el nombre del archivo a propósito: renombrar
+ * dispara el watcher de dedupe del plugin, que manda la nota a la papelera.
+ * `articleFromFile` ya prefiere `title` sobre el basename.
+ */
+export function displayTitle(item: XItem): string {
+  const firstLine = textWithoutLinks((item.text.split("\n")[0] ?? "").trim());
+  if (firstLine.length >= 10 && firstLine.length <= 100) return firstLine;
+  return noteTitle(item);
+}
+
 export interface XNote {
   frontmatter: Record<string, unknown>;
   body: string;
@@ -301,6 +363,7 @@ export function renderNote(
 
   const frontmatter: Record<string, unknown> = {
     source,
+    title: displayTitle(item),
     url,
     author: `@${item.authorHandle}`,
     published: item.createdAt.slice(0, 10),

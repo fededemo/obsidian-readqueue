@@ -18,12 +18,14 @@ import { homedir } from "node:os";
 import { addToUrlIndex, type UrlIndex } from "../src/url-canon";
 import {
   allocateFilename,
+  looksTruncated,
   noteTitle,
   planSync,
   renderNote,
   vaultUrlKeys,
   type XItem,
 } from "../src/x-sync";
+import { fetchFullText, sleep, tweetIdFromUrl } from "./lib/fx.mjs";
 
 const VAULT = join(homedir(), "fedenotes");
 const DB = join(homedir(), ".birdclaw", "birdclaw.sqlite");
@@ -177,8 +179,41 @@ if (DRY) {
   process.exit(0);
 }
 
+/**
+ * Antes de escribir, recuperar el texto de los que vinieron cortados.
+ *
+ * La API de X trunca en 280 caracteres y engancha un `t.co`; el post entero
+ * viaja aparte y birdclaw no lo guarda. Medido: 293 caracteres archivados
+ * contra 3.247 reales. FxTwitter lo devuelve completo, gratis.
+ *
+ * Solo sobre lo que efectivamente se va a escribir — enriquecer los 650 en cada
+ * corrida sería castigar un servicio público para nada.
+ */
 let written = 0;
 const target = plan.items.filter((x) => !QUEUE_ONLY || x.triage.destination === "queue");
+
+const truncated = target.filter((x) => looksTruncated(x.item));
+if (truncated.length > 0 && !DRY) {
+  console.log(`\nrecuperando texto completo de ${truncated.length} tweets cortados…`);
+  let ok = 0;
+  const queue = [...truncated];
+  await Promise.all(
+    Array.from({ length: 3 }, async () => {
+      while (queue.length > 0) {
+        const entry = queue.shift();
+        if (!entry) break;
+        const id = tweetIdFromUrl(`https://x.com/x/status/${entry.item.id}`);
+        const full = id ? await fetchFullText(id) : undefined;
+        await sleep(250);
+        if (full && full.length > entry.item.text.length) {
+          entry.item = { ...entry.item, text: full };
+          ok++;
+        }
+      }
+    }),
+  );
+  console.log(`  recuperados: ${ok}/${truncated.length}`);
+}
 /** Nombres ya tomados, por carpeta. Se siembra con lo que hay en disco. */
 const taken = new Map<string, Set<string>>();
 const usedIn = (dir: string): Set<string> => {

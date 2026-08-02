@@ -4,14 +4,17 @@ import { canonicalizeUrl } from "../src/url-canon";
 import {
   allocateFilename,
   classify,
+  displayTitle,
   externalUrls,
   itemKey,
   keyFromVaultUrl,
+  looksTruncated,
   noteBasename,
   noteTitle,
   vaultUrlKeys,
   planSync,
   renderNote,
+  replaceQuoteBlock,
   textWithoutLinks,
   triage,
   type XItem,
@@ -344,5 +347,84 @@ describe("renderNote", () => {
     const n = renderNote(a, triage(a, { now: NOW }), opts);
     expect(n.body).toContain("> uno\n> dos");
     expect(n.body).toContain("https://x.com/alguien/status/1");
+  });
+});
+
+describe("looksTruncated", () => {
+  const largo = "x".repeat(260);
+
+  it("un texto largo que termina en un t.co de su propia foto huele a cortado", () => {
+    // El caso medido: 293 caracteres guardados contra 3.247 reales.
+    expect(
+      looksTruncated({
+        text: `${largo} https://t.co/abc`,
+        urls: ["https://x.com/u/status/1/photo/1"],
+      }),
+    ).toBe(true);
+  });
+
+  it("un tweet corto no puede estar cortado en 280", () => {
+    expect(looksTruncated({ text: "corto https://t.co/abc", urls: [] })).toBe(false);
+  });
+
+  it("sin t.co al final no hay nada que sospechar", () => {
+    expect(looksTruncated({ text: largo, urls: [] })).toBe(false);
+  });
+
+  it("un t.co en el medio no cuenta: el corte va siempre al final", () => {
+    expect(looksTruncated({ text: `${largo} https://t.co/abc y sigue`, urls: [] })).toBe(false);
+  });
+});
+
+describe("replaceQuoteBlock", () => {
+  const body = `> uno
+> dos
+
+— [@alguien](https://x.com/alguien/status/1)
+
+## Links
+
+- https://ejemplo.com
+`;
+
+  it("reemplaza la cita y no toca lo de abajo", () => {
+    const next = replaceQuoteBlock(body, "texto completo\ncon dos líneas");
+    expect(next).toContain("> texto completo\n> con dos líneas");
+    expect(next).not.toContain("> uno");
+    expect(next).toContain("— [@alguien](https://x.com/alguien/status/1)");
+    expect(next).toContain("- https://ejemplo.com");
+  });
+
+  it("las líneas vacías del tweet quedan como cita, no cortan el bloque", () => {
+    const next = replaceQuoteBlock(body, "primer párrafo\n\nsegundo párrafo");
+    expect(next).toContain("> primer párrafo\n>\n> segundo párrafo");
+  });
+
+  it("un cuerpo sin cita queda igual", () => {
+    expect(replaceQuoteBlock("sin blockquote\n", "nuevo")).toBe("sin blockquote\n");
+  });
+});
+
+describe("displayTitle", () => {
+  it("la primera línea de un post largo suele ser el titular", () => {
+    const item = mk({
+      text: "how I’m building an agent company inside my agency.\n\nthe structure looks like this:\n\nAgency gBrain\n→ Orchestrator",
+    });
+    expect(displayTitle(item)).toBe("how I’m building an agent company inside my agency.");
+  });
+
+  it("una primera línea larguísima cae al nombre corto", () => {
+    const item = mk({ text: `${"x".repeat(200)}\n\nsigue` });
+    expect(displayTitle(item)).toBe(noteTitle(item));
+  });
+
+  it("una primera línea de dos palabras no sirve de título", () => {
+    const item = mk({ text: "mirá\n\nesto es el contenido de verdad del post" });
+    expect(displayTitle(item)).toBe(noteTitle(item));
+  });
+
+  it("un tweet sin texto propio usa el nombre por tipo", () => {
+    const item = mk({ text: "https://t.co/abc", urls: ["http://x.com/i/article/9"] });
+    expect(displayTitle(item)).toBe("Artículo de @alguien");
   });
 });

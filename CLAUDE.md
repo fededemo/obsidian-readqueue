@@ -195,7 +195,9 @@ Cobertura prioritaria:
 1. **Lo que decide identidad va en un módulo puro con tests, no en un script.** Los cuatro bugs de idempotencia del sync de X (B-739) vivían todos en `scripts/sync-x.ts`, que no tenía tests. Uno habría reescrito 487 notas en el siguiente sync — la misma forma que B-327 en Kindle.
 2. **El contenido es la verdad de terreno; la metadata es una pista.** Clasificar libros por título dejaba 33 de 34 en `topic: otros`; clasificarlos por sus highlights los reparte bien (B-506).
 3. **Los pases que escriben en la vault son upgrade-only.** El clasificador oscila en casos de frontera, y sin ese guard cada corrida pisa una corrección que hizo Fede a mano.
-4. **Un gate que rechaza sus propios ejemplos está roto.** El checklist de notas-concepto rechazaba una nota que el estándar cita como modelo; la respuesta correcta fue mover el largo de bloqueo a aviso, no subir el umbral hasta que pasara.
+4. **Nunca escribir la nota nueva antes de borrar la vieja.** El watcher de dedupe del plugin corre en vivo: si por un instante existen dos notas con la misma URL, manda la nueva a la papelera — y si el script después borra la vieja, se pierden las dos. Pasó: 13 notas de papers destruidas, recuperadas del git de la vault. **Para cambiar el nombre visible de una nota, escribir `title` en el frontmatter en vez de renombrar el archivo**: `articleFromFile` lo prefiere sobre el basename y no dispara ningún watcher.
+5. **La API de X trunca en 280 caracteres.** Guardaba 293 donde el post real tenía 3.247. `looksTruncated` + FxTwitter lo recuperan; el sync ya lo hace solo para lo nuevo.
+6. **Un gate que rechaza sus propios ejemplos está roto.** El checklist de notas-concepto rechazaba una nota que el estándar cita como modelo; la respuesta correcta fue mover el largo de bloqueo a aviso, no subir el umbral hasta que pasara.
 
 **Pendiente de Fede** (ningún agente lo puede hacer): aplicar las conexiones a `Concepts/` (B-731) y los conceptos latentes (B-741), instalar el LaunchAgent del gardener, el primer sync real de Kindle (F5.0, B-321), el spike del Cloud Reader (B-324) y `xcode-select --install` (B-607 — `/opt/homebrew/bin/node` está roto).
 
