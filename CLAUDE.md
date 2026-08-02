@@ -6,7 +6,7 @@
 
 **obsidian-readqueue** es un plugin de Obsidian que reemplaza la UX de Matter (read-it-later) dentro de la vault. Resuelve la pieza floja de Obsidian Web Clipper: gestionar la cola de lectura.
 
-- **Estado**: **v0.3.0 publicado** (GitHub Release con artefactos BRAT). MVP (F1) + polish (F2) shipped; Kindle highlights integrado con **solución propia** (extensión Chrome + CLI, no plugin ajeno); highlights como producto (F4) shipped. Último: MX11–MX15 (subrayado por selección, re-sync incremental Kindle, vista unificada de highlights + repaso diario, polish de lectura, fix búsqueda mobile). **F5 en curso** (MX22–MX25 en `[Unreleased]`): sync Kindle confiable (fix `DOMParser` + sidecar en vault), wishlist de Amazon → `Books/`, recomendador "¿Qué leo ahora?". MX15+F5 están en `main`/working tree pero **sin release** todavía. Detalle por hito en `docs/ROADMAP.md` + `CHANGELOG.md`.
+- **Estado**: **v0.3.0 publicado**; todo lo de F5 en adelante está en `[Unreleased]` (655 tests verdes, TS estricto). F1–F4 shipped. **F5** (Kindle + wishlist + recomendador) code-complete, falta la puesta en marcha real. **F6/F7/F8 cerrados del lado del código**: el segundo cerebro tiene capa cruda, capa wiki (`Concepts/`), priorizador por grafo, ritual diario, X completo y gardener semanal. **Sin release hasta OK explícito de Fede.** Ver «Última actualización» al final y `docs/SEGUNDO-CEREBRO.md`.
 - **Plan original**: `~/.claude/plans/imperative-sparking-dusk.md`
 - **Vault target del user**: `fedenotes` en `~/fedenotes` (local, versionada con git, sincronizada con **Obsidian Sync**). Migrada desde iCloud el 2026-08-01 — ver `docs/SEGUNDO-CEREBRO.md` §4.7.
 
@@ -182,6 +182,22 @@ Cobertura prioritaria:
 - `queue-view.ts` (UI) — 40%+ (E2E manual cubre el resto)
 
 ## Última actualización
+
+2026-08-01 — **Segundo cerebro: fases A–F cerradas del lado del código.** El detalle vive en `docs/SEGUNDO-CEREBRO.md` (documento maestro) y `docs/backlog.md`. Lo que cambió y conviene saber antes de tocar nada:
+
+- **La vault tiene ~1.400 notas** y `topic` al 100% en todo lo de lectura, incluidas las **519 de X** (`Inbox/Legacy/X`, E2) y los 34 libros de Kindle.
+- **`Concepts/` existe**: 29 notas-concepto con estándar propio (`docs/vault-gardener/ESTANDAR-NOTAS-CONCEPTO.md`) y un gate automático (`src/concept-note.ts`).
+- **El priorizador usa el grafo de conceptos**, no el `topic`: con 7 topics para 284 notas había 7 valores de contexto distintos; con conceptos hay 28.
+- **El gardener** (`scripts/gardener.mts` + `scripts/launchd/`) mantiene el grafo solo, semanalmente. Escribe únicamente en `Concepts/` y `Diario/`.
+
+**Lecciones que costaron caro y conviene no repetir:**
+
+1. **Lo que decide identidad va en un módulo puro con tests, no en un script.** Los cuatro bugs de idempotencia del sync de X (B-739) vivían todos en `scripts/sync-x.ts`, que no tenía tests. Uno habría reescrito 487 notas en el siguiente sync — la misma forma que B-327 en Kindle.
+2. **El contenido es la verdad de terreno; la metadata es una pista.** Clasificar libros por título dejaba 33 de 34 en `topic: otros`; clasificarlos por sus highlights los reparte bien (B-506).
+3. **Los pases que escriben en la vault son upgrade-only.** El clasificador oscila en casos de frontera, y sin ese guard cada corrida pisa una corrección que hizo Fede a mano.
+4. **Un gate que rechaza sus propios ejemplos está roto.** El checklist de notas-concepto rechazaba una nota que el estándar cita como modelo; la respuesta correcta fue mover el largo de bloqueo a aviso, no subir el umbral hasta que pasara.
+
+**Pendiente de Fede** (ningún agente lo puede hacer): aplicar las conexiones a `Concepts/` (B-731) y los conceptos latentes (B-741), instalar el LaunchAgent del gardener, el primer sync real de Kindle (F5.0, B-321), el spike del Cloud Reader (B-324) y `xcode-select --install` (B-607 — `/opt/homebrew/bin/node` está roto).
 
 2026-07-05 — **F5 en curso** (plan: `docs/plans/f5-libros-y-recomendaciones.md`). Shipped en código, en `[Unreleased]`:
 - **MX22** — confiabilidad del sync Kindle: fix del bug fatal `DOMParser` en el service worker (parseo movido al offscreen document), sidecar `.kindle-sync-state.json` en la vault como fuente de verdad (módulo puro `src/kindle-sync-plan.ts`, "Reset libros" ya no pisa ediciones), permisos/errores visibles en el popup, `extension/README.md` reescrito.

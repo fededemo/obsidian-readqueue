@@ -20,7 +20,7 @@
 
 | ID | Descripción | Status | Agent | Dependencies | Acceptance |
 |----|-------------|--------|-------|--------------|------------|
-| B-101 | Tests E2E del flujo "save → intake → cola → lectura" | TODO | qa-tester | B-002, B-004 | Único ítem de ingeniería que queda sin bloquear. 626 tests unitarios cubren los módulos puros; falta el hilo completo end-to-end en CI |
+| B-101 | Tests E2E del flujo "save → intake → cola → lectura" | **DONE** | qa-tester | B-002, B-004 | ✅ `tests/e2e-flow.test.ts`. Los 650 unitarios cubren cada módulo por separado y por eso mismo no cubrían lo que los une: **que lo que el intake escribe sea lo que la cola sabe leer**. Cubre el hilo entero (URL pendiente → intake → `articleFromFile` → filtros → `rankQueue` → marcar leído), la rama de Twitter, y la **buena formación del frontmatter** — el `yamlStringify` estaba fakeado en todos los tests, así que el formato real no lo verificaba nadie. Verificado que el guard rechaza el `---source:` en una línea que rompió 446 notas hoy |
 | B-102 | ~~README + screenshots para BRAT users~~ | **NO SE HACE** | — | B-006 | BRAT dejó de usarse cuando la vault pasó a Obsidian Sync (B-725), que propaga `.obsidian/plugins/` nativamente. No hay "BRAT users": el único usuario es Fede y le llega solo |
 
 ## P2 — Nice to have
