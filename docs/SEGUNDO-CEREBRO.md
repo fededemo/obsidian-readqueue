@@ -2,7 +2,7 @@
 
 > **Qué es esto**: el documento único que baja todo. Qué queremos, dónde estamos, **qué cambia respecto de cómo lo hacemos hoy**, y los próximos pasos.
 > Consolida ADR-002 a ADR-006 + F7 + la secuencia. Si vas a leer un solo documento, es este.
-> Última actualización: 2026-08-01.
+> Última actualización: 2026-08-01 (post fases B–E).
 
 ---
 
@@ -43,15 +43,15 @@ wiki/    ← conceptos y artículos sintetizados. LO MANTIENE EL LLM. REGENERABL
 
 | | Estado |
 |---|---|
-| **Notas en la vault** | **674** (`Books/Wishlist` 244 · `Inbox/Web` 175 · `Inbox/Legacy` 172 · `Inbox/Read` 39 · `Inbox/Kindle` 34) |
-| **Metadata** | `topic` y `tags` al **100%** en las 420 notas de lectura. `status` explícito al 100% (2026-08-01) |
-| **Capa `raw/`** | ✅ **Existe de hecho**: todo `Inbox/` + `Books/`. Local, versionada con git, fuera de iCloud |
-| **Capa wiki/conceptos** | ❌ **No existe.** Cero notas-concepto |
-| **Ingesta** | ✅ Web, Kindle, libros. 🟡 X (F7: 450 bookmarks + 200 likes ya bajados) |
-| **Consulta** | ✅ `/vault-ask` + `/vault-link`. El 1er demo quedó superado: mezclaba leído con no leído (ADR-005 §9-bis) → se rehace en B1 |
-| **Refresco** | 🟡 Resurfacing de highlights sin relevancia |
+| **Notas en la vault** | **~1.400** (`Inbox/Legacy` 691 = Matter 172 + **X 519** · `Books` 277 · `Inbox/Web` 301 · `Inbox/Read` 39 · `Inbox/Kindle` 34 · **`Concepts` 29**) |
+| **Metadata** | `topic` al **100%** en todo lo de lectura, incluidas las 519 de X. `status` explícito al 100% |
+| **Capa `raw/`** | ✅ Todo `Inbox/` + `Books/`. Local, versionada con git, fuera de iCloud |
+| **Capa wiki/conceptos** | ✅ **Existe**: 29 notas-concepto con tesis, fuentes en diálogo y tensión (estándar en `vault-gardener/ESTANDAR-NOTAS-CONCEPTO.md`) |
+| **Ingesta** | ✅ Web, Kindle, libros, **X completo** (E1 a la cola + E2 a la capa fría) |
+| **Consulta** | ✅ `/vault-ask` + `/vault-link`. El pase de conexiones se rehizo con los 3 tipos (B-731) |
+| **Refresco** | ✅ Ritual diario + priorizador con grafo de conceptos. 🟡 Falta el gardener programado (B-712) |
 
-**El diagnóstico en una frase**: tenés `raw/` muy bien resuelto y **la wiki no existe**. Todo lo demás son detalles.
+**El diagnóstico, actualizado (2026-08-01)**: lo que faltaba —la wiki— existe. Lo que queda es **mantenimiento automático**: hoy cada pase lo dispara alguien a mano.
 
 ## 4. Qué cambia respecto de cómo lo hacemos hoy
 
@@ -169,7 +169,7 @@ Cada paso alimenta al siguiente. Detalle en §5 de este documento.
 
 Con A2+A3 la vault tiene **red de undo** y **estado de lectura explícito** — los dos prerequisitos de todo lo demás.
 
-### Fase B — Entender qué tengo ⏭️ **ACÁ ESTAMOS**
+### Fase B — Entender qué tengo ✅ **COMPLETA** (2026-08-01)
 
 | # | Paso | Quién | Por qué ahora |
 |---|---|---|---|
@@ -178,20 +178,36 @@ Con A2+A3 la vault tiene **red de undo** y **estado de lectura explícito** — 
 
 **B1 reemplaza al viejo "paso 1"**: el primer demo mezcló leído con no leído, así que Fede no podía validarlo del todo. El pase nuevo separa los tres tipos — y las conexiones *consolidar* (entre material leído) son las que él **sí** puede juzgar.
 
-### Fase C — El refresco
+### Fase C — El refresco ✅ **COMPLETA**
 
-| # | Paso | Quién |
+| # | Paso | Estado |
 |---|---|---|
-| C1 | Ritual diario (1 highlight + sus conexiones, 60s de lectura) | builder |
-| C2 | Priorizador de cola: `nº leídas conectadas × shelfLife × topic activo` | builder |
+| C1 | Ritual diario (1 highlight + sus conexiones, 60s de lectura) | ✅ `4b860bc` — comando «Repaso del día» |
+| C2 | Priorizador de cola | ✅ `8814b81` + `6a3979a` — ver abajo |
 
-### Fase D — El grafo
+**C2 tuvo una segunda vuelta que vale la pena entender.** La primera versión contaba
+vecinos leídos por `topic`, y con 7 topics para 284 notas eso da **7 valores distintos
+de contexto**: las 92 notas `tech` recibían todas el mismo 48. El factor de contexto
+variaba 1,45× mientras `shelfLife` varía 20×, o sea el contexto era ruido plano y la
+razón que mostraba la card ("conecta con 48 notas que ya leíste") era cierta e inútil.
+Con el grafo de conceptos son **28 valores distintos**, y la card nombra el concepto.
 
-| # | Paso | Regla |
+### Fase D — El grafo ✅ **COMPLETA**
+
+| # | Paso | Estado |
 |---|---|---|
-| D1 | `Concepts/`: primeras notas-concepto | **≥2 fuentes LEÍDAS por nota** (ADR-005 §9-bis.3) |
+| D1 | `Concepts/`: primeras notas-concepto | ✅ **29 notas**, todas `conocido` (≥2 fuentes leídas) |
 
-### Fase E — X entra, en dos tandas
+El enfoque que funcionó fue **top-down**: destilar un vocabulario cerrado sobre el
+corpus entero y después etiquetar. El bottom-up (extraer concepto por nota y fusionar)
+se probó y falló — el modelo renombra en vez de fusionar y el vocabulario crece en vez
+de converger (392 → 433 canónicos).
+
+**Lo que el vocabulario cerrado no puede producir**: ningún concepto puede nacer
+`latente`, porque todos heredan las lecturas que los originaron. Ese hueco lo cubre
+B-741 (15 conceptos latentes propuestos sobre las 120 pendientes sin encaje).
+
+### Fase E — X entra, en dos tandas ✅ **COMPLETA**
 
 > **Corregido 2026-08-01**: la versión anterior dejaba *todo* X al final. Es innecesario — el material se parte en dos, y la primera tanda puede entrar mucho antes.
 
@@ -199,8 +215,22 @@ Los datos de F7 §13.3 sobre 450 bookmarks reales:
 
 | Tanda | Qué | Volumen | Destino | Cuándo |
 |---|---|---:|---|---|
-| **E1 — la punta** | Bookmarks **recientes y consumibles** (`<90d` + `READ` o `WATCH`) | **~92** | `Inbox/Web/`, `status: unread` | **Después de C2** (el priorizador), no al final |
-| **E2 — el volumen** | El resto de bookmarks + **todos** los likes | ~358 + 200+ | `Inbox/Legacy/`, sin `status` | Después de Fase D (conceptos) |
+| **E1 — la punta** ✅ | Bookmarks **recientes y consumibles** (`<90d` + `READ` o `WATCH`) | **110** | `Inbox/Web/`, `status: unread` | ✅ vault `ab267ca` |
+| **E2 — el volumen** ✅ | El resto de bookmarks + **todos** los likes | **519** | `Inbox/Legacy/X/`, sin `status` | ✅ vault `94539a9` + `e6c1b96` |
+
+> **E2 salió con costo.** Correrlo sobre datos reales destapó cuatro bugs de identidad
+> de nota, todos viviendo en el CLI sin tests (B-739): el índice de la vault no derivaba
+> `tweet:<id>` —un segundo sync habría reescrito 487 notas, misma forma que B-327 en
+> Kindle—, las colisiones de nombre se pisaban porque macOS colapsa mayúsculas y NFC/NFD,
+> los tweets que empiezan con `.` entraban como archivos ocultos invisibles para Obsidian
+> **y** para el dedupe, y el índice no leía `source` como URL (template viejo del Web
+> Clipper), así que 6 artículos ya clippeados se reescribían en loop contra el dedupe del
+> plugin. La lección es la de siempre acá: **lo que decide identidad va en un módulo puro
+> con tests**, no en un script.
+>
+> También apareció que los **X Articles** (`x.com/i/article/…`) se descartaban por dominio
+> como si fueran auto-referencia a x.com. Son el formato largo de X: 92 notas quedaban
+> como `reference` y sin el link. 14 eran bookmarks recientes que ahora están en la cola.
 
 **Por qué E1 puede adelantarse**: son 92 notas de material que Fede efectivamente quiere leer. No son ruido — son la cola que hoy vive inaccesible dentro de X. El único riesgo es de volumen (la cola pasa de 175 a ~267), y **eso lo neutraliza C2**: con el priorizador puesto, 267 notas ordenadas por señal real son más manejables que 175 sin ordenar.
 
@@ -209,6 +239,23 @@ Los datos de F7 §13.3 sobre 450 bookmarks reales:
 **Nota sobre el estatus**: los bookmarks de X son **no leídos por definición**. Con el modelo de tres estatus (§9-bis.3 del ADR-005) entran como fuentes de conceptos `latente` — lo cual es correcto y honesto, no un defecto.
 
 **Bloqueante técnico de ambas**: `src/x-sync.ts` (B-602 + B-608) — el lector del export de birdclaw + triage + escritor. Es el módulo más grande pendiente, pero ya tiene esquema conocido, taxonomía validada sobre datos reales y fixtures disponibles.
+
+### Fase F — Que se mantenga solo ⏭️ **ACÁ ESTAMOS**
+
+Todo lo anterior existe pero **lo dispara alguien a mano**. Ese es el único hueco que
+queda entre esto y "el sistema funciona sin que lo empujes".
+
+| # | Paso | Estado |
+|---|---|---|
+| F1 | Escribir las conexiones «atraer» en las 29 notas-concepto | listo, pendiente de OK (B-731) |
+| F2 | Escribir los 15 conceptos `latente` | propuesta lista, pendiente de OK (B-741) |
+| F3 | **Gardener programado** — LaunchAgent semanal, procesa solo lo que cambió vía `git diff` | B-712 |
+| F4 | El estándar de notas-concepto como gate del gardener | B-737 |
+
+**Por qué F3 es el que importa**: el pase de conceptos sobre las 284 pendientes costó
+centavos, pero se corrió entero. Con `git diff` desde el último run, el mantenimiento
+semanal toca decenas de notas en vez de cientos — y eso es lo que hace la diferencia
+entre un sistema que se mantiene y uno que se re-arma cada vez que alguien se acuerda.
 
 ### 5.1 Lo que NO hacemos todavía (anti-dispersión)
 
