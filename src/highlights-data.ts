@@ -2,7 +2,7 @@
 // fully unit-testable. The vault scanning lives in main.ts; this module only
 // sees raw markdown content plus a small metadata shape.
 
-export type ArticleSource = "web" | "kindle" | "matter";
+export type ArticleSource = "web" | "kindle" | "matter" | "x";
 
 export interface HighlightFileMeta {
   /** vault-relative path, e.g. "Inbox/Web/foo.md" */
@@ -28,6 +28,7 @@ export interface ExtractedHighlight {
 export function classifyArticleSource(source: string | undefined): ArticleSource {
   if (source === "kindle-scrape") return "kindle";
   if (source === "matter-legacy") return "matter";
+  if (source === "x-bookmark" || source === "x-like") return "x";
   return "web";
 }
 
@@ -196,12 +197,49 @@ function extractSectionHighlights(
   return out;
 }
 
+/**
+ * En una nota de X el subrayado no existe: el tweet **es** la cita.
+ *
+ * Sin esto las 629 notas de X aportan cero al repaso diario — no tienen `==` ni
+ * sección `## Highlights`, así que los dos extractores de siempre devuelven
+ * nada. Guardar un tweet ya es el acto de subrayado; el cuerpo citado es el
+ * contenido. Se toma el primer bloque `>` y se corta ahí: lo que sigue es la
+ * atribución al autor y la lista de links, que no son cita.
+ */
+function extractTweetQuote(
+  ctx: LineContext,
+  meta: HighlightFileMeta,
+): ExtractedHighlight[] {
+  let i = ctx.bodyStart;
+  while (i < ctx.lines.length && (ctx.lines[i] ?? "").trim() === "") i++;
+  if (!/^>/.test(ctx.lines[i] ?? "")) return [];
+  const startLine = i;
+  const quoted: string[] = [];
+  while (i < ctx.lines.length && /^>/.test(ctx.lines[i] ?? "")) {
+    quoted.push((ctx.lines[i] ?? "").replace(/^>[ \t]?/, ""));
+    i++;
+  }
+  const text = quoted.join("\n").trim();
+  if (!text) return [];
+  return [
+    {
+      text,
+      kind: "section",
+      line: startLine,
+      sourcePath: meta.sourcePath,
+      title: meta.title,
+      articleSource: "x",
+    },
+  ];
+}
+
 export function extractHighlights(
   content: string,
   meta: HighlightFileMeta,
 ): ExtractedHighlight[] {
   const articleSource = classifyArticleSource(meta.source);
   const ctx = buildLineContext(content);
+  if (articleSource === "x") return extractTweetQuote(ctx, meta);
   return [
     ...extractInlineHighlights(ctx, meta, articleSource),
     ...extractSectionHighlights(ctx, meta, articleSource),
@@ -235,16 +273,46 @@ function fisherYatesInPlace<T>(arr: T[], rng: () => number): void {
   }
 }
 
-const SOURCE_ORDER: readonly ArticleSource[] = ["web", "kindle", "matter"];
+const SOURCE_ORDER: readonly ArticleSource[] = ["web", "kindle", "matter", "x"];
+
+/**
+ * Fuerza del acto de captura (ADR-005, eje A).
+ *
+ * No todos los subrayados cuestan lo mismo. Escribir una nota al margen es la
+ * señal más fuerte que existe en la vault: paraste de leer y dijiste algo.
+ * Guardar un tweet es un tap. Tratarlos igual hace que el repaso diario esté
+ * dominado por lo más numeroso, que es justamente lo más barato de producir —
+ * hoy 629 de X contra 777 de Kindle.
+ */
+export interface ScorableHighlight {
+  articleSource: ArticleSource;
+  note?: string | undefined;
+  kind?: "inline" | "section" | undefined;
+  text?: string | undefined;
+}
+
+export function highlightScore(h: ScorableHighlight): number {
+  let score = 1;
+  if (h.note && h.note.trim().length > 0) score += 3;
+  // `==` es subrayado por selección: estabas leyendo y frenaste ahí.
+  if (h.kind === "inline") score += 1;
+  if (h.articleSource === "x") score -= 0.5;
+  // Una cita de tres palabras rara vez se sostiene sola fuera de su contexto.
+  if (h.text !== undefined && h.text.trim().length < 40) score -= 0.5;
+  return Math.max(0.25, score);
+}
 
 /**
  * Picks up to `count` highlights, deterministic for a given rng (seed the rng
  * with the date string for "same day = same picks"). Source variety is
- * weighted by round-robin: one pick per source (web → kindle → matter) per
+ * weighted by round-robin: one pick per source (web → kindle → matter → x) per
  * lap, so a vault with 500 kindle highlights and 10 web ones still surfaces
  * web material every day.
+ *
+ * Dentro de cada fuente ya no es azar puro: el orden lo decide `score × jitter`,
+ * así que lo que te costó más esfuerzo capturar sale antes sin volverse fijo.
  */
-export function pickDailyHighlights<T extends { articleSource: ArticleSource }>(
+export function pickDailyHighlights<T extends ScorableHighlight>(
   highlights: readonly T[],
   count: number,
   rng: () => number,
@@ -252,9 +320,17 @@ export function pickDailyHighlights<T extends { articleSource: ArticleSource }>(
   if (count <= 0) return [];
   if (highlights.length <= count) return [...highlights];
 
-  const buckets: Record<ArticleSource, T[]> = { web: [], kindle: [], matter: [] };
+  const buckets: Record<ArticleSource, T[]> = { web: [], kindle: [], matter: [], x: [] };
   for (const h of highlights) buckets[h.articleSource].push(h);
-  for (const s of SOURCE_ORDER) fisherYatesInPlace(buckets[s], rng);
+  for (const s of SOURCE_ORDER) {
+    // El jitter va de 0.5 a 1.5: un highlight fuerte tiende a salir antes, pero
+    // ninguno queda clavado en la cima ni condenado al fondo. Se ordena
+    // ascendente porque el consumidor hace `pop()`.
+    const weight = new Map<T, number>(
+      buckets[s].map((h) => [h, highlightScore(h) * (0.5 + rng())]),
+    );
+    buckets[s].sort((a, b) => (weight.get(a) ?? 0) - (weight.get(b) ?? 0));
+  }
 
   const picks: T[] = [];
   while (picks.length < count) {

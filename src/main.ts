@@ -939,12 +939,30 @@ export default class ReadQueuePlugin extends Plugin {
         why: r.reason,
       }));
 
+    const now = Date.now();
+    const queue = all
+      .filter((a) => a.status === "unread")
+      .map((a) => {
+        const since = a.published ? new Date(a.published) : a.savedAt;
+        const ageDays =
+          since && !Number.isNaN(since.getTime())
+            ? Math.max(0, (now - since.getTime()) / 86_400_000)
+            : 0;
+        return {
+          note: a.file.basename,
+          shelfLife: a.shelfLife,
+          ageDays,
+          tldr: a.tldr,
+        };
+      });
+
     const ritual = buildDailyRitual({
       date,
       highlights,
       read,
       concepts,
       queueTop,
+      queue,
       rng: rngFromSeed(date),
     });
 

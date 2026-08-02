@@ -15,6 +15,7 @@ const SOURCE_BADGE: Record<ArticleSource, string> = {
   web: "web",
   kindle: "kindle",
   matter: "matter",
+  x: "x",
 };
 
 export class HighlightsView extends ItemView {

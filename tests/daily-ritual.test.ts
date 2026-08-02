@@ -4,8 +4,10 @@ import {
   buildDailyRitual,
   findConnections,
   pickHighlightOfDay,
+  pickReconsider,
   renderDailyRitual,
   type BuildRitualInput,
+  type ReconsiderCandidate,
   type RitualHighlight,
 } from "../src/daily-ritual";
 import { rngFromSeed } from "../src/highlights-data";
@@ -142,5 +144,73 @@ describe("renderDailyRitual", () => {
       buildDailyRitual(base({ highlights: [hl("uno\ndos", "N", "web", "tech")] })),
     );
     expect(md).toContain("> uno\n> dos");
+  });
+});
+
+describe("Reconsiderar (B-703)", () => {
+  const DOMINGO = "2026-08-02";
+  const LUNES = "2026-08-03";
+  const rng = () => 0;
+
+  const cand = (over: Partial<ReconsiderCandidate> = {}): ReconsiderCandidate => ({
+    note: "vieja",
+    shelfLife: "evergreen",
+    ageDays: 400,
+    ...over,
+  });
+
+  it("solo pregunta por lo evergreen: es el único caso donde la pregunta es honesta", () => {
+    // Un perishable de hace 8 meses no se reconsidera, se descarta sin culpa;
+    // un seasonal viejo ya perdió el tren. Preguntar por todo es una máquina de culpa.
+    expect(pickReconsider([cand({ shelfLife: "perishable" })], DOMINGO, rng)).toBeUndefined();
+    expect(pickReconsider([cand({ shelfLife: "seasonal" })], DOMINGO, rng)).toBeUndefined();
+    expect(pickReconsider([cand({ shelfLife: undefined })], DOMINGO, rng)).toBeUndefined();
+    expect(pickReconsider([cand()], DOMINGO, rng)?.note).toBe("vieja");
+  });
+
+  it("no pregunta antes de los 6 meses", () => {
+    expect(pickReconsider([cand({ ageDays: 100 })], DOMINGO, rng)).toBeUndefined();
+    expect(pickReconsider([cand({ ageDays: 180 })], DOMINGO, rng)).toBeDefined();
+  });
+
+  it("aparece un solo día de la semana: el cap es estructural, no un contador", () => {
+    expect(pickReconsider([cand()], LUNES, rng)).toBeUndefined();
+    expect(pickReconsider([cand()], "2026-08-04", rng)).toBeUndefined();
+    expect(pickReconsider([cand()], DOMINGO, rng)).toBeDefined();
+  });
+
+  it("con la cola vacía o una fecha inválida no rompe", () => {
+    expect(pickReconsider([], DOMINGO, rng)).toBeUndefined();
+    expect(pickReconsider([cand()], "no-es-fecha", rng)).toBeUndefined();
+  });
+
+  it("redondea la antigüedad a meses para que se lea", () => {
+    expect(pickReconsider([cand({ ageDays: 365 })], DOMINGO, rng)?.months).toBe(12);
+  });
+
+  it("el render fuerza la decisión en vez de dejarla abierta", () => {
+    const ritual = {
+      date: DOMINGO,
+      highlight: undefined,
+      connections: [],
+      toRead: [],
+      reconsider: { note: "vieja", months: 13, tldr: "por qué importaría" },
+    };
+    const md = renderDailyRitual(ritual);
+    expect(md).toContain("¿Todavía te importa?");
+    expect(md).toContain("[[vieja]]");
+    expect(md).toContain("hace 13 meses");
+    expect(md).toContain("leelo o borralo");
+  });
+
+  it("sin candidata, la sección no existe", () => {
+    const md = renderDailyRitual({
+      date: LUNES,
+      highlight: undefined,
+      connections: [],
+      toRead: [],
+      reconsider: undefined,
+    });
+    expect(md).not.toContain("¿Todavía te importa?");
   });
 });

@@ -5,6 +5,7 @@ import {
   classifyArticleSource,
   digestHasHighlightsSection,
   extractHighlights,
+  highlightScore,
   pickDailyHighlights,
   rngFromSeed,
   type ArticleSource,
@@ -279,5 +280,78 @@ describe("digest section helpers", () => {
       true,
     );
     expect(digestHasHighlightsSection("# x\n\n## Highlights\n")).toBe(false);
+  });
+});
+
+describe("X como fuente del resurfacing (B-701)", () => {
+  const tweetNote = `---
+source: x-bookmark
+url: https://x.com/alguien/status/1
+---
+
+> El poder durable no viene del mejor producto.
+> Viene de una posición que el titular no puede copiar.
+
+— [@alguien](https://x.com/alguien/status/1)
+
+## Links
+
+- https://ejemplo.com/a
+`;
+
+  it("el tweet es la cita: no hace falta ni == ni sección Highlights", () => {
+    // Sin esto las 629 notas de X aportan cero al repaso diario.
+    const hs = extractHighlights(tweetNote, { sourcePath: "Inbox/Legacy/X/t.md", title: "t", source: "x-bookmark" });
+    expect(hs).toHaveLength(1);
+    expect(hs[0]?.articleSource).toBe("x");
+    expect(hs[0]?.text).toBe(
+      "El poder durable no viene del mejor producto.\nViene de una posición que el titular no puede copiar.",
+    );
+  });
+
+  it("corta en la atribución: el autor y los links no son cita", () => {
+    const hs = extractHighlights(tweetNote, { sourcePath: "x.md", title: "t", source: "x-bookmark" });
+    expect(hs[0]?.text).not.toContain("@alguien");
+    expect(hs[0]?.text).not.toContain("ejemplo.com");
+  });
+
+  it("los likes también entran", () => {
+    expect(classifyArticleSource("x-like")).toBe("x");
+    expect(classifyArticleSource("x-bookmark")).toBe("x");
+  });
+
+  it("una nota de X sin blockquote no aporta nada, y no rompe", () => {
+    const hs = extractHighlights("---\nsource: x-like\n---\n\nsolo texto suelto\n", {
+      sourcePath: "x.md",
+      title: "t",
+      source: "x-like",
+    });
+    expect(hs).toEqual([]);
+  });
+});
+
+describe("highlightScore (B-702)", () => {
+  const base = { articleSource: "web" as const, kind: "section" as const, text: "x".repeat(80) };
+
+  it("una nota al margen es la señal más fuerte que existe", () => {
+    expect(highlightScore({ ...base, note: "esto explica lo otro" })).toBeGreaterThan(
+      highlightScore(base),
+    );
+  });
+
+  it("el subrayado por selección pesa más que el volcado de una sección", () => {
+    expect(highlightScore({ ...base, kind: "inline" })).toBeGreaterThan(highlightScore(base));
+  });
+
+  it("guardar un tweet es un tap: pesa menos que subrayar leyendo", () => {
+    expect(highlightScore({ ...base, articleSource: "x" })).toBeLessThan(highlightScore(base));
+  });
+
+  it("una cita de tres palabras no se sostiene sola", () => {
+    expect(highlightScore({ ...base, text: "corto" })).toBeLessThan(highlightScore(base));
+  });
+
+  it("nunca llega a cero: todo puede salir alguna vez", () => {
+    expect(highlightScore({ articleSource: "x", kind: "section", text: "a" })).toBeGreaterThan(0);
   });
 });
