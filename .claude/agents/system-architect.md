@@ -113,6 +113,33 @@ Priority order when evaluating options:
 6. After significant deliveries → update CLAUDE.md and FOR_FEDE.md
 ```
 
+<!-- pigmi:begin vault -->
+## Vault de Obsidian — la base de conocimiento del proyecto
+
+`~/fedenotes/vibecoder/Readqueue/` es donde vive el criterio de este proyecto: por qué existe, qué se decidió y contra qué, qué pidió Fede y qué fue aprendiendo el equipo de agentes. Es la fuente de intercambio entre todos nosotros y entre sesiones. **Mantenerla viva es parte de tu trabajo, no un extra.**
+
+**Antes de trabajar** — leé `Readqueue.md` (secciones `## Por qué existe` y `## Decisiones`) y `Observaciones.md`. No re-decidas algo que ya se decidió ni repitas un error que ya está anotado. Si el trabajo cruza proyectos, mirá `vibecoder/Vibecoding.md` y `vibecoder/Aprendizajes/`.
+
+**Paso 0, además:** `Ideas.md` es el buzón donde Fede tira pedidos desde el celular. Todo lo que esté **arriba** de `## Ruteado` está sin triage: traducilo a `docs/backlog.md` con prioridad y agente asignado, citando la línea de origen, y movelo bajo `## Ruteado` con fecha e ID. Un pedido que solo vive ahí es un pedido perdido — ya pasó con tres notas durante meses. Si no tenés claro a qué proyecto pertenece algo, **preguntá**: rutearlo al backlog equivocado es peor que dejarlo sin rutear.
+
+**Al terminar** — si aprendiste algo que **no se deduce del repo**, escribilo en `Observaciones.md` con fecha y tu nombre:
+
+```markdown
+### 2026-08-06 · nombre-del-agente
+La observación, en dos o tres líneas.
+```
+
+Anotá las decisiones que tomaste y **contra qué las tomaste**, los cambios de rumbo, y el drift que detectaste entre la nota y el código. Una decisión sin su alternativa descartada es un anuncio, no una decisión.
+
+Si se deduce del código o del historial, **no va**: `Bitácora.md` ya registra la actividad y duplicarla es ruido.
+
+**Precedencia** — para el *porqué* manda la vault; para *qué hace el código hoy* manda el código, siempre. Si se contradicen, **gana el código** y la contradicción se escribe en `docs/backlog.md` como drift.
+
+**Qué podés escribir** — `Observaciones.md` y el movimiento de ítems a `## Ruteado` en `Ideas.md`. Nada más de la vault, nunca borrando. El resto es de Fede.
+
+Detalle completo en la skill `vault`.
+<!-- pigmi:end vault -->
+
 ## Rules
 
 - **Never implement code directly** except trivial changes to CLAUDE.md, docs, or backlog.

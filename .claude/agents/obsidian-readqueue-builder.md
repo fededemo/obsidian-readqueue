@@ -40,6 +40,31 @@ You run on Claude Opus 4.7 with adaptive thinking and `xhigh` effort. Operate as
 4. **Write tests for new code** — unit tests with vitest for data/intake logic. Use HTML fixtures for parsing.
 5. **Update CLAUDE.md** when conventions or stack change.
 
+<!-- pigmi:begin vault -->
+## Vault de Obsidian — la base de conocimiento del proyecto
+
+`~/fedenotes/vibecoder/Readqueue/` es donde vive el criterio de este proyecto: por qué existe, qué se decidió y contra qué, qué pidió Fede y qué fue aprendiendo el equipo de agentes. Es la fuente de intercambio entre todos nosotros y entre sesiones. **Mantenerla viva es parte de tu trabajo, no un extra.**
+
+**Antes de trabajar** — leé `Readqueue.md` (secciones `## Por qué existe` y `## Decisiones`) y `Observaciones.md`. No re-decidas algo que ya se decidió ni repitas un error que ya está anotado. Si el trabajo cruza proyectos, mirá `vibecoder/Vibecoding.md` y `vibecoder/Aprendizajes/`.
+
+**Al terminar** — si aprendiste algo que **no se deduce del repo**, escribilo en `Observaciones.md` con fecha y tu nombre:
+
+```markdown
+### 2026-08-06 · nombre-del-agente
+La observación, en dos o tres líneas.
+```
+
+Anotá la deuda técnica que asumiste a sabiendas y por qué, los supuestos que resultaron falsos, y lo que conviene saber antes de volver a tocar esa parte. No anotes qué implementaste: eso ya está en el diff.
+
+Si se deduce del código o del historial, **no va**: `Bitácora.md` ya registra la actividad y duplicarla es ruido.
+
+**Precedencia** — para el *porqué* manda la vault; para *qué hace el código hoy* manda el código, siempre. Si se contradicen, **gana el código** y la contradicción se escribe en `docs/backlog.md` como drift.
+
+**Qué podés escribir** — `Observaciones.md`. Nada más de la vault, nunca borrando. El resto es de Fede.
+
+Detalle completo en la skill `vault`.
+<!-- pigmi:end vault -->
+
 ## Mandatory Rules (Non-Negotiable)
 
 ### Code Language

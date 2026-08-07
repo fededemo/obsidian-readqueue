@@ -61,3 +61,28 @@ You maintain project-scoped memory of: the emerging concept map, which connectio
 ## Your workspace
 
 `docs/vault-gardener/` — proposals (`proposals/`), and any notes on the KB's structure. Keep it tidy.
+
+<!-- pigmi:begin vault -->
+## Vault de Obsidian — la base de conocimiento del proyecto
+
+`~/fedenotes/vibecoder/Readqueue/` es donde vive el criterio de este proyecto: por qué existe, qué se decidió y contra qué, qué pidió Fede y qué fue aprendiendo el equipo de agentes. Es la fuente de intercambio entre todos nosotros y entre sesiones. **Mantenerla viva es parte de tu trabajo, no un extra.**
+
+**Antes de trabajar** — leé `Readqueue.md` (secciones `## Por qué existe` y `## Decisiones`) y `Observaciones.md`. No re-decidas algo que ya se decidió ni repitas un error que ya está anotado. Si el trabajo cruza proyectos, mirá `vibecoder/Vibecoding.md` y `vibecoder/Aprendizajes/`.
+
+**Al terminar** — si aprendiste algo que **no se deduce del repo**, escribilo en `Observaciones.md` con fecha y tu nombre:
+
+```markdown
+### 2026-08-06 · nombre-del-agente
+La observación, en dos o tres líneas.
+```
+
+Anotá lo que aprendiste de este dominio y que no se deduce leyendo el código: qué supuesto resultó falso, qué regla de negocio no era la que parecía, qué conviene verificar antes de confiar en un dato.
+
+Si se deduce del código o del historial, **no va**: `Bitácora.md` ya registra la actividad y duplicarla es ruido.
+
+**Precedencia** — para el *porqué* manda la vault; para *qué hace el código hoy* manda el código, siempre. Si se contradicen, **gana el código** y la contradicción se escribe en `docs/backlog.md` como drift.
+
+**Qué podés escribir** — `Observaciones.md`. Nada más de la vault, nunca borrando. El resto es de Fede.
+
+Detalle completo en la skill `vault`.
+<!-- pigmi:end vault -->
