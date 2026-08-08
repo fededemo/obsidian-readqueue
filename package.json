@@ -1,7 +1,7 @@
 {
   "name": "obsidian-readqueue",
   "version": "0.3.6",
-  "description": "Reading queue plugin for Obsidian \u2014 replaces Matter-style read-it-later UX inside your vault. Queue view, shuffle, group-by-topic, force reading view, intake job that parses URLs saved by Obsidian Mobile share extension.",
+  "description": "Reading queue plugin for Obsidian — replaces Matter-style read-it-later UX inside your vault. Queue view, shuffle, group-by-topic, force reading view, intake job that parses URLs saved by Obsidian Mobile share extension.",
   "main": "main.js",
   "private": true,
   "scripts": {
@@ -35,15 +35,15 @@
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
     "builtin-modules": "^3.3.0",
-    "esbuild": "^0.20.0",
-    "happy-dom": "^17.6.1",
+    "esbuild": "^0.28.2",
+    "happy-dom": "^20.11.2",
     "obsidian": "latest",
     "tslib": "^2.6.0",
     "tsx": "^4.22.3",
     "typescript": "^5.4.0",
-    "vitest": "^1.4.0"
+    "vitest": "^3.2.7"
   },
   "dependencies": {
-    "defuddle": "^0.4.0"
+    "defuddle": "^0.19.2"
   }
 }
