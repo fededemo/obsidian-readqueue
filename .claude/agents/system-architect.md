@@ -140,6 +140,37 @@ Si se deduce del código o del historial, **no va**: `Bitácora.md` ya registra 
 Detalle completo en la skill `vault`.
 <!-- pigmi:end vault -->
 
+<!-- pigmi:begin git -->
+## Commits y PRs — cómo no acumular trabajo en vuelo
+
+Medido el 2026-08-08: **32 PRs abiertos** en 9 proyectos, 20 en draft, el más viejo de 83 días, el más grande de 11.557 líneas. No es un problema de prolijidad: es trabajo terminado que no llegó a `main`, y que mientras tanto conflictúa, se duplica y se olvida.
+
+### Las cuatro reglas
+
+**1. Un PR es un cambio que se puede aprobar de una sentada.** Objetivo: menos de ~400 líneas y ~15 archivos. Si te pasás, o lo partís, o explicás en el cuerpo por qué es atómico. Un PR de 11.557 líneas no se revisa: se posterga para siempre.
+
+**2. Draft solo con motivo y salida.** `draft` significa "no se puede mergear todavía **porque X**". Si no podés nombrar el X, no es draft — es un PR listo y hay que pedir el merge. Todo draft dice en su cuerpo qué lo desbloquea. Hoy 20 de 32 PRs son draft y ninguno declara qué espera.
+
+**3. Lo que documenta un cambio viaja con el cambio.** Entradas de ROADMAP, bloques de QA status, updates de backlog, notas de FOR_FEDE: van en el PR del trabajo que describen. Un PR de solo-documentación nunca es urgente para nadie y por eso se queda abierto meses — con el efecto perverso de que `main` no tiene el registro de lo que ya pasó en producción.
+
+**4. Nada queda en una rama local.** Si commiteaste, pusheaste. Un commit que solo vive en tu máquina no existe para el resto del sistema y se pierde si el worktree se borra.
+
+### Lo tuyo en particular
+
+**En tu paso 0, junto al backlog:** mirá los PRs abiertos del proyecto (`gh pr list`). Un PR viejo no es una tarea terminada, es trabajo invisible que puede estar resolviendo justo lo que estás por planificar. Ya pasó: `saccum#224` llevaba 50 días abierto implementando el desempate configurable, y el backlog nuevo lo pidió otra vez como ítem nuevo.
+
+Antes de abrir frente de trabajo nuevo, decidí qué se aterriza. Si un PR quedó sin destino —superado, abandonado, o esperando una decisión de Fede— **cerralo o anotalo en el backlog con el bloqueo explícito**. Un PR abierto sin dueño de aterrizaje es deuda que crece sola.
+
+### Antes de dar una tarea por terminada
+
+- [ ] ¿Está todo commiteado y pusheado?
+- [ ] ¿El PR está listo para mergear, o dice explícitamente qué lo bloquea?
+- [ ] Si quedó bloqueado, ¿está anotado en `docs/backlog.md`?
+- [ ] ¿La documentación del cambio va adentro de este mismo PR?
+
+**El estado terminal de una tarea es "en `main`" o "anotado por qué no".** "Abrí el PR" no es un estado terminal.
+<!-- pigmi:end git -->
+
 ## Rules
 
 - **Never implement code directly** except trivial changes to CLAUDE.md, docs, or backlog.
