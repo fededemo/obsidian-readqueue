@@ -19,18 +19,30 @@ import { addToUrlIndex, type UrlIndex } from "../src/url-canon";
 import {
   allocateFilename,
   looksTruncated,
+  mediaAssets,
   noteTitle,
   planSync,
   renderNote,
   vaultUrlKeys,
   type XItem,
+  type XMediaVariant,
 } from "../src/x-sync";
 import { fetchFullText, sleep, tweetIdFromUrl } from "./lib/fx.mjs";
+import { downloadAll } from "./lib/media.mjs";
 
 const VAULT = join(homedir(), "fedenotes");
 const DB = join(homedir(), ".birdclaw", "birdclaw.sqlite");
 const WEB = "Inbox/Web";
 const LEGACY = "Inbox/Legacy/X";
+/**
+ * Carpeta única para las imágenes, fuera de `Web/` y de `Legacy/X/`.
+ *
+ * Los wikilinks de Obsidian resuelven por nombre de archivo en toda la vault,
+ * así que una nota en cualquiera de las dos encuentra su imagen sin ruta
+ * relativa. Y el dedupe y el orphan-mover del plugin solo miran markdown, así
+ * que acá adentro nada se les cruza.
+ */
+const MEDIA = "Inbox/x-media";
 
 const args = process.argv.slice(2);
 const DRY = args.includes("--dry-run");
@@ -56,6 +68,14 @@ function query<T>(sql: string): T[] {
     maxBuffer: 256 * 1024 * 1024,
   }).trim();
   return out ? (JSON.parse(out) as T[]) : [];
+}
+
+/** El shape de `media_json` en la base de birdclaw. */
+interface RawMedia {
+  type?: string;
+  url?: string;
+  thumbnailUrl?: string;
+  variants?: XMediaVariant[];
 }
 
 interface Row {
@@ -93,7 +113,7 @@ function loadItems(): XItem[] {
 
   return rows.map((r): XItem => {
     const entities = jsonOr<{ urls?: Array<{ expandedUrl?: string }> }>(r.entities_json ?? undefined, {});
-    const media = jsonOr<Array<{ type?: string }>>(r.media_json ?? undefined, []);
+    const media = jsonOr<RawMedia[]>(r.media_json ?? undefined, []);
     return {
       id: String(r.id ?? ""),
       text: r.text ?? "",
@@ -103,7 +123,14 @@ function loadItems(): XItem[] {
       replyToId: r.reply_to_id ?? undefined,
       quotedTweetId: r.quoted_tweet_id ?? undefined,
       urls: (entities.urls ?? []).map((u) => u.expandedUrl ?? "").filter(Boolean),
-      mediaTypes: media.map((m) => m.type ?? "").filter(Boolean),
+      media: media
+        .filter((m) => m.url)
+        .map((m) => ({
+          type: m.type ?? "",
+          url: m.url as string,
+          thumbnailUrl: m.thumbnailUrl,
+          variants: m.variants,
+        })),
       collection: r.kind === "likes" ? "likes" : "bookmarks",
       deleted: Boolean(r.deleted_at),
     };
@@ -214,6 +241,26 @@ if (truncated.length > 0 && !DRY) {
   );
   console.log(`  recuperados: ${ok}/${truncated.length}`);
 }
+/**
+ * Bajar las imágenes antes de escribir las notas.
+ *
+ * El orden importa: `renderNote` necesita saber qué asset quedó en disco para
+ * elegir entre `![[local]]` y el link al CDN. Los `.mp4` no se bajan — se
+ * linkean; lo que se guarda es el thumbnail, que es una imagen normal.
+ */
+const assets = target.slice(0, LIMIT).flatMap((x) => mediaAssets(x.item));
+const mediaDir = join(VAULT, MEDIA);
+let availableMedia = new Set<string>();
+if (assets.length > 0) {
+  console.log(`\nbajando ${assets.length} imágenes a ${MEDIA}/…`);
+  const { available, stats } = await downloadAll(assets, mediaDir);
+  availableMedia = available;
+  console.log(
+    `  nuevas ${stats.ok} · ya estaban ${stats.cached} · fallaron ${stats.failed}` +
+      (stats.failed > 0 ? " (esas quedan linkeadas al CDN de X)" : ""),
+  );
+}
+
 /** Nombres ya tomados, por carpeta. Se siembra con lo que hay en disco. */
 const taken = new Map<string, Set<string>>();
 const usedIn = (dir: string): Set<string> => {
@@ -231,7 +278,11 @@ const usedIn = (dir: string): Set<string> => {
 };
 
 for (const { item, triage } of target.slice(0, LIMIT)) {
-  const note = renderNote(item, triage, { webFolder: WEB, legacyFolder: LEGACY });
+  const note = renderNote(item, triage, {
+    webFolder: WEB,
+    legacyFolder: LEGACY,
+    resolveMedia: (a) => (availableMedia.has(a.filename) ? a.filename : undefined),
+  });
   const dir = join(VAULT, note.folder);
   mkdirSync(dir, { recursive: true });
   const base = noteTitle(item);

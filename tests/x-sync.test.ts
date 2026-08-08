@@ -17,7 +17,14 @@ import {
   replaceQuoteBlock,
   textWithoutLinks,
   triage,
+  hasMediaBlocks,
+  insertMediaBlocks,
+  mediaAssetName,
+  mediaAssets,
+  mediaMarkdown,
+  pickVideoVariant,
   type XItem,
+  type XMedia,
 } from "../src/x-sync";
 
 const NOW = new Date("2026-08-01T12:00:00Z");
@@ -31,11 +38,27 @@ function mk(over: Partial<XItem> = {}): XItem {
     createdAt: daysAgo(1),
     authorHandle: "alguien",
     urls: [],
-    mediaTypes: [],
+    media: [],
     collection: "bookmarks",
     ...over,
   };
 }
+
+/** Un video nativo con su thumbnail y una sola variante mp4. */
+const video = (id = "9"): XMedia[] => [
+  {
+    type: "video",
+    url: `https://pbs.twimg.com/amplify_video_thumb/${id}/img/t.jpg`,
+    thumbnailUrl: `https://pbs.twimg.com/amplify_video_thumb/${id}/img/t.jpg`,
+    variants: [
+      { url: `https://video.twimg.com/amplify_video/${id}/vid/640x360/v.mp4`, contentType: "video/mp4", bitRate: 832000 },
+    ],
+  },
+];
+
+const photo = (name = "AAA"): XMedia[] => [
+  { type: "image", url: `https://pbs.twimg.com/media/${name}.png` },
+];
 
 describe("externalUrls", () => {
   it("descarta los links internos de X (fotos, videos, quotes)", () => {
@@ -72,13 +95,13 @@ describe("classify", () => {
   });
 
   it("detecta video por media, por link interno y por dominio externo", () => {
-    expect(classify(mk({ mediaTypes: ["video"] }))).toBe("watch");
+    expect(classify(mk({ media: video() }))).toBe("watch");
     expect(classify(mk({ urls: ["https://x.com/u/status/1/video/1"] }))).toBe("watch");
     expect(classify(mk({ urls: ["https://youtu.be/abc"] }))).toBe("watch");
   });
 
   it("video gana sobre link externo cuando hay ambos", () => {
-    const item = mk({ mediaTypes: ["video"], urls: ["https://ssrn.com/abstract=1"] });
+    const item = mk({ media: video(), urls: ["https://ssrn.com/abstract=1"] });
     expect(classify(item)).toBe("watch");
   });
 
@@ -231,7 +254,7 @@ describe("noteTitle", () => {
       .toBe("Artículo de @alguien");
     expect(noteTitle(mk({ text: "https://t.co/a", urls: ["https://ssrn.com/a"] })))
       .toBe("Link de @alguien");
-    expect(noteTitle(mk({ text: "https://t.co/a", mediaTypes: ["video"] })))
+    expect(noteTitle(mk({ text: "https://t.co/a", media: video() })))
       .toBe("Video de @alguien");
     expect(noteTitle(mk({ text: "https://t.co/a" }))).toBe("Post de @alguien");
   });
@@ -290,7 +313,7 @@ describe("planSync", () => {
     const plan = planSync(
       [
         mk({ id: "1", urls: ["https://ssrn.com/abstract=1"], createdAt: daysAgo(5) }),
-        mk({ id: "2", mediaTypes: ["video"], createdAt: daysAgo(5) }),
+        mk({ id: "2", media: video(), createdAt: daysAgo(5) }),
         mk({ id: "3", urls: ["https://github.com/a/b"], createdAt: daysAgo(5) }),
         mk({ id: "4", urls: ["https://ssrn.com/abstract=4"], createdAt: daysAgo(400) }),
       ],
@@ -347,6 +370,109 @@ describe("renderNote", () => {
     const n = renderNote(a, triage(a, { now: NOW }), opts);
     expect(n.body).toContain("> uno\n> dos");
     expect(n.body).toContain("https://x.com/alguien/status/1");
+  });
+
+  it("embebe la imagen local cuando se pudo bajar", () => {
+    // El bug que arregla: 277 de 519 notas de X quedaron sin sus imágenes
+    // porque el sync guardaba el `type` de cada media y tiraba la URL.
+    const a = mk({ media: photo() });
+    const n = renderNote(a, triage(a, { now: NOW }), {
+      ...opts,
+      resolveMedia: (asset) => asset.filename,
+    });
+    expect(n.body).toContain("![[1-1.png]]");
+  });
+
+  it("cae al link del CDN cuando la descarga falló", () => {
+    const a = mk({ media: photo() });
+    const n = renderNote(a, triage(a, { now: NOW }), { ...opts, resolveMedia: () => undefined });
+    expect(n.body).toContain("![](https://pbs.twimg.com/media/AAA.png)");
+  });
+
+  it("las imágenes van después de la atribución y antes de los links", () => {
+    const a = mk({ media: photo(), urls: ["https://ssrn.com/abstract=1"] });
+    const n = renderNote(a, triage(a, { now: NOW }), {
+      ...opts,
+      resolveMedia: (asset) => asset.filename,
+    });
+    expect(n.body.indexOf("— [@alguien]")).toBeLessThan(n.body.indexOf("![["));
+    expect(n.body.indexOf("![[")).toBeLessThan(n.body.indexOf("## Links"));
+  });
+});
+
+describe("media", () => {
+  it("elige el mejor mp4 que no castigue la conexión del celular", () => {
+    const variants = [
+      { url: "a.mp4", contentType: "video/mp4", bitRate: 10_368_000 },
+      { url: "b.mp4", contentType: "video/mp4", bitRate: 2_176_000 },
+      { url: "c.mp4", contentType: "video/mp4", bitRate: 832_000 },
+    ];
+    expect(pickVideoVariant(variants)?.url).toBe("b.mp4");
+  });
+
+  it("si todas superan el techo se queda con la más liviana", () => {
+    const variants = [
+      { url: "a.mp4", contentType: "video/mp4", bitRate: 10_000_000 },
+      { url: "b.mp4", contentType: "video/mp4", bitRate: 8_000_000 },
+    ];
+    expect(pickVideoVariant(variants)?.url).toBe("b.mp4");
+  });
+
+  it("ignora lo que no sea mp4 y tolera la ausencia de variantes", () => {
+    expect(pickVideoVariant([{ url: "a.m3u8", contentType: "application/x-mpegURL" }])).toBeUndefined();
+    expect(pickVideoVariant(undefined)).toBeUndefined();
+  });
+
+  it("saca la extensión del query param, no solo del path", () => {
+    // pbs.twimg.com sirve `…/Foo?format=jpg&name=large`: sin esto la vault se
+    // llena de archivos sin extensión que Obsidian no sabe mostrar.
+    expect(mediaAssetName("55", 0, "https://pbs.twimg.com/media/Foo?format=jpg&name=large"))
+      .toBe("55-1.jpg");
+    expect(mediaAssetName("55", 1, "https://pbs.twimg.com/media/Bar.png")).toBe("55-2.png");
+  });
+
+  it("el nombre es estable: correr el sync dos veces no duplica archivos", () => {
+    const item = mk({ id: "77", media: photo() });
+    expect(mediaAssets(item)).toEqual(mediaAssets(item));
+    expect(mediaAssets(item)[0]?.filename).toBe("77-1.png");
+  });
+
+  it("de un video baja el thumbnail y linkea el mp4", () => {
+    const blocks = mediaMarkdown(mk({ media: video() }), (a) => a.filename);
+    expect(blocks[0]).toContain("[Video ↗](https://video.twimg.com/amplify_video/9/vid/640x360/v.mp4)");
+    expect(blocks[0]).toContain("![[1-1.jpg]]");
+  });
+});
+
+describe("insertMediaBlocks", () => {
+  const body = ["> el tweet", "", "— [@alguien](https://x.com/alguien/status/1)"].join("\n");
+
+  it("mete la imagen después de la atribución", () => {
+    const out = insertMediaBlocks(body, ["![[1-1.png]]"]);
+    expect(out).toBe(`${body}\n\n![[1-1.png]]`);
+  });
+
+  it("respeta el orden: antes de los links, después de la atribución", () => {
+    const conLinks = `${body}\n\n## Links\n\n- https://ssrn.com/a`;
+    const out = insertMediaBlocks(conLinks, ["![[1-1.png]]"]);
+    expect(out.indexOf("— [@alguien]")).toBeLessThan(out.indexOf("![["));
+    expect(out.indexOf("![[")).toBeLessThan(out.indexOf("## Links"));
+  });
+
+  it("es idempotente: correr el backfill dos veces no duplica la imagen", () => {
+    const once = insertMediaBlocks(body, ["![[1-1.png]]"]);
+    expect(insertMediaBlocks(once, ["![[1-1.png]]"])).toBe(once);
+  });
+
+  it("un `![](…)` dentro de la cita no cuenta como imagen ya embebida", () => {
+    // Si contara, esa nota nunca recibiría su imagen real.
+    const citado = "> mirá esto ![](https://ejemplo.com/x.png)\n\n— [@alguien](https://x.com/a/status/1)";
+    expect(hasMediaBlocks(citado)).toBe(false);
+    expect(insertMediaBlocks(citado, ["![[1-1.png]]"])).toContain("![[1-1.png]]");
+  });
+
+  it("sin bloques no toca nada", () => {
+    expect(insertMediaBlocks(body, [])).toBe(body);
   });
 });
 

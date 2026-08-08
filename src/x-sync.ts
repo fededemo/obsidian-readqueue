@@ -18,6 +18,28 @@ import { canonicalizeUrl } from "./url-canon";
 export type XKind = "read" | "watch" | "reference";
 export type XDestination = "queue" | "legacy";
 
+/** Una de las calidades en las que X sirve el mismo video. */
+export interface XMediaVariant {
+  url: string;
+  contentType?: string | undefined;
+  bitRate?: number | undefined;
+}
+
+/**
+ * Una media adjunta al tweet, tal como la guarda birdclaw en `media_json`.
+ *
+ * Ojo con `url` en los videos: X pone ahí el **thumbnail**, no el `.mp4`. El
+ * reproducible vive en `variants`, una por bitrate.
+ */
+export interface XMedia {
+  /** "image" | "video" | "animated_gif" */
+  type: string;
+  /** La imagen si es foto; el thumbnail si es video. */
+  url: string;
+  thumbnailUrl?: string | undefined;
+  variants?: readonly XMediaVariant[] | undefined;
+}
+
 export interface XItem {
   id: string;
   text: string;
@@ -28,11 +50,23 @@ export interface XItem {
   quotedTweetId?: string | undefined;
   /** `expandedUrl` de cada link — ya sin el envoltorio t.co. */
   urls: readonly string[];
-  /** `type` de cada media adjunta: "video" | "image" | … */
-  mediaTypes: readonly string[];
+  /**
+   * Las media adjuntas, con su URL.
+   *
+   * Reemplazó a un `mediaTypes: string[]` que guardaba solo el `type` y tiraba
+   * la URL: por eso 277 de las 519 notas de X quedaron sin sus imágenes aunque
+   * el dato estaba en la base. Un solo campo, sin copia que pueda divergir.
+   */
+  media: readonly XMedia[];
   collection: "bookmarks" | "likes";
   deleted?: boolean | undefined;
 }
+
+const mediaTypes = (item: Pick<XItem, "media">): string[] =>
+  item.media.map((m) => m.type);
+
+const hasNativeVideo = (item: Pick<XItem, "media">): boolean =>
+  mediaTypes(item).some((t) => t === "video" || t === "animated_gif");
 
 export interface XTriage {
   kind: XKind;
@@ -92,7 +126,7 @@ export function textWithoutLinks(text: string): string {
 }
 
 function isVideo(item: XItem): boolean {
-  if (item.mediaTypes.some((t) => t === "video" || t === "animated_gif")) return true;
+  if (hasNativeVideo(item)) return true;
   // Un link interno a /video/ es un video nativo aunque media_json venga vacío.
   if (item.urls.some((u) => isInternal(u) && /\/video\//.test(u))) return true;
   return externalUrls(item).some((u) => VIDEO_HOSTS.includes(host(u)));
@@ -200,6 +234,50 @@ export function replaceQuoteBlock(body: string, text: string): string {
   return [...lines.slice(0, start), ...quoted, ...lines.slice(end)].join("\n");
 }
 
+/**
+ * ¿Esta nota ya muestra sus imágenes?
+ *
+ * Solo cuenta lo que está fuera de la cita: un tweet cuyo texto menciona
+ * `![](…)` no significa que la nota tenga la imagen embebida, y tomarlo como
+ * señal dejaría esa nota sin backfill para siempre.
+ */
+export function hasMediaBlocks(body: string): boolean {
+  return body
+    .split("\n")
+    .some((l) => !/^\s*>/.test(l) && (l.includes("![](") || l.includes("![[")));
+}
+
+/**
+ * Agrega los bloques de media a una nota ya escrita, dejando todo lo demás
+ * intacto.
+ *
+ * Van después de la atribución al autor y antes de `## Links`, que es el mismo
+ * orden que produce `renderNote` — una nota vieja backfilleada y una nueva
+ * tienen que ser indistinguibles.
+ *
+ * Es idempotente: si la nota ya tiene media, vuelve tal cual. Correr el backfill
+ * dos veces no duplica nada.
+ */
+export function insertMediaBlocks(body: string, blocks: readonly string[]): string {
+  if (blocks.length === 0 || hasMediaBlocks(body)) return body;
+  const lines = body.split("\n");
+  const attribution = lines.findIndex((l) => /^—\s*\[@/.test(l.trim()));
+  const links = lines.findIndex((l) => /^##\s+Links\s*$/.test(l.trim()));
+
+  let at: number;
+  if (attribution >= 0) at = attribution + 1;
+  else if (links >= 0) at = links;
+  else {
+    // Sin ninguna de las dos anclas la nota no tiene la forma esperada; al final
+    // es el único lugar que no puede romper nada.
+    at = lines.length;
+  }
+  while (at > 0 && (lines[at - 1] ?? "").trim() === "") at--;
+
+  const inserted = blocks.flatMap((b) => ["", b]);
+  return [...lines.slice(0, at), ...inserted, ...lines.slice(at)].join("\n");
+}
+
 /** Clave canónica para deduplicar contra lo que ya está en la vault. */
 export function itemKey(item: XItem): string {
   const ext = externalUrls(item);
@@ -266,9 +344,8 @@ export function noteTitle(item: XItem): string {
   const handle = item.authorHandle ? `@${item.authorHandle}` : "X";
   if (item.urls.some((u) => X_ARTICLE.test(u))) return `Artículo de ${handle}`;
   if (externalUrls(item).length > 0) return `Link de ${handle}`;
-  if (item.mediaTypes.some((t) => t === "video" || t === "animated_gif")) {
-    return `Video de ${handle}`;
-  }
+  if (hasNativeVideo(item)) return `Video de ${handle}`;
+  if (item.media.length > 0) return `Imagen de ${handle}`;
   return `Post de ${handle}`;
 }
 
@@ -344,6 +421,111 @@ export function displayTitle(item: XItem): string {
   return esTitular ? firstLine : noteTitle(item);
 }
 
+/**
+ * Techo de bitrate al elegir la calidad de un video.
+ *
+ * X sirve el mismo clip hasta en 10 Mbps: un video de 39 minutos a esa calidad
+ * son cientos de MB para abrir desde el iPhone. 2.5 Mbps es el 720p típico —
+ * mirable en cualquier pantalla sin castigar la conexión.
+ */
+const VIDEO_BITRATE_CEILING = 2_500_000;
+
+/**
+ * El `.mp4` que conviene linkear, o undefined si no hay ninguno.
+ *
+ * El mejor por debajo del techo; si todos lo superan, el más liviano — es
+ * preferible un video feo que se abre a uno perfecto que no carga.
+ */
+export function pickVideoVariant(
+  variants: readonly XMediaVariant[] | undefined,
+): XMediaVariant | undefined {
+  const mp4s = (variants ?? []).filter(
+    (v) => v.url && (v.contentType ?? "").includes("mp4"),
+  );
+  if (mp4s.length === 0) return undefined;
+  const byRate = [...mp4s].sort((a, b) => (a.bitRate ?? 0) - (b.bitRate ?? 0));
+  const under = byRate.filter((v) => (v.bitRate ?? 0) <= VIDEO_BITRATE_CEILING);
+  return under[under.length - 1] ?? byRate[0];
+}
+
+/**
+ * Extensión del asset. X sirve tanto `…/foo.png` como `…/foo?format=jpg`, así
+ * que el query param manda sobre el path — sin esto media vault se llena de
+ * archivos `.twimg` que Obsidian no sabe mostrar.
+ */
+function assetExtension(url: string): string {
+  const fromQuery = /[?&]format=([a-z0-9]+)/i.exec(url)?.[1];
+  if (fromQuery) return fromQuery.toLowerCase();
+  const path = url.split("?")[0] ?? "";
+  const fromPath = /\.([a-z0-9]{2,4})$/i.exec(path)?.[1];
+  return (fromPath ?? "jpg").toLowerCase();
+}
+
+/**
+ * Nombre del archivo descargado. Determinístico a propósito: correr el sync dos
+ * veces reusa el mismo archivo en vez de acumular copias, y el backfill puede
+ * saber si ya lo bajó sin llevar un índice aparte.
+ *
+ * Lleva el id del tweet, no un hash de la URL: al mirar la carpeta se ve de qué
+ * post viene cada imagen.
+ */
+export function mediaAssetName(
+  tweetId: string,
+  index: number,
+  url: string,
+): string {
+  return `${tweetId}-${index + 1}.${assetExtension(url)}`;
+}
+
+/**
+ * Lo que hay que bajar para una nota: la foto si es imagen, el thumbnail si es
+ * video. Los `.mp4` se linkean, no se descargan — pesan demasiado para el peso
+ * que tienen en la vault.
+ */
+export interface XMediaAsset {
+  url: string;
+  filename: string;
+  /** El `.mp4` a linkear, solo en videos. */
+  videoUrl?: string | undefined;
+}
+
+export function mediaAssets(item: XItem): XMediaAsset[] {
+  return item.media.map((m, i) => {
+    const poster = m.type === "image" ? m.url : (m.thumbnailUrl ?? m.url);
+    const variant = m.type === "image" ? undefined : pickVideoVariant(m.variants);
+    return {
+      url: poster,
+      filename: mediaAssetName(item.id, i, poster),
+      videoUrl: variant?.url,
+    };
+  });
+}
+
+/**
+ * Dado el nombre de archivo, dónde quedó en la vault — o undefined si no se
+ * pudo bajar. Permite que el módulo siga siendo puro: la descarga vive en el CLI.
+ */
+export type MediaResolver = (asset: XMediaAsset) => string | undefined;
+
+/**
+ * Los bloques markdown de las media del tweet.
+ *
+ * Mismo formato que produce el intake para una URL pegada a mano
+ * (`tweetToArticle`): los dos caminos de entrada tienen que dar la misma nota.
+ *
+ * Cuando la descarga falla se cae al link remoto en vez de omitir la imagen —
+ * una imagen que quizás no cargue es mejor que ninguna.
+ */
+export function mediaMarkdown(item: XItem, resolve?: MediaResolver): string[] {
+  const blocks: string[] = [];
+  for (const asset of mediaAssets(item)) {
+    const local = resolve?.(asset);
+    const embed = local ? `![[${local}]]` : `![](${asset.url})`;
+    blocks.push(asset.videoUrl ? `[Video ↗](${asset.videoUrl})\n\n${embed}` : embed);
+  }
+  return blocks;
+}
+
 export interface XNote {
   frontmatter: Record<string, unknown>;
   body: string;
@@ -355,6 +537,8 @@ export interface RenderOptions {
   webFolder: string;
   legacyFolder: string;
   now?: Date;
+  /** Ausente = las media se linkean al CDN de X en vez de embeberse locales. */
+  resolveMedia?: MediaResolver | undefined;
 }
 
 export function renderNote(
@@ -381,6 +565,9 @@ export function renderNote(
   if (t.destination === "queue") frontmatter["status"] = "unread";
 
   const lines = [`> ${item.text.replace(/\n/g, "\n> ")}`, "", `— [@${item.authorHandle}](${url})`];
+  for (const block of mediaMarkdown(item, opts.resolveMedia)) {
+    lines.push("", block);
+  }
   if (ext.length > 0) {
     lines.push("", "## Links", "");
     for (const u of ext) lines.push(`- ${u}`);

@@ -16,6 +16,7 @@
     "build:extension": "cd extension && node esbuild.config.mjs production",
     "sync-x": "tsx scripts/sync-x.mts",
     "sync-x:refetch": "tsx scripts/refetch-x-text.mts",
+    "backfill-x-media": "tsx scripts/backfill-x-media.mts",
     "gardener": "tsx scripts/gardener.mts",
     "classify-books": "tsx scripts/classify-books.mts"
   },

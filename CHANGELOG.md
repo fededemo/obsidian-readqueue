@@ -6,6 +6,28 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Las imágenes de los bookmarks de X** (B-744). El sync leía `media_json` de
+  birdclaw, se quedaba con el `type` de cada media —lo justo para decidir si el
+  tweet era *watch* o *read*— y **tiraba la URL**. `renderNote` nunca emitía un
+  bloque de imagen, así que 345 de las 643 notas de X correspondían a tweets con
+  media y **ninguna la mostraba**: un tweet cuyo texto es "🇻🇪" más un `t.co`
+  quedaba ilegible. Lo irónico: el otro camino de entrada (pegar una URL a mano
+  → `tweetToArticle`) sí las embebía desde siempre; el código existía y nunca se
+  portó al sync. Ahora `XItem` lleva `media` con las URLs —un solo campo, sin
+  copia que pueda divergir del `type`— y las imágenes se **descargan** a
+  `Inbox/x-media/` con nombre determinístico (`<tweetId>-<n>.<ext>`), embebidas
+  con `![[…]]`. Local y no linkeado al CDN porque un archivo personal no debería
+  depender de que X siga sirviendo el asset, y porque se lee sin conexión. De los
+  videos se baja el thumbnail y se linkea el `.mp4` (mejor variante ≤2,5 Mbps: el
+  mismo clip llega a 10 Mbps y son cientos de MB). Si una descarga falla, la nota
+  cae al link remoto en vez de perder la imagen. `scripts/backfill-x-media.mts`
+  recupera lo ya escrito: **345 notas actualizadas, 402 imágenes (43 MB)**, 2
+  fallidas que quedaron remotas. Es aditivo y idempotente — no renombra archivos
+  (renombrar dispara el watcher de dedupe: lección de las 13 notas perdidas) ni
+  toca el frontmatter, donde viven `topic`/`tldr`/`shelfLife`.
+
 ### Added
 
 - **Reconciliar leídos de Kindle** (MX27). La wishlist ahora se entera de lo
