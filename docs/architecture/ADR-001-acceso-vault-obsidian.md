@@ -4,6 +4,13 @@
 
 **Accepted** (2026-07-09). Decisión de Fede: costo no es blocker (paga Obsidian); empaquetado = "lo que recomiendes" → governance-first. Defaults tomados por el architect: **local-first** (Path A) y **read-only** (el gate de escritura es por-acción, se puede ampliar sin costo). Ver "Decisión de Fede" abajo.
 
+> **Actualización 2026-08-04 — dos hechos del contexto cambiaron; la decisión no.**
+>
+> 1. **La vault ya no está en iCloud.** Se migró a `/Users/federico/fedenotes` el 2026-08-01 y usa **Obsidian Sync**. Todos los paths de iCloud que aparecen abajo son históricos. El riesgo de placeholders `.icloud` que motivaba parte del Path B **desapareció**, lo que refuerza la decisión de quedarse en Path A.
+> 2. **El empaquetado skill-first se ejecutó.** La skill `vault` existe en `~/.claude/skills/vault/`, y el alcance de lo que hay adentro de la vault lo define [ADR-002 de pigmistudio](../../../../pigmistudio/docs/architecture/ADR-002-integracion-vault-proyectos.md). El gate de escritura se amplió de forma acotada: el sync regenera bloques `pigmi:*` dentro de `vibecoder/`, y el `system-architect` puede mover ítems ya ruteados a `## Ruteado` en `Ideas.md`. Todo lo demás sigue siendo read-only.
+>
+> El análisis original se conserva sin tocar: un ADR se enmienda, no se reescribe.
+
 ## Context
 
 Fede quiere que **Claude, trabajando dentro de este proyecto, pueda usar la base de conocimiento de Obsidian** (la vault `fedenotes`, 615 notas). Trajo como candidato el **headless Sync de Obsidian** (`obsidian.md/help/sync/headless`), preguntando si es viable y cuál es la mejor manera de integrarlo en la gobernanza (CLAUDE.md), en un agente nuevo o en un skill.
