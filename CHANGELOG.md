@@ -6,6 +6,18 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Security
+
+- **Las 10 vulnerabilidades de `npm audit`, a cero.** Del lado del toolchain
+  (no viaja en el plugin): vitest 1.4 → 3.2.7 y happy-dom 17.6 → 20.11.2 (las
+  dos críticas — file read/execute vía el UI server de vitest, VM escape → RCE
+  en happy-dom), esbuild 0.20 → 0.28.2 y cuatro transitivas (js-yaml, nanoid,
+  postcss, brace-expansion). Del lado de producción, la única: defuddle
+  0.4 → 0.19.2 (XSS, low), que de paso alinea el parser del intake con el que
+  usa el Web Clipper hoy. Sin impacto verificado: los 685 tests —incluidos los
+  de intake contra fixtures HTML reales— siguen verdes, typecheck estricto
+  pasa, y el plugin y la extensión buildean igual.
+
 ### Fixed
 
 - **Las imágenes de los bookmarks de X** (B-744). El sync leía `media_json` de
