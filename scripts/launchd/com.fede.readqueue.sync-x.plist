@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Sync diario de X (B-745).
+
+  Todos los días a las 21:00. StartCalendarInterval y no StartInterval: con
+  StartInterval launchd dispara el job apenas se despierta la Mac si se pasó la
+  ventana, y encadena corridas. Con calendario corre una vez y listo — y si la
+  Mac estaba dormida a las 21, lo corre al despertarse.
+
+  Diario y no semanal porque la ventana de la cola son 90 días pero 14 de atraso
+  ya se notaron: los bookmarks perecederos (un lanzamiento, un hilo de noticia)
+  llegan muertos.
+
+  Instalar:
+    cp scripts/launchd/com.fede.readqueue.sync-x.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.fede.readqueue.sync-x.plist
+
+  Probar sin esperar a las 21:
+    launchctl start com.fede.readqueue.sync-x
+    tail -f ~/Library/Logs/readqueue/sync-x.log
+
+  Ver la última corrida de un vistazo:
+    tail -5 ~/Library/Logs/readqueue/sync-x.state
+
+  Desinstalar:
+    launchctl unload ~/Library/LaunchAgents/com.fede.readqueue.sync-x.plist
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.fede.readqueue.sync-x</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-lc</string>
+    <string>$HOME/codes/obsidian-readqueue/scripts/launchd/sync-x.sh</string>
+  </array>
+
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key><integer>21</integer>
+    <key>Minute</key><integer>0</integer>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <false/>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/readqueue-sync-x.out</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/readqueue-sync-x.err</string>
+</dict>
+</plist>
