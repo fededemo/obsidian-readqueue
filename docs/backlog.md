@@ -100,6 +100,7 @@
 | B-603 | F7.2 — Backfill del histórico | **DONE por E1+E2** | builder | B-602 | Lo hicieron B-603b (110 a la cola) y B-603c (519 a Legacy, 100% con topic). No hizo falta la Batch API: el volumen entra en un pase de Haiku de minutos |
 | B-604 | F7.3 — Likes agregados por autor/tema | **SUPERSEDED** | builder | B-602 | El diseño agregaba para evitar ruido. E2 lo resuelve mejor: los 199 likes entran como nota individual pero **sin `status`**, así que no compiten por atención, y **con `topic`**, así que son consultables. Además el archive oficial de X no incluye bookmarks (F7 §3.1), o sea que el ZIP nunca fue el camino |
 | B-605 | F7.4 — Enganche de X con F6 | **DONE** | builder | B-603c ✅ | Las notas de X están al 100% con `topic`, las de la cola entraron al pase de conceptos (B-731) y las 630 citas de X entraron al corpus de resurfacing (B-701). El material de X ya se cruza con el resto |
+| B-745 | ⚠️ **Nadie corre el sync de X.** Detectado el 2026-08-11: el bookmark más nuevo de la base de birdclaw era del **2026-07-28** y el `.sqlite` no se tocaba desde el 30 de julio — **14 días de bookmarks que Fede guardó en X y nunca llegaron a la vault**. El código está sano: el dry-run contra la base vieja daba `cola 0 · duplicados 650`, o sea que `sync-x` había escrito todo lo que tenía. **La deuda estaba un escalón antes**: la cadena es `birdclaw sync bookmarks` (baja de X al SQLite) **y después** `npm run sync-x` (SQLite → vault), y las dos son manuales. No hay LaunchAgent ni cron para ninguna — el único plist del repo es el del gardener (B-712), tampoco instalado. **Agravante**: `npm run sync-x` con el `node` del PATH muere con `Library not loaded: libicui18n.74.dylib` (B-607), así que aunque Fede se acordara de correrlo, le explota; funciona con `~/.nvm/versions/node/v22.23.1/bin`. Recuperado a mano en la sesión: 21 bookmarks + 29 likes nuevos → **49 notas escritas** (17 a la cola, 32 a Legacy), 23 imágenes, 12 textos truncados recuperados por FxTwitter; re-run verificado en `cola 0 · duplicados 700` | TODO | builder + user | B-607 (node) | LaunchAgent que encadene `birdclaw sync bookmarks --all --early-stop --refresh` + `birdclaw sync likes …` + `npm run sync-x`, con el mismo patrón del wrapper de B-712 (verificar que node **ande**, no que exista) y log en `Diario/`. Cadencia sugerida: diaria — la ventana de cola son 90 días, pero 14 de atraso ya se notaron |
 
 ## Secuencia unificada del segundo cerebro (`docs/SEGUNDO-CEREBRO.md` §5)
 
@@ -168,3 +169,17 @@
 ---
 
 **Última actualización**: 2026-05-30 — F1.0–F1.5 code-complete (5 commits feat en main). Solo queda B-006 (BRAT install + 2 semanas de uso real).
+
+---
+
+## 🔐 Seguridad — auditoría cross-project 2026-08-08
+
+> Origen: auditoría CSO global desde pigmistudio. Resolución del reporte previo "key Anthropic expuesta en data.json": la key NO está en este repo (working tree e historial del plugin verificados limpios, incluso en el remoto público) — vive en la vault `fedenotes`, que ES repo git local sin remoto y la tiene trackeada en 4 commits.
+
+| ID | Ítem | Prio | Agente | Estado |
+|----|------|------|--------|--------|
+| SEC-1 | **Rotar la API key de Anthropic** en console.anthropic.com: está en texto plano en `~/fedenotes/.obsidian/plugins/readqueue/data.json:51`, commiteada en toda la historia de la vault (introducida en el baseline de la migración desde iCloud). Luego, en la vault: `git rm --cached .obsidian/plugins/readqueue/data.json` + agregar `.obsidian/plugins/*/data.json` al `.gitignore`. Si algún día la vault recibe remoto, reescribir historia antes (`git filter-repo`). | P1 | Fede (rotación) + vault-gardener (gitignore) | TODO |
+| SEC-2 | `scripts/import-matter.ts:213` y `scripts/sync-kindle.ts:64` aceptan `--anthropic-key` por CLI: queda en shell history y visible en `ps`. Leer de `ANTHROPIC_API_KEY` (env) o del data.json del plugin. | P3 | obsidian-readqueue-builder | TODO |
+
+### CI/CD (auditoría de workflows 2026-08-08 — P3, repo PÚBLICO)
+- `permissions: contents: read` top-level en `ci.yml:13` (el `release.yml` ya es ejemplar); pinear actions a SHA. Por ser el único repo público conviene cerrarlo. — obsidian-readqueue-builder
