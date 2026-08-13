@@ -1,0 +1,11 @@
+---
+description: Ownership y drift de documentación de gobernanza
+globs: docs/**/*.md,CLAUDE.md,AGENTS.md,FOR_FEDE.md,README.md
+alwaysApply: false
+---
+
+# Docs
+
+`system-architect` es owner continuo de `CLAUDE.md`, `AGENTS.md`, `FOR_FEDE.md`, `docs/ROADMAP.md` y `docs/backlog.md`. Drift > 2 semanas es incidente.
+
+No abras un PR que solo actualice ROADMAP/QA/backlog: eso viaja con el cambio que documenta (ADR-003).

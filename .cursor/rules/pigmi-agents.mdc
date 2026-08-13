@@ -1,0 +1,12 @@
+---
+description: Convenciones de agentes Claude y su proyección a Cursor
+globs: templates/agents/**/*.md,.claude/agents/**/*.md,.cursor/agents/**/*.md
+alwaysApply: false
+---
+
+# Agentes
+
+- Fuente: `templates/agents/*.md` o `.claude/agents/*.md` (frontmatter Claude: `model`, `effort`, `maxTurns`, `memory`).
+- Proyección Cursor: `scripts/cursor-layer.mjs` → `.cursor/agents/` con `model: inherit`.
+- Bloques transversales (`vault`, `git`) se escriben con `propagate-agent-rules.mjs` en la fuente Claude, no a mano en la proyección.
+- Estándar: `docs/agent-design-standard.md`. Juez: `python3 scripts/validar-agentes.py` y `--harness cursor`.
