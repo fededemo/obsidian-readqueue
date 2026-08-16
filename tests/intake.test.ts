@@ -327,6 +327,18 @@ describe("extractTweetIdentifiers", () => {
   it("returns undefined for non-tweet URL", () => {
     expect(extractTweetIdentifiers("https://x.com/jack")).toBeUndefined();
   });
+
+  it("el permalink /handle/article/<statusId> resuelve al tweet anuncio", () => {
+    expect(
+      extractTweetIdentifiers("https://x.com/ericzakariasson/article/2087566447178547494"),
+    ).toEqual({ user: "ericzakariasson", id: "2087566447178547494" });
+  });
+
+  it("/i/article/<articleId> no es un status: los ids no coinciden", () => {
+    expect(
+      extractTweetIdentifiers("https://x.com/i/article/2087564694706106372"),
+    ).toBeUndefined();
+  });
 });
 
 describe("fetchTweet", () => {
@@ -451,6 +463,33 @@ describe("tweetToArticle", () => {
 
   it("returns undefined when tweet is missing", () => {
     expect(tweetToArticle({ code: 200, message: "OK" }, "x")).toBeUndefined();
+  });
+
+  it("un X Article usa el título real y embebe el cuerpo, no solo el anuncio", () => {
+    const articleJson = JSON.parse(
+      readFileSync(join(__dirname, "fixtures/x-article-fxtwitter.json"), "utf-8"),
+    );
+    const withArticle: FxTwitterResponse = {
+      code: 200,
+      message: "OK",
+      tweet: {
+        id: "2087566447178547494",
+        url: "https://x.com/ericzakariasson/status/2087566447178547494",
+        text: "grok 4.6 is live! https://t.co/1D3yeieZDT",
+        author: { name: "eric zakariasson", screen_name: "ericzakariasson" },
+        article: articleJson,
+      },
+    };
+    const article = tweetToArticle(
+      withArticle,
+      "https://x.com/ericzakariasson/status/2087566447178547494",
+    );
+    expect(article?.title).toBe("Grok 4.6 – A field guide");
+    expect(article?.bodyMarkdown).toContain("> grok 4.6 is live!");
+    expect(article?.bodyMarkdown).toContain("## Information dense communication");
+    expect(article?.bodyMarkdown).toContain(
+      "![](https://pbs.twimg.com/media/HPiFEqUbgAAPjhB.png)",
+    );
   });
 });
 

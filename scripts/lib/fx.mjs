@@ -7,12 +7,15 @@
  *
  * Medido sobre la vault: 293 caracteres guardados contra 3.247 reales. Sin esto
  * estábamos archivando el 9% de los posts largos.
+ *
+ * El mismo JSON trae `tweet.article` cuando el post anuncia un X Article. El
+ * HTML de `x.com/i/article/…` es un shell vacío; el cuerpo solo está acá.
  */
 
 const ENDPOINT = "https://api.fxtwitter.com/status";
 
-/** Devuelve el texto completo, o undefined si no se pudo. Nunca tira. */
-export async function fetchFullText(tweetId, { retries = 2 } = {}) {
+/** El JSON del tweet, o undefined. Nunca tira. */
+export async function fetchTweetJson(tweetId, { retries = 2 } = {}) {
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const res = await fetch(`${ENDPOINT}/${tweetId}`, {
@@ -25,13 +28,20 @@ export async function fetchFullText(tweetId, { retries = 2 } = {}) {
       }
       if (!res.ok) return undefined;
       const json = await res.json();
-      const text = json?.tweet?.text;
-      return typeof text === "string" && text.length > 0 ? text : undefined;
+      const tweet = json?.tweet;
+      return tweet && typeof tweet === "object" ? tweet : undefined;
     } catch {
       await sleep(800 * (attempt + 1));
     }
   }
   return undefined;
+}
+
+/** Devuelve el texto completo, o undefined si no se pudo. Nunca tira. */
+export async function fetchFullText(tweetId, opts = {}) {
+  const tweet = await fetchTweetJson(tweetId, opts);
+  const text = tweet?.text;
+  return typeof text === "string" && text.length > 0 ? text : undefined;
 }
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

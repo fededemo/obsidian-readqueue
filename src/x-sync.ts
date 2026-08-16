@@ -1,4 +1,7 @@
 import { canonicalizeUrl } from "./url-canon";
+import { isXArticleUrl } from "./x-article";
+
+export { isXArticleUrl } from "./x-article";
 
 /**
  * Triage de bookmarks y likes de X (F7).
@@ -97,16 +100,8 @@ const host = (url: string): string => {
   }
 };
 
-/**
- * X Articles: el formato largo de X. Viven en un dominio de X pero NO son una
- * auto-referencia — son el contenido. Descartarlos por dominio dejaba 92 notas
- * como `reference` y sin siquiera el link: el cuerpo quedaba en un `t.co` pelado
- * y ni el clasificador de topics podía sacarles nada.
- */
-const X_ARTICLE = /^https?:\/\/(?:www\.)?(?:x|twitter)\.com\/i\/article\//i;
-
 const isInternal = (url: string): boolean => {
-  if (X_ARTICLE.test(url)) return false;
+  if (isXArticleUrl(url)) return false;
   const h = host(url);
   return h === "x.com" || h === "twitter.com" || h.endsWith(".x.com");
 };
@@ -278,6 +273,37 @@ export function insertMediaBlocks(body: string, blocks: readonly string[]): stri
   return [...lines.slice(0, at), ...inserted, ...lines.slice(at)].join("\n");
 }
 
+/**
+ * ¿Esta nota ya tiene el cuerpo del X Article?
+ *
+ * `renderNote` lo inserta como un H1 (el título del artículo) fuera de la cita.
+ * Un `## Links` no cuenta: eso es el pie de los punteros, no el contenido.
+ */
+export function hasArticleBody(body: string): boolean {
+  return body.split("\n").some((l) => {
+    if (/^\s*>/.test(l)) return false;
+    const t = l.trim();
+    return /^#\s+\S/.test(t) && !/^##\s+Links\s*$/.test(t);
+  });
+}
+
+/**
+ * Inserta el markdown del X Article en una nota ya escrita.
+ *
+ * Va antes de `## Links` y después de todo lo demás (cita, atribución, media),
+ * que es el mismo orden que produce `renderNote`. Idempotente: si ya hay un H1
+ * fuera de la cita, no toca nada — no se pisan `topic`/`tldr` ni se duplica.
+ */
+export function insertArticleBody(body: string, markdown: string): string {
+  const block = markdown.trim();
+  if (!block || hasArticleBody(body)) return body;
+  const lines = body.split("\n");
+  const links = lines.findIndex((l) => /^##\s+Links\s*$/.test(l.trim()));
+  let at = links >= 0 ? links : lines.length;
+  while (at > 0 && (lines[at - 1] ?? "").trim() === "") at--;
+  return [...lines.slice(0, at), "", block, ...lines.slice(at)].join("\n");
+}
+
 /** Clave canónica para deduplicar contra lo que ya está en la vault. */
 export function itemKey(item: XItem): string {
   const ext = externalUrls(item);
@@ -342,7 +368,7 @@ export function noteTitle(item: XItem): string {
   const base = noteBasename(item.text);
   if (base !== "sin-titulo") return base;
   const handle = item.authorHandle ? `@${item.authorHandle}` : "X";
-  if (item.urls.some((u) => X_ARTICLE.test(u))) return `Artículo de ${handle}`;
+  if (item.urls.some((u) => isXArticleUrl(u))) return `Artículo de ${handle}`;
   if (externalUrls(item).length > 0) return `Link de ${handle}`;
   if (hasNativeVideo(item)) return `Video de ${handle}`;
   if (item.media.length > 0) return `Imagen de ${handle}`;
@@ -533,12 +559,23 @@ export interface XNote {
   folder: string;
 }
 
+export interface XArticleBody {
+  title: string;
+  markdown: string;
+}
+
 export interface RenderOptions {
   webFolder: string;
   legacyFolder: string;
   now?: Date;
   /** Ausente = las media se linkean al CDN de X en vez de embeberse locales. */
   resolveMedia?: MediaResolver | undefined;
+  /**
+   * Cuerpo del X Article, si el tweet es un puntero a `x.com/i/article/…`.
+   * Lo trae FxTwitter en `tweet.article`; sin esto la nota queda en el anuncio
+   * y un link que defuddle no puede abrir.
+   */
+  article?: XArticleBody | undefined;
 }
 
 export function renderNote(
@@ -550,9 +587,10 @@ export function renderNote(
   const ext = externalUrls(item);
   const source = item.collection === "likes" ? "x-like" : "x-bookmark";
 
+  const articleTitle = opts.article?.title.trim();
   const frontmatter: Record<string, unknown> = {
     source,
-    title: displayTitle(item),
+    title: articleTitle || displayTitle(item),
     url,
     author: `@${item.authorHandle}`,
     published: item.createdAt.slice(0, 10),
@@ -567,6 +605,10 @@ export function renderNote(
   const lines = [`> ${item.text.replace(/\n/g, "\n> ")}`, "", `— [@${item.authorHandle}](${url})`];
   for (const block of mediaMarkdown(item, opts.resolveMedia)) {
     lines.push("", block);
+  }
+  if (opts.article && opts.article.markdown.trim()) {
+    if (articleTitle) lines.push("", `# ${articleTitle}`);
+    lines.push("", opts.article.markdown.trim());
   }
   if (ext.length > 0) {
     lines.push("", "## Links", "");

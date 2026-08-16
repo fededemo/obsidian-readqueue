@@ -24,10 +24,12 @@ import {
   planSync,
   renderNote,
   vaultUrlKeys,
+  isXArticleUrl,
   type XItem,
   type XMediaVariant,
 } from "../src/x-sync";
-import { fetchFullText, sleep, tweetIdFromUrl } from "./lib/fx.mjs";
+import { xArticleImageAssets, xArticleToMarkdown, type XArticle } from "../src/x-article";
+import { fetchTweetJson, sleep, tweetIdFromUrl } from "./lib/fx.mjs";
 import { downloadAll } from "./lib/media.mjs";
 
 const VAULT = join(homedir(), "fedenotes");
@@ -207,39 +209,60 @@ if (DRY) {
 }
 
 /**
- * Antes de escribir, recuperar el texto de los que vinieron cortados.
+ * Antes de escribir, enriquecer con FxTwitter: texto truncado y X Articles.
  *
- * La API de X trunca en 280 caracteres y engancha un `t.co`; el post entero
- * viaja aparte y birdclaw no lo guarda. Medido: 293 caracteres archivados
- * contra 3.247 reales. FxTwitter lo devuelve completo, gratis.
+ * La API de X trunca en 280 y engancha un `t.co`; el post entero viaja aparte
+ * y birdclaw no lo guarda. El mismo JSON trae `tweet.article` cuando el post
+ * es un puntero a `x.com/i/article/…` — el HTML de esa URL es un shell vacío.
  *
- * Solo sobre lo que efectivamente se va a escribir — enriquecer los 650 en cada
- * corrida sería castigar un servicio público para nada.
+ * Una sola request por tweet, y solo sobre lo que se va a escribir.
  */
 let written = 0;
 const target = plan.items.filter((x) => !QUEUE_ONLY || x.triage.destination === "queue");
 
-const truncated = target.filter((x) => looksTruncated(x.item));
-if (truncated.length > 0 && !DRY) {
-  console.log(`\nrecuperando texto completo de ${truncated.length} tweets cortados…`);
-  let ok = 0;
-  const queue = [...truncated];
+const needsFx = target.filter(
+  (x) => looksTruncated(x.item) || x.item.urls.some((u) => isXArticleUrl(u)),
+);
+/** Cuerpo del X Article por id de tweet, para pasárselo a `renderNote`. */
+const articles = new Map<string, { title: string; article: XArticle }>();
+if (needsFx.length > 0 && !DRY) {
+  const truncated = needsFx.filter((x) => looksTruncated(x.item)).length;
+  const articlePtrs = needsFx.filter((x) => x.item.urls.some((u) => isXArticleUrl(u))).length;
+  console.log(
+    `\nFxTwitter: ${needsFx.length} tweets` +
+      (truncated ? ` · ${truncated} truncados` : "") +
+      (articlePtrs ? ` · ${articlePtrs} X Articles` : "") +
+      "…",
+  );
+  let textOk = 0;
+  let articleOk = 0;
+  const queue = [...needsFx];
   await Promise.all(
     Array.from({ length: 3 }, async () => {
       while (queue.length > 0) {
         const entry = queue.shift();
         if (!entry) break;
         const id = tweetIdFromUrl(`https://x.com/x/status/${entry.item.id}`);
-        const full = id ? await fetchFullText(id) : undefined;
+        const tweet = id ? await fetchTweetJson(id) : undefined;
         await sleep(250);
-        if (full && full.length > entry.item.text.length) {
+        if (!tweet) continue;
+        const full = typeof tweet.text === "string" ? tweet.text : "";
+        if (full.length > entry.item.text.length) {
           entry.item = { ...entry.item, text: full };
-          ok++;
+          textOk++;
+        }
+        if (tweet.article && typeof tweet.article === "object") {
+          const article = tweet.article as XArticle;
+          const title = typeof article.title === "string" ? article.title.trim() : "";
+          if (xArticleToMarkdown(article)) {
+            articles.set(entry.item.id, { title, article });
+            articleOk++;
+          }
         }
       }
     }),
   );
-  console.log(`  recuperados: ${ok}/${truncated.length}`);
+  console.log(`  textos: ${textOk} · artículos: ${articleOk}/${articlePtrs || 0}`);
 }
 /**
  * Bajar las imágenes antes de escribir las notas.
@@ -248,7 +271,9 @@ if (truncated.length > 0 && !DRY) {
  * elegir entre `![[local]]` y el link al CDN. Los `.mp4` no se bajan — se
  * linkean; lo que se guarda es el thumbnail, que es una imagen normal.
  */
-const assets = target.slice(0, LIMIT).flatMap((x) => mediaAssets(x.item));
+const tweetAssets = target.slice(0, LIMIT).flatMap((x) => mediaAssets(x.item));
+const articleAssets = [...articles.values()].flatMap(({ article }) => xArticleImageAssets(article));
+const assets = [...tweetAssets, ...articleAssets];
 const mediaDir = join(VAULT, MEDIA);
 let availableMedia = new Set<string>();
 if (assets.length > 0) {
@@ -278,10 +303,19 @@ const usedIn = (dir: string): Set<string> => {
 };
 
 for (const { item, triage } of target.slice(0, LIMIT)) {
+  const packed = articles.get(item.id);
   const note = renderNote(item, triage, {
     webFolder: WEB,
     legacyFolder: LEGACY,
     resolveMedia: (a) => (availableMedia.has(a.filename) ? a.filename : undefined),
+    article: packed
+      ? {
+          title: packed.title,
+          markdown: xArticleToMarkdown(packed.article, (a) =>
+            availableMedia.has(a.filename) ? a.filename : undefined,
+          ),
+        }
+      : undefined,
   });
   const dir = join(VAULT, note.folder);
   mkdirSync(dir, { recursive: true });

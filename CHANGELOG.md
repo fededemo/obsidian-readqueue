@@ -20,6 +20,23 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Fixed
 
+- **El cuerpo de los X Articles** (B-747). Un bookmark a `x.com/i/article/…`
+  entraba a la cola como el tweet anuncio más un link: *grok 4.6 is live! a
+  write up…* y `targetUrl`, sin el artículo. B-740 los había reclasificado como
+  lectura y se quedó ahí — el HTML de esa URL es un shell de JS (curl ve un 404
+  con título "X"), y se asumió que hacía falta sesión autenticada. Falso:
+  FxTwitter ya devolvía el artículo entero en `tweet.article` (Draft.js:
+  `blocks` + `entityMap` + `media_entities`) y tanto el sync como el intake
+  tiraban ese campo, igual que B-744 con las fotos. `src/x-article.ts` lo
+  convierte a markdown (headings, links, fotos, code fences, tweets embebidos).
+  Lo nuevo lo hace `sync-x` en la misma request de FxTwitter que ya iba a buscar
+  el texto truncado; lo viejo, `npm run backfill-x-articles` (**94 notas**, 0
+  fallos, idempotente). Las fotos se bajan a `Inbox/x-media/` (`xa-<stem>.ext`)
+  y se embeben con `![[…]]`, no al CDN. El título pasa al frontmatter, el
+  archivo no se renombra. El permalink del Web Clipper
+  (`/handle/article/<statusId>`) ahora canoniza al mismo tweet, para no
+  convivir con el bookmark.
+
 - **Las imágenes de los bookmarks de X** (B-744). El sync leía `media_json` de
   birdclaw, se quedaba con el `type` de cada media —lo justo para decidir si el
   tweet era *watch* o *read*— y **tiraba la URL**. `renderNote` nunca emitía un

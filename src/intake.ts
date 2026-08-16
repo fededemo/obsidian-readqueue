@@ -15,6 +15,7 @@ import {
   isTwitterUrl,
   type ExistingNote,
 } from "./url-canon";
+import { xArticleToMarkdown, type XArticle } from "./x-article";
 
 export { slugifyForFilename };
 export { extractTweetIdentifiers, isTwitterUrl };
@@ -144,6 +145,8 @@ export interface FxTwitterTweet {
     photos?: FxTwitterMediaPhoto[];
     videos?: FxTwitterMediaVideo[];
   };
+  /** Presente cuando el tweet anuncia un X Article. */
+  article?: XArticle;
 }
 
 export interface FxTwitterResponse {
@@ -184,7 +187,10 @@ export function tweetToArticle(
   const text = (t.text ?? "").trim();
   const firstLine = text.split("\n")[0] ?? text;
   const snippet = firstLine.slice(0, 80);
-  const title = `@${screen}: ${snippet}${firstLine.length > 80 ? "…" : ""}`;
+  const articleMarkdown = t.article ? xArticleToMarkdown(t.article) : "";
+  const articleTitle = t.article?.title?.trim();
+  const title =
+    articleTitle || `@${screen}: ${snippet}${firstLine.length > 80 ? "…" : ""}`;
   const published = t.created_at ? parseTwitterDate(t.created_at) : undefined;
 
   const quoted = text
@@ -201,7 +207,9 @@ export function tweetToArticle(
     mediaBlocks.push(`[Video ↗](${video.url})\n\n![](${thumb})`);
   }
 
-  const bodyMarkdown = [quoted, ...mediaBlocks].filter(Boolean).join("\n\n");
+  const bodyMarkdown = [quoted, ...mediaBlocks, articleMarkdown]
+    .filter(Boolean)
+    .join("\n\n");
 
   return {
     title,

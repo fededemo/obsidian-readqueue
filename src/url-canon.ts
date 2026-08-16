@@ -7,6 +7,8 @@
 const TWITTER_HOST_RE =
   /^(?:www\.)?(twitter\.com|x\.com|fxtwitter\.com|fixupx\.com|vxtwitter\.com)$/;
 const TWEET_PATH_RE = /^\/([^/]+)\/status\/(\d+)/;
+/** Permalink del autor: `/handle/article/<statusId>`. El id es el del tweet, no el del artículo. */
+const ARTICLE_STATUS_PATH_RE = /^\/([^/]+)\/article\/(\d+)/;
 
 export function isTwitterUrl(url: string): boolean {
   try {
@@ -20,9 +22,15 @@ export function extractTweetIdentifiers(
   url: string,
 ): { user: string; id: string } | undefined {
   try {
-    const m = TWEET_PATH_RE.exec(new URL(url).pathname);
-    if (!m || !m[1] || !m[2]) return undefined;
-    return { user: m[1], id: m[2] };
+    const path = new URL(url).pathname;
+    const status = TWEET_PATH_RE.exec(path);
+    if (status?.[1] && status[2]) return { user: status[1], id: status[2] };
+    const article = ARTICLE_STATUS_PATH_RE.exec(path);
+    // `/i/article/<articleId>` es el artículo mismo: ese id NO es un status.
+    if (article?.[1] && article[1] !== "i" && article[2]) {
+      return { user: article[1], id: article[2] };
+    }
+    return undefined;
   } catch {
     return undefined;
   }

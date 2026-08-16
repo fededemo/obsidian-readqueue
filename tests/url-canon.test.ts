@@ -68,6 +68,20 @@ describe("canonicalizeUrl", () => {
     expect(canonicalizeUrl("https://x.com/OTHER_HANDLE/status/123")).toBe(key);
   });
 
+  it("el permalink /handle/article/<statusId> es el mismo tweet", () => {
+    // Web Clipper guarda esa forma; el bookmark guarda /status/<id>.
+    // Sin esto coexisten dos notas del mismo artículo.
+    expect(canonicalizeUrl("https://x.com/eric/article/2087566447178547494")).toBe(
+      "tweet:2087566447178547494",
+    );
+  });
+
+  it("x.com/i/article/<articleId> NO es un tweet: el id es otro", () => {
+    expect(canonicalizeUrl("http://x.com/i/article/2087564694706106372")).toBe(
+      "https://x.com/i/article/2087564694706106372",
+    );
+  });
+
   it("falls back to the lowercased raw string for non-http(s)", () => {
     expect(canonicalizeUrl("MAILTO:Foo@Bar.com")).toBe("mailto:foo@bar.com");
     expect(canonicalizeUrl("not a url")).toBe("not a url");

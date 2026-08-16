@@ -19,6 +19,8 @@ import {
   triage,
   hasMediaBlocks,
   insertMediaBlocks,
+  hasArticleBody,
+  insertArticleBody,
   mediaAssetName,
   mediaAssets,
   mediaMarkdown,
@@ -245,6 +247,11 @@ describe("vaultUrlKeys", () => {
 
   it("una URL común tiene una sola forma", () => {
     expect(vaultUrlKeys("https://ssrn.com/abstract=1")).toHaveLength(1);
+  });
+
+  it("el permalink /handle/article/<statusId> indexa como el tweet", () => {
+    const keys = vaultUrlKeys("https://x.com/eric/article/2087566447178547494");
+    expect(keys).toContain("tweet:2087566447178547494");
   });
 });
 
@@ -559,5 +566,74 @@ describe("displayTitle", () => {
   it("un tweet sin texto propio usa el nombre por tipo", () => {
     const item = mk({ text: "https://t.co/abc", urls: ["http://x.com/i/article/9"] });
     expect(displayTitle(item)).toBe("Artículo de @alguien");
+  });
+});
+
+describe("renderNote — X Article", () => {
+  const opts = { webFolder: "Inbox/Web/", legacyFolder: "Inbox/Legacy/", now: NOW };
+  const article = {
+    title: "Grok 4.6 – A field guide",
+    markdown: "## Information dense communication\n\nIt's collaborative.",
+  };
+
+  it("el título de la nota es el del artículo, no el del anuncio", () => {
+    const item = mk({
+      text: "grok 4.6 is live! https://t.co/abc",
+      urls: ["http://x.com/i/article/9"],
+    });
+    const n = renderNote(item, triage(item, { now: NOW }), { ...opts, article });
+    expect(n.frontmatter["title"]).toBe("Grok 4.6 – A field guide");
+    expect(n.body).toContain("# Grok 4.6 – A field guide");
+    expect(n.body).toContain("## Information dense communication");
+    expect(n.body.indexOf("# Grok")).toBeLessThan(n.body.indexOf("## Links"));
+  });
+
+  it("sin artículo sigue siendo el anuncio más el link", () => {
+    const item = mk({
+      text: "grok 4.6 is live!",
+      urls: ["http://x.com/i/article/9"],
+    });
+    const n = renderNote(item, triage(item, { now: NOW }), opts);
+    expect(n.body).not.toContain("# Grok");
+    expect(n.body).toContain("## Links");
+  });
+});
+
+describe("insertArticleBody", () => {
+  const body = [
+    "> grok 4.6 is live! https://t.co/abc",
+    "",
+    "— [@alguien](https://x.com/alguien/status/1)",
+    "",
+    "## Links",
+    "",
+    "- http://x.com/i/article/9",
+  ].join("\n");
+  const block = "# Grok 4.6 – A field guide\n\nIt's collaborative.";
+
+  it("mete el artículo antes de ## Links", () => {
+    const out = insertArticleBody(body, block);
+    expect(out).toContain("# Grok 4.6 – A field guide");
+    expect(out.indexOf("# Grok")).toBeGreaterThan(out.indexOf("— [@alguien]"));
+    expect(out.indexOf("# Grok")).toBeLessThan(out.indexOf("## Links"));
+  });
+
+  it("es idempotente", () => {
+    const once = insertArticleBody(body, block);
+    expect(insertArticleBody(once, block)).toBe(once);
+  });
+
+  it("un H1 dentro de la cita no cuenta como cuerpo ya insertado", () => {
+    const citado = "> # no es el artículo\n\n— [@alguien](https://x.com/a/status/1)";
+    expect(hasArticleBody(citado)).toBe(false);
+    expect(insertArticleBody(citado, block)).toContain("# Grok 4.6");
+  });
+
+  it("## Links no cuenta como cuerpo del artículo", () => {
+    expect(hasArticleBody(body)).toBe(false);
+  });
+
+  it("markdown vacío no toca la nota", () => {
+    expect(insertArticleBody(body, "  ")).toBe(body);
   });
 });
