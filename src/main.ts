@@ -19,6 +19,7 @@ import {
   type ConceptNote,
 } from "./concept-graph";
 import { buildDailyRitual, renderDailyRitual } from "./daily-ritual";
+import { JOURNAL_HOY_PATH, renderJournalHoy } from "./journal-hoy";
 import { rankQueue } from "./priority";
 import {
   articleFromFile,
@@ -324,6 +325,14 @@ export default class ReadQueuePlugin extends Plugin {
     });
 
     this.addCommand({
+      id: "journal-hoy",
+      name: "Qué escribo hoy",
+      callback: () => {
+        void this.openJournalHoy();
+      },
+    });
+
+    this.addCommand({
       id: "daily-ritual",
       name: "Repaso del día (1 highlight + conexiones)",
       callback: () => {
@@ -479,6 +488,7 @@ export default class ReadQueuePlugin extends Plugin {
         if (this.settings.openOnStartup) {
           await this.activateView();
         }
+        await this.refreshJournalHoy();
         await this.runIntakeOnce();
         if (this.settings.autoMoveOrphans !== false) {
           await this.moveWebClipperOrphans({ silent: true });
@@ -884,6 +894,28 @@ export default class ReadQueuePlugin extends Plugin {
         : `ReadQueue: ${picks.length} artículos sugeridos para hoy.`,
     );
     return picks;
+  }
+
+  /** Reescribe `Journal/Hoy.md` con las tres líneas de esta fecha. */
+  async refreshJournalHoy(): Promise<void> {
+    const body = renderJournalHoy(new Date());
+    const path = normalizePath(JOURNAL_HOY_PATH);
+    await ensureFolder(this.app, "Journal");
+    const existing = this.app.vault.getAbstractFileByPath(path);
+    if (existing instanceof TFile) {
+      const current = await this.app.vault.read(existing);
+      if (current !== body) await this.app.vault.modify(existing, body);
+      return;
+    }
+    await this.app.vault.create(path, body);
+  }
+
+  async openJournalHoy(): Promise<void> {
+    await this.refreshJournalHoy();
+    const file = this.app.vault.getAbstractFileByPath(normalizePath(JOURNAL_HOY_PATH));
+    if (!(file instanceof TFile)) return;
+    const leaf = this.app.workspace.getLeaf(false);
+    await leaf.openFile(file);
   }
 
   /**
