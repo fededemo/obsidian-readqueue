@@ -92,7 +92,7 @@ Detalle completo en la skill `vault`.
 
 Medido el 2026-08-08: **32 PRs abiertos** en 9 proyectos, 20 en draft, el más viejo de 83 días, el más grande de 11.557 líneas. No es un problema de prolijidad: es trabajo terminado que no llegó a `main`, y que mientras tanto conflictúa, se duplica y se olvida.
 
-### Las cuatro reglas
+### Las seis reglas
 
 **1. Un PR es un cambio que se puede aprobar de una sentada.** Objetivo: menos de ~400 líneas y ~15 archivos. Si te pasás, o lo partís, o explicás en el cuerpo por qué es atómico. Un PR de 11.557 líneas no se revisa: se posterga para siempre.
 
@@ -101,6 +101,10 @@ Medido el 2026-08-08: **32 PRs abiertos** en 9 proyectos, 20 en draft, el más v
 **3. Lo que documenta un cambio viaja con el cambio.** Entradas de ROADMAP, bloques de QA status, updates de backlog, notas de FOR_FEDE: van en el PR del trabajo que describen. Un PR de solo-documentación nunca es urgente para nadie y por eso se queda abierto meses — con el efecto perverso de que `main` no tiene el registro de lo que ya pasó en producción.
 
 **4. Nada queda en una rama local.** Si commiteaste, pusheaste. Un commit que solo vive en tu máquina no existe para el resto del sistema y se pierde si el worktree se borra.
+
+**5. Lo que está en producción está en `main`.** Deployá desde `main`, nunca desde tu rama. Si deployás desde una rama sin mergear, producción pasa a ser **el único lugar del mundo donde vive ese estado**: el repo deja de ser la fuente de verdad y el próximo deploy hecho desde `main` revierte tu trabajo en silencio, sin error ni aviso. Un PR en draft es trabajo que no llegó; si ya está en producción, el draft es además una mentira sobre el estado del sistema.
+
+**6. `main` local es un fast-forward de `origin/main`, nunca una rama de trabajo.** Al arrancar: `git fetch origin && git status -sb`. Si estás en `main` y aparece `ahead` o `behind`: **STOP**. No diseñar, no commitear. Si solo estás behind: `git pull --ff-only`. Si estás ahead (o ahead+behind): no rebasees ni hagas merge en `main` — esos commits locales suelen ser duplicados de PRs ya mergeados. **Nunca commitees en `main` local**, ni gobernanza: branch desde `origin/main` + PR. Después de `gh pr merge`, en el laptop: `git checkout main && git pull --ff-only`. "Estado terminal es `main`" no alcanza si el laptop está N commits atrás: ya pasó 2026-08-06 y 2026-08-12 (ahead 3 / behind 28, parches idénticos a #22/#28).
 
 ### Lo tuyo en particular
 
@@ -112,6 +116,24 @@ Medido el 2026-08-08: **32 PRs abiertos** en 9 proyectos, 20 en draft, el más v
 - [ ] ¿El PR está listo para mergear, o dice explícitamente qué lo bloquea?
 - [ ] Si quedó bloqueado, ¿está anotado en `docs/backlog.md`?
 - [ ] ¿La documentación del cambio va adentro de este mismo PR?
+- [ ] Si deployaste: ¿lo que quedó en producción está también en `main`?
+- [ ] ¿`main` local está ff con `origin/main`? (`git fetch` + `status -sb` → ni ahead ni behind)
 
-**El estado terminal de una tarea es "en `main`" o "anotado por qué no".** "Abrí el PR" no es un estado terminal.
+**El estado terminal de una tarea es "en `main`" o "anotado por qué no".** "Abrí el PR" no es un estado terminal. **Y si además la deployaste, el estado terminal es "en `main` y en producción, y son lo mismo".**
 <!-- pigmi:end git -->
+
+<!-- pigmi:begin github -->
+## GitHub no se paga
+
+Decisión de Fede, 2026-09-24 (ADR-008 en `~/pigmistudio/docs/architecture/ADR-008-no-pagar-github.md`): **no se paga GitHub**. No se sube el spending limit ni se compran minutos de Actions.
+
+Los runners no arrancan. El job muere al pedirse, sin pasos y sin log: `recent account payments have failed or your spending limit needs to be increased`. Eso es facturación, no un test roto. Arreglarlo adentro de GitHub (pagar, subir el límite, reintentar el workflow) no es una opción.
+
+Se resuelve en la máquina:
+
+- **El gate es el comando de tests del repo**, antes de mergear. Si existe `./scripts/verificar.sh`, es ese. Si no, el que el proyecto ya documenta (`npm test`, `npm run typecheck`, `pytest`).
+- **`gh run list` no es señal.** No frena una feature y no se "arregla" como CI. La lección de saccum (no construir sobre tests rotos) sigue en pie: lo que tiene que estar verde es el comando local, no Actions.
+- **Release y deploy que usaban un runner se corren desde acá.** `gh release create` (la API de releases no es el runner), wrangler, o el script de deploy del producto.
+
+Si este archivo todavía dice `gh run list` en el pre-flight, esa línea está retirada.
+<!-- pigmi:end github -->

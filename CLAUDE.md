@@ -114,6 +114,12 @@ npm run typecheck
 npm run test
 npm run test:watch
 
+# Gate antes de mergear (typecheck + test + build). No hay Actions.
+./scripts/verificar.sh
+
+# Release de un tag, desde la máquina (la API de releases no pide runner):
+# npm run build && gh release create vX.Y.Z main.js manifest.json styles.css versions.json --title vX.Y.Z
+
 # Instalar en la vault local para probar
 ln -s "$(pwd)" "/Users/federico/fedenotes/.obsidian/plugins/readqueue"
 # (a mobile llega solo: Obsidian Sync propaga .obsidian/plugins/)
@@ -133,11 +139,11 @@ Decisión actual: **Obsidian Sync**.
 
 ## Mandatory rules — heredadas de governance pigmi
 
-1. **Pre-flight CI check antes de implementar cada feature**: `gh run list --branch main --limit 5 --json conclusion`. Main rojo → fix CI primero, no implementar feature.
+1. **Pre-flight en la máquina**: `./scripts/verificar.sh` antes de dar una feature por cerrada. No se paga GitHub (ADR-008 en pigmistudio). `gh run list` no es señal: un run que muere al pedir runner es facturación, no un test roto.
 2. **Plan Mode obligatorio** si hay >1 camino arquitectónico o si la implementación toca >2 archivos críticos del plugin.
 3. **Verify, don't narrate**: cada cierre de feature corre `npm run typecheck && npm run test` antes de marcar como done.
 4. **Code in English, UI en español** (este proyecto user-facing es 1 sola persona, FedeUI en español).
-5. **No implementar sobre main rojo** (regla saccum 2026-04-08).
+5. **No implementar sobre tests rotos** (regla saccum 2026-04-08, medida en local desde ADR-008). Si `./scripts/verificar.sh` falla en `main`, se arregla eso primero.
 
 ## Setup local del user
 

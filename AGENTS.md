@@ -26,7 +26,7 @@ ver CLAUDE.md del proyecto
 
 ## Workflow
 
-0. `gh run list --branch main --limit 5` — no implementar sobre main rojo.
+0. Gate local: `./scripts/verificar.sh`. No se paga GitHub (ADR-008 en pigmistudio). `gh run list` no es señal.
 1. Plan si hay más de un camino o se tocan 3+ archivos.
 2. Implementar. Verificar (tests / typecheck).
 3. Estado terminal: en `main`, o anotado en `docs/backlog.md` por qué no.

@@ -1,0 +1,14 @@
+---
+description: No pagamos GitHub. El gate de tests corre en la máquina, no en Actions.
+alwaysApply: true
+---
+
+# GitHub no se paga
+
+Decisión del 2026-09-24, [ADR-008](file:///Users/federico/pigmistudio/docs/architecture/ADR-008-no-pagar-github.md): no se paga GitHub y no se sube el spending limit.
+
+Un job de Actions que muere al pedir runner, sin pasos y sin log (`recent account payments have failed or your spending limit needs to be increased`), es facturación. No es un test roto. No se arregla adentro de GitHub.
+
+El gate es el comando de tests de este repo, en esta máquina (`./scripts/verificar.sh`, o `npm test` / el equivalente que documente el proyecto). `gh run list` no es señal y no frena el trabajo.
+
+Release y deploy que dependían de un runner se corren desde acá (`gh release create`, wrangler, el script del producto). No se agregan workflows con `runs-on`.
