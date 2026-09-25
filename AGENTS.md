@@ -1,41 +1,31 @@
 <!-- pigmi:generated cursor-layer AGENTS.md -->
 
-# AGENTS.md — Readqueue
+# AGENTS.md — obsidian-readqueue
 
-Capa portable para Cursor (Grok u otro modelo), Claude Code y el resto de harnesses. El detalle Claude-only (gstack, slash commands) vive en `CLAUDE.md`. Si estás en Cursor, este archivo manda sobre esas partes.
+Entrypoint de Cursor. Agentes en `.cursor/agents/` (`model: inherit`).
 
-Los especialistas se invocan por nombre desde `.cursor/agents/` (`model: inherit`). Las skills viven en `.cursor/skills/` (wrappers del bundle + copias de skills locales). Regenerar con:
+## Agentes (`.cursor/agents/`, `model: inherit`)
 
-```bash
-node ~/pigmistudio/scripts/cursor-layer.mjs --root . --apply
-# o, desde pigmistudio, todos los ~/codes/* :
-node scripts/cursor-layer.mjs --all --apply
-```
+| Agente | Cuándo | Nunca |
+|--------|--------|-------|
+| `obsidian-readqueue-builder` | Use this agent to implement features, fix bugs, write TypeScript code, modify the Obsidian Plugin API integ… | ver el agente |
+| `qa-tester` | Use this agent to write, run, or maintain tests for the obsidian-readqueue project. | ver el agente |
+| `system-architect` | Use this agent when you need to plan, design, or coordinate work across obsidian-readqueue. | ver el agente |
+| `vault-gardener` | Use this agent to query, synthesize, and discover connections across Fede's Obsidian knowledge base (the `f… | ver el agente |
 
-## Principios
+## Loop
 
-1. Ejecutable > declarativo.
-2. Arreglá el loop, no el output.
-3. El juez antes que el trabajo.
-4. Contención por construcción.
-5. El criterio de Fede se ubica, no se difunde.
+<!-- pigmi:begin loop -->
+1. Implementar en este hilo. No spawnear un agente por un fix chico.
+2. Dominio / UI / deploy: invocá al especialista de la tabla.
+3. Cierre si el diff es grande o toca motor / auth / UI: `qa-tester` siempre. Hallazgo sin `file:line` no cuenta.
+4. Merge a `main`: gate = tests del repo, en esta máquina. Deploy solo desde `main`.
+<!-- pigmi:end loop -->
 
-## Stack
+## Cursor Cloud specific instructions
 
-ver CLAUDE.md del proyecto
+<!-- pigmi:begin cloud -->
+Completar: qué no hay en el VM (Docker, secrets, SSH), cómo verificar sin eso, y a qué host se deploya (solo desde `main`).
+<!-- pigmi:end cloud -->
 
-## Workflow
-
-0. Gate local: `./scripts/verificar.sh`. No se paga GitHub (ADR-008 en pigmistudio). `gh run list` no es señal.
-1. Plan si hay más de un camino o se tocan 3+ archivos.
-2. Implementar. Verificar (tests / typecheck).
-3. Estado terminal: en `main`, o anotado en `docs/backlog.md` por qué no.
-4. Documentar en el mismo PR.
-
-## Commits (resumen)
-
-PR chico, draft con motivo, docs con el cambio, push si hay commit, deploy desde `main`. Detalle en los bloques `pigmi:git` de cada agente.
-
-## Memoria
-
-`.claude/agent-memory/<agente>/` — compartida entre Claude Code y Cursor. No duplicar en `.cursor/`.
+Skills: leé `.cursor/skills/<nombre>/SKILL.md` solo si el cambio la dispara. Docs bajo demanda. Memoria: `.claude/agent-memory/<agente>/`.

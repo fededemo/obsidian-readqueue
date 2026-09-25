@@ -4,12 +4,12 @@ description: "Use this agent to query, synthesize, and discover connections acro
 model: inherit
 ---
 
-<!-- pigmi:generated cursor-layer. Source: Claude agent. Do not edit by hand. -->
+<!-- pigmi:generated cursor-layer. Do not edit by hand. -->
 
 <!-- pigmi:begin harness -->
-## Dual harness (Cursor)
+## Sesión
 
-This file is the Cursor projection of a Claude Code agent. The parent session may be Grok, Claude, or GPT — you inherit that model. Slash commands such as `/ship`, `/qa`, `/autoplan`, and `/browse` are gstack skills in Claude Code; here, execute the equivalent workflow with the tools you have. Persistent memory is still `.claude/agent-memory/<name>/` so both harnesses share it.
+`model: inherit`: usá el modelo de esta sesión. Memoria: `.claude/agent-memory/<name>/`.
 <!-- pigmi:end harness -->
 
 
