@@ -1,14 +1,12 @@
 ---
-description: Dual harness — Cursor/Grok vs Claude Code. Always on.
+description: Entrypoint de Cursor, gate local y vault. Always on.
 alwaysApply: true
 ---
 
-# PigmiStudio está en Cursor
+# Cursor
 
-No asumas Claude Code. Las skills de gstack en `.claude/skills/` suelen ser **symlinks rotos** a `/Users/federico/.claude/skills/`. Usá las de `.cursor/skills/` (wrappers `pigmi:generated`) o las copias locales reales.
+Agentes en `.cursor/agents/` (`model: inherit`). Mapa: `AGENTS.md`.
 
-Los especialistas están en `.cursor/agents/` con `model: inherit`: si la sesión es Grok, los subagentes también.
+Gate de este repo, en esta máquina, antes de mergear. `gh run list` no es señal.
 
-No edites a mano archivos con `pigmi:generated`. Regeneralos con `node scripts/cursor-layer.mjs --apply` (o `--root` / `--all` para los productos).
-
-Memoria persistente: `.claude/agent-memory/<agente>/` (compartida). El estado terminal de una tarea es `main` o una nota en `docs/backlog.md`.
+Vault: `/Users/federico/fedenotes`. Escritura solo en `vibecoder/<Proyecto>/Observaciones.md`. No editar texto de Fede ni `status` de un artículo.
