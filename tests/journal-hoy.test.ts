@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   isLastSundayOfQuarter,
+  journalDayKey,
   renderJournalHoy,
   saturdayWeekIndex,
 } from "../src/journal-hoy";
@@ -53,5 +54,12 @@ describe("renderJournalHoy", () => {
     expect(renderJournalHoy(day(2026, 9, 27))).toContain("no apareció nunca");
     expect(isLastSundayOfQuarter(day(2026, 9, 20))).toBe(false);
     expect(renderJournalHoy(day(2026, 9, 20))).not.toContain("no apareció nunca");
+  });
+});
+
+describe("journalDayKey", () => {
+  it("cambia a medianoche local, no en UTC", () => {
+    expect(journalDayKey(new Date(2026, 8, 25, 23, 59))).toBe("2026-09-25");
+    expect(journalDayKey(new Date(2026, 8, 26, 0, 1))).toBe("2026-09-26");
   });
 });

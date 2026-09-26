@@ -19,7 +19,11 @@ import {
   type ConceptNote,
 } from "./concept-graph";
 import { buildDailyRitual, renderDailyRitual } from "./daily-ritual";
-import { JOURNAL_HOY_PATH, renderJournalHoy } from "./journal-hoy";
+import {
+  JOURNAL_HOY_PATH,
+  journalDayKey,
+  renderJournalHoy,
+} from "./journal-hoy";
 import { rankQueue } from "./priority";
 import {
   articleFromFile,
@@ -133,6 +137,8 @@ export default class ReadQueuePlugin extends Plugin {
   private highlightUI: HighlightUI | null = null;
   private readingFlow: ReadingFlowManager | null = null;
   private layoutReady = false;
+  /** Día del último render de `Journal/Hoy.md`. */
+  private journalHoyDay: string | null = null;
   // Paths de notas recién llegadas cuyo chequeo de duplicado sigue corriendo;
   // shouldTrashIncoming lo usa para que dos copias simultáneas no se borren
   // mutuamente.
@@ -434,6 +440,9 @@ export default class ReadQueuePlugin extends Plugin {
     this.registerEvent(
       this.app.workspace.on("file-open", (file) => {
         this.readingFlow?.onFileOpen(file);
+        if (file?.path === normalizePath(JOURNAL_HOY_PATH)) {
+          void this.refreshJournalHoyIfStale();
+        }
         if (!file) {
           this.applyReaderBodyClass(undefined);
           return;
@@ -512,6 +521,17 @@ export default class ReadQueuePlugin extends Plugin {
       }, ms);
       this.registerInterval(intervalId);
     }
+
+    // Obsidian puede quedar abierto de un día para el otro (y en iOS los
+    // timers se congelan en background): Hoy se revisa al volver y cada minuto.
+    this.registerInterval(
+      window.setInterval(() => void this.refreshJournalHoyIfStale(), 60_000),
+    );
+    this.registerDomEvent(document, "visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        void this.refreshJournalHoyIfStale();
+      }
+    });
 
     this.addSettingTab(new ReadQueueSettingsTab(this.app, this));
 
@@ -898,7 +918,9 @@ export default class ReadQueuePlugin extends Plugin {
 
   /** Reescribe `Journal/Hoy.md` con las tres líneas de esta fecha. */
   async refreshJournalHoy(): Promise<void> {
-    const body = renderJournalHoy(new Date());
+    const now = new Date();
+    const body = renderJournalHoy(now);
+    this.journalHoyDay = journalDayKey(now);
     const path = normalizePath(JOURNAL_HOY_PATH);
     await ensureFolder(this.app, "Journal");
     const existing = this.app.vault.getAbstractFileByPath(path);
@@ -908,6 +930,13 @@ export default class ReadQueuePlugin extends Plugin {
       return;
     }
     await this.app.vault.create(path, body);
+  }
+
+  /** Solo reescribe si cambió el día desde el último render. */
+  async refreshJournalHoyIfStale(): Promise<void> {
+    if (!this.layoutReady) return;
+    if (this.journalHoyDay === journalDayKey(new Date())) return;
+    await this.refreshJournalHoy();
   }
 
   async openJournalHoy(): Promise<void> {

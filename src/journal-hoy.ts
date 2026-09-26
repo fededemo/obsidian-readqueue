@@ -77,6 +77,13 @@ const SATURDAY = [
 
 export const JOURNAL_HOY_PATH = "Journal/Hoy.md";
 
+/** Fecha local `YYYY-MM-DD`: cuando cambia, Hoy hay que reescribirlo. */
+export function journalDayKey(date: Date): string {
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${m}-${d}`;
+}
+
 export function saturdayWeekIndex(date: Date): number {
   const utc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
   const days = Math.round((utc - CYCLE_START_UTC) / 86_400_000);
