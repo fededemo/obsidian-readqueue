@@ -5,6 +5,7 @@ import {
   journalDayKey,
   renderJournalHoy,
   saturdayWeekIndex,
+  suggestedCloseDate,
 } from "../src/journal-hoy";
 
 const day = (y: number, m: number, d: number) => new Date(y, m - 1, d);
@@ -54,6 +55,41 @@ describe("renderJournalHoy", () => {
     expect(renderJournalHoy(day(2026, 9, 27))).toContain("no apareció nunca");
     expect(isLastSundayOfQuarter(day(2026, 9, 20))).toBe(false);
     expect(renderJournalHoy(day(2026, 9, 20))).not.toContain("no apareció nunca");
+  });
+});
+
+describe("guía de la conjetura", () => {
+  it("todos los días traen ejemplo con fecha real y la receta plegada", () => {
+    for (let d = 21; d <= 27; d++) {
+      const md = renderJournalHoy(day(2026, 9, d));
+      expect(md).toMatch(/Ejemplo: `C: .+ — \d+% — 2026-\d\d-\d\d — abierta`/);
+      expect(md).toContain("> [!tip]- Cómo armar la C:");
+      expect(md).toContain("Para qué:");
+    }
+  });
+
+  it("los ocho sábados tienen ejemplo", () => {
+    for (let w = 0; w < 8; w++) {
+      const md = renderJournalHoy(day(2026, 9, 26 + 7 * w));
+      expect(md).toMatch(/Ejemplo: `C: .+ — \d+% — /);
+    }
+  });
+
+  it("la fecha sugerida es el primer domingo a 5 días o más", () => {
+    const key = (d: Date) => journalDayKey(suggestedCloseDate(d));
+    expect(key(day(2026, 9, 21))).toBe("2026-09-27"); // lunes: 6 días
+    expect(key(day(2026, 9, 22))).toBe("2026-09-27"); // martes: 5 días
+    expect(key(day(2026, 9, 23))).toBe("2026-10-04"); // miércoles: 4, salta
+    expect(key(day(2026, 9, 27))).toBe("2026-10-04"); // domingo: el próximo
+    expect(renderJournalHoy(day(2026, 9, 21))).toContain("el domingo 2026-09-27");
+  });
+
+  it("el domingo es un procedimiento y cubre la semana sin vencidas", () => {
+    const md = renderJournalHoy(day(2026, 9, 27));
+    expect(md).toContain("   - Las que vencieron");
+    expect(md).toContain("Si no venció ninguna");
+    expect(md).toContain("¿de qué área son casi todas?");
+    expect(md).toContain("Si no maté nada");
   });
 });
 
