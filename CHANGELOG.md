@@ -6,6 +6,30 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Added
+
+- **Claude ordena la cola y aprende cómo leés.** En el orden «Prioridad»,
+  Claude (`claude-sonnet-5-5` por defecto, setting «Modelo del curador»)
+  elige qué te conviene leer ahora entre los ~40 primeros del orden por
+  contexto, con tu perfil de lectura, el día y la franja (mañana/tarde/noche).
+  Cada card lleva su motivo en una línea, citando una señal concreta; arriba
+  de la lista, «✦ Orden de Claude · HH:MM». Una llamada por franja, en segundo
+  plano: la cola se dibuja con el orden de siempre y se reordena cuando llega
+  la respuesta. Sin API key, con error o con refusal, queda el orden por
+  contexto. Comando «Ordenar la cola con Claude (ahora)» para rehacerlo.
+- **Perfil de lectura** (`Perfil de lectura.md`): Claude lo escribe con lo que
+  hacés — lo que terminás, lo que guardás y no leés, cuándo leés qué, lo que
+  pateás — y lo regenera cada 7 días (o con «Actualizar perfil de lectura»).
+  La sección **Correcciones** es tuya: se preserva tal cual y manda sobre los
+  datos.
+- **Señales contadas** (`src/reading-signals.ts`), sin log aparte: afinidad
+  por concepto del grafo (terminadas y likes de X suben; posposiciones y
+  abandonos bajan; decaimiento de 60 días), hábitos por franja, y empezado vs.
+  abandonado (pasado el 10% y +7 días sin volver) desde el progreso de lectura.
+  Lee lo leído también en `Inbox/Read/` y los likes/bookmarks de `Inbox/Legacy/`.
+- **Posponer deja historial**: `postponedAt` (últimas 10) en el frontmatter,
+  además de mover `savedAt` como antes.
+
 ### Security
 
 - **Las 10 vulnerabilidades de `npm audit`, a cero.** Del lado del toolchain

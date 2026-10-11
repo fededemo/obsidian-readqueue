@@ -30,6 +30,7 @@ function mk(overrides: Partial<QueueArticle> = {}): QueueArticle {
     tags: [],
     snoozedUntil: undefined,
     readAt: undefined,
+    postponedAt: [],
     ...overrides,
   };
 }

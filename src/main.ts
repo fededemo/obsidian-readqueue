@@ -24,7 +24,15 @@ import {
   journalDayKey,
   renderJournalHoy,
 } from "./journal-hoy";
-import { rankQueue } from "./priority";
+import {
+  applyCuratedRanking,
+  generateProfile,
+  rankWithClaude,
+  type CuratedRanking,
+  type RankCandidate,
+} from "./curate";
+import { rankQueue, type RankedArticle } from "./priority";
+import { collectSignals, daypart, progressOf, renderSignals } from "./reading-signals";
 import {
   articleFromFile,
   estimateReadingMinutesFromSize,
@@ -375,6 +383,22 @@ export default class ReadQueuePlugin extends Plugin {
       name: "Sincronizar wishlist de Amazon",
       callback: () => {
         void this.syncWishlist();
+      },
+    });
+
+    this.addCommand({
+      id: "curate-queue",
+      name: "Ordenar la cola con Claude (ahora)",
+      callback: () => {
+        void this.ensureCuratedRanking({ force: true });
+      },
+    });
+
+    this.addCommand({
+      id: "refresh-reading-profile",
+      name: "Actualizar perfil de lectura",
+      callback: () => {
+        void this.refreshReadingProfile({ force: true, open: true });
       },
     });
 
@@ -987,13 +1011,7 @@ export default class ReadQueuePlugin extends Plugin {
         )?.topic,
       }));
     await this.refreshConceptIndex();
-    const queueTop = rankQueue(
-      all.filter((a) => a.status === "unread"),
-      {
-        read: all.filter((a) => a.status === "read"),
-        conceptIndex: this.conceptIndex,
-      },
-    )
+    const queueTop = this.rankForReading(all.filter((a) => a.status === "unread")).ranked
       .slice(0, 2)
       .map((r): { note: string; why: string } => ({
         note: r.article.file.basename,
@@ -1419,6 +1437,208 @@ export default class ReadQueuePlugin extends Plugin {
     } else {
       console.log(`ReadQueue: auto-classified ok=${ok} failed=${failed}`);
     }
+    await this.refreshQueueView();
+  }
+
+  // --- Curador: perfil de lectura + orden de la cola con Claude --------------
+
+  /** Mientras corre una llamada al curador; evita disparar dos por la misma franja. */
+  private curateInFlight: Promise<void> | null = null;
+  /** Franja en la que el curador falló: no reintentar en cada render. */
+  private curateFailedSlot: string | null = null;
+
+  /** "2026-10-11|tarde": un orden de Claude vale para esa franja. */
+  curatedSlot(now: Date = new Date()): string {
+    return `${localDateSlug(now)}|${daypart(now)}`;
+  }
+
+  /** El orden de Claude vigente para esta franja, si existe. */
+  currentCuratedRanking(): CuratedRanking | undefined {
+    if (!this.settings.useClaudeRanking) return undefined;
+    const c = this.settings.curatedRanking;
+    return c && c.slot === this.curatedSlot() ? c : undefined;
+  }
+
+  /**
+   * Orden «Prioridad» completo: determinista (contexto previo) y, encima, el de
+   * Claude si hay uno vigente. Lo usan la cola y el repaso diario.
+   */
+  rankForReading(unread: readonly QueueArticle[]): { ranked: RankedArticle[]; curated: boolean } {
+    const read = this.loadReadArticles();
+    const base = rankQueue(unread, { read, conceptIndex: this.conceptIndex });
+    const { items, curated } = applyCuratedRanking(
+      base.map((r) => ({ ...r, path: r.article.file.path })),
+      this.currentCuratedRanking(),
+    );
+    return { ranked: items, curated };
+  }
+
+  private loadArticlesIn(folder: string): QueueArticle[] {
+    const base = stripTrailingSlash(folder);
+    if (!base) return [];
+    const prefix = `${base}/`;
+    return this.app.vault
+      .getMarkdownFiles()
+      .filter((f) => f.path.startsWith(prefix))
+      .map((file) =>
+        articleFromFile(
+          file,
+          this.app.metadataCache.getFileCache(file)?.frontmatter as ReadFrontmatter | undefined,
+        ),
+      );
+  }
+
+  /** Lo leído vive en la cola (status read) y, con archivar activado, en readFolder. */
+  private loadReadArticles(): QueueArticle[] {
+    const inQueue = this.loadQueueArticles().filter((a) => a.status === "read");
+    const archived = this.loadArticlesIn(this.settings.readFolder).filter(
+      (a) => a.status === "read" || a.readAt !== undefined,
+    );
+    return [...inQueue, ...archived];
+  }
+
+  /** Likes y bookmarks de X que quedaron fuera de la cola: dicen qué te atrae. */
+  private loadLikedArticles(): QueueArticle[] {
+    return this.loadArticlesIn(this.settings.matterFolder).filter(
+      (a) => a.source === "x-like" || a.source === "x-bookmark",
+    );
+  }
+
+  private signalsText(queue: readonly QueueArticle[], now: Date): string {
+    return renderSignals(
+      collectSignals({
+        queue,
+        read: this.loadReadArticles(),
+        liked: this.loadLikedArticles(),
+        scroll: this.settings.scrollPositions,
+        conceptsByNote: this.conceptIndex.conceptsByNote,
+        now,
+      }),
+    );
+  }
+
+  private async readProfile(): Promise<{ text: string; generatedAt: Date | undefined } | undefined> {
+    const file = this.app.vault.getAbstractFileByPath(normalizePath(this.settings.profileNotePath));
+    if (!(file instanceof TFile)) return undefined;
+    const text = await this.app.vault.read(file);
+    const raw = (this.app.metadataCache.getFileCache(file)?.frontmatter as Record<string, unknown> | undefined)?.[
+      "generatedAt"
+    ];
+    const d = typeof raw === "string" ? new Date(raw) : undefined;
+    return { text, generatedAt: d && !Number.isNaN(d.getTime()) ? d : undefined };
+  }
+
+  /** Regenera el perfil (preservando «Correcciones»). Devuelve el texto vigente. */
+  async refreshReadingProfile(opts: { force?: boolean; open?: boolean } = {}): Promise<string | undefined> {
+    const now = new Date();
+    const current = await this.readProfile();
+    const stale =
+      !current?.generatedAt || now.getTime() - current.generatedAt.getTime() > 7 * 86_400_000;
+    if (current && !stale && !opts.force) return current.text;
+    if (!this.settings.anthropicApiKey?.trim()) return current?.text;
+
+    const queue = this.loadQueueArticles().filter((a) => a.status === "unread");
+    const res = await generateProfile(
+      {
+        signals: this.signalsText(queue, now),
+        previousProfile: current?.text,
+        today: `${localDateSlug(now)} (${daypart(now)})`,
+        now,
+      },
+      { anthropicApiKey: this.settings.anthropicApiKey, curateModel: this.settings.curateModel },
+      { fetchJson: this.anthropicFetchJson },
+    );
+    if (!res.note) {
+      if (opts.force) new Notice(`ReadQueue: no pude escribir el perfil (${res.status || "sin red"}).`);
+      return current?.text;
+    }
+    const path = normalizePath(this.settings.profileNotePath);
+    const existing = this.app.vault.getAbstractFileByPath(path);
+    if (existing instanceof TFile) {
+      await this.app.vault.modify(existing, res.note);
+    } else {
+      const dir = path.includes("/") ? path.slice(0, path.lastIndexOf("/")) : "";
+      if (dir) await ensureFolder(this.app, dir);
+      await this.app.vault.create(path, res.note);
+    }
+    if (opts.open) {
+      const file = this.app.vault.getAbstractFileByPath(path);
+      if (file instanceof TFile) await this.app.workspace.getLeaf(false).openFile(file);
+    }
+    return res.note;
+  }
+
+  /**
+   * Pide a Claude el orden de la cola para esta franja, si todavía no lo hay.
+   * Nunca bloquea la UI: la cola se dibuja con el orden determinista y se
+   * redibuja cuando llega el de Claude.
+   */
+  ensureCuratedRanking(opts: { force?: boolean } = {}): Promise<void> {
+    if (this.curateInFlight) return this.curateInFlight;
+    if (!this.settings.useClaudeRanking || !this.settings.anthropicApiKey?.trim()) {
+      if (opts.force) new Notice("ReadQueue: activá «Ordenar la cola con Claude» y cargá la API key.");
+      return Promise.resolve();
+    }
+    const slot = this.curatedSlot();
+    if (!opts.force && (this.currentCuratedRanking() || this.curateFailedSlot === slot)) {
+      return Promise.resolve();
+    }
+    this.curateInFlight = this.runCuratedRanking(slot, opts.force === true).finally(() => {
+      this.curateInFlight = null;
+    });
+    return this.curateInFlight;
+  }
+
+  private async runCuratedRanking(slot: string, loud: boolean): Promise<void> {
+    if (loud) new Notice("ReadQueue: Claude está ordenando la cola…");
+    const now = new Date();
+    const unread = filterBySnoozedUntil(
+      this.loadQueueArticles().filter((a) => a.status === "unread"),
+      now,
+    ).filter((a) => !isStubArticle(a));
+    const base = rankQueue(unread, { read: this.loadReadArticles(), conceptIndex: this.conceptIndex });
+    const pool = base.slice(0, 40);
+    const candidates: RankCandidate[] = pool.map(({ article: a, reason }) => {
+      const since = a.published ? new Date(a.published) : a.savedAt;
+      return {
+        path: a.file.path,
+        title: a.title,
+        themes: [...(this.conceptIndex.conceptsByNote.get(a.title) ?? (a.topic ? [a.topic] : []))],
+        source: a.source,
+        shelfLife: a.shelfLife,
+        ageDays:
+          since && !Number.isNaN(since.getTime())
+            ? Math.max(0, (now.getTime() - since.getTime()) / 86_400_000)
+            : undefined,
+        minutes: estimateReadingMinutesFromSize(a.file.stat.size) || undefined,
+        postponed: a.postponedAt.length,
+        progress: progressOf(a, this.settings.scrollPositions, now).state,
+        tldr: a.tldr,
+        hint: reason,
+      };
+    });
+
+    const profile = await this.refreshReadingProfile();
+    const weekday = now.toLocaleDateString("es-AR", { weekday: "long" });
+    const res = await rankWithClaude(
+      {
+        candidates,
+        profile,
+        signals: this.signalsText(unread, now),
+        nowLabel: `${weekday} ${localDateSlug(now)}, ${daypart(now)} (${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")})`,
+      },
+      { anthropicApiKey: this.settings.anthropicApiKey, curateModel: this.settings.curateModel },
+      { fetchJson: this.anthropicFetchJson },
+    );
+    if (res.picks.length === 0) {
+      this.curateFailedSlot = slot;
+      if (loud) new Notice(`ReadQueue: Claude no pudo ordenar la cola (${res.status || "sin red"}).`);
+      return;
+    }
+    this.curateFailedSlot = null;
+    this.settings.curatedRanking = { slot, generatedAt: now.toISOString(), picks: res.picks };
+    await this.saveSettings();
+    if (loud) new Notice(`ReadQueue: cola ordenada por Claude (${res.picks.length}).`);
     await this.refreshQueueView();
   }
 

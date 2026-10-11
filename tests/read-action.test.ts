@@ -284,3 +284,25 @@ describe("snoozeArticle / unsnoozeArticle / postponeArticle", () => {
     expect(ts).toBeLessThanOrEqual(after);
   });
 });
+
+describe("applyPostpone", () => {
+  it("manda al fondo (savedAt) y guarda el historial de posposiciones", async () => {
+    const { applyPostpone } = await import("../src/read-action");
+    const fm: Record<string, unknown> = { savedAt: "old", postponedAt: ["2026-10-01T00:00:00.000Z"] };
+    applyPostpone(fm, "2026-10-11T21:00:00.000Z");
+    expect(fm["savedAt"]).toBe("2026-10-11T21:00:00.000Z");
+    expect(fm["postponedAt"]).toEqual(["2026-10-01T00:00:00.000Z", "2026-10-11T21:00:00.000Z"]);
+  });
+
+  it("recorta a las últimas 10 y tolera basura previa", async () => {
+    const { applyPostpone, POSTPONE_HISTORY_CAP } = await import("../src/read-action");
+    const fm: Record<string, unknown> = { postponedAt: [...Array.from({ length: 12 }, (_, i) => `d${i}`), 5] };
+    applyPostpone(fm, "now");
+    const list = fm["postponedAt"] as string[];
+    expect(list).toHaveLength(POSTPONE_HISTORY_CAP);
+    expect(list.at(-1)).toBe("now");
+    const fresh: Record<string, unknown> = { postponedAt: "no-es-lista" };
+    applyPostpone(fresh, "now");
+    expect(fresh["postponedAt"]).toEqual(["now"]);
+  });
+});

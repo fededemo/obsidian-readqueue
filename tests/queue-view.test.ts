@@ -2,6 +2,7 @@ import type { WorkspaceLeaf } from "obsidian";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { emptyConceptIndex } from "../src/concept-graph";
+import { rankQueue } from "../src/priority";
 import type { QueueArticle } from "../src/queue-data";
 import { QueueView } from "../src/queue-view";
 
@@ -88,6 +89,7 @@ function article(title: string, topic: string): QueueArticle {
     tags: [],
     snoozedUntil: undefined,
     readAt: undefined,
+    postponedAt: [],
   };
 }
 
@@ -108,6 +110,17 @@ function makeView(articles: QueueArticle[]): {
     // el comportamiento que estos tests describen.
     conceptIndex: emptyConceptIndex(),
     refreshConceptIndex: async (): Promise<void> => undefined,
+    // Sin orden de Claude: el determinista de siempre, y el pedido en segundo
+    // plano es un no-op.
+    rankForReading: (unread: QueueArticle[]) => ({
+      ranked: rankQueue(unread, {
+        read: articles.filter((a) => a.status === "read"),
+        conceptIndex: emptyConceptIndex(),
+      }),
+      curated: false,
+    }),
+    currentCuratedRanking: () => undefined,
+    ensureCuratedRanking: async (): Promise<void> => undefined,
   } as unknown as ReadQueuePlugin;
 
   const leaf = {} as unknown as WorkspaceLeaf;

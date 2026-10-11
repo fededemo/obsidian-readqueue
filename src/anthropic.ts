@@ -13,12 +13,16 @@ export interface AnthropicFetchDeps {
 
 export const ANTHROPIC_MESSAGES_URL = "https://api.anthropic.com/v1/messages";
 
-export function anthropicHeaders(apiKey: string): Record<string, string> {
+export function anthropicHeaders(
+  apiKey: string,
+  betas: readonly string[] = [],
+): Record<string, string> {
   return {
     "x-api-key": apiKey,
     "anthropic-version": "2023-06-01",
     "anthropic-dangerous-direct-browser-access": "true",
     "content-type": "application/json",
+    ...(betas.length > 0 ? { "anthropic-beta": betas.join(",") } : {}),
   };
 }
 
@@ -30,6 +34,8 @@ export interface RetryOpts {
   baseDelayMs?: number;
   /** Injectable for tests (default real setTimeout). */
   sleep?: (ms: number) => Promise<void>;
+  /** `anthropic-beta` flags for this request (e.g. server-side fallback). */
+  betas?: readonly string[];
 }
 
 const defaultSleep = (ms: number): Promise<void> =>
@@ -60,7 +66,7 @@ export async function postMessagesWithRetry(
   const sleep = opts.sleep ?? defaultSleep;
   const init = {
     method: "POST",
-    headers: anthropicHeaders(apiKey),
+    headers: anthropicHeaders(apiKey, opts.betas),
     body: JSON.stringify(body),
   };
 

@@ -19,7 +19,6 @@ import {
   type SortKey,
   type SourceCategory,
 } from "./queue-data";
-import { rankQueue } from "./priority";
 import {
   openInReadingView,
   postponeArticle,
@@ -67,6 +66,8 @@ export class QueueView extends ItemView {
   private allArticles: QueueArticle[] = [];
   /** Por qué cada artículo quedó donde quedó, en modo "Vale la pena". */
   private priorityReasons = new Map<string, string>();
+  /** generatedAt del orden de Claude aplicado, para el aviso arriba de la lista. */
+  private curatedLabel: string | undefined;
   todayPicks = new Set<string>();
 
   constructor(leaf: WorkspaceLeaf, plugin: ReadQueuePlugin) {
@@ -241,18 +242,19 @@ export class QueueView extends ItemView {
     const byTopic = filterByTopic(byQuery, this.activeTopicFilter);
     let sorted: QueueArticle[];
     if (this.sortBy === "priority") {
-      // El orden sale de cuánto contexto previo tenés, no de la fecha.
-      const read = this.allArticles.filter((a) => a.status === "read");
-      const ranked = rankQueue(byTopic, {
-        read,
-        conceptIndex: this.plugin.conceptIndex,
-      });
+      // El orden sale de cuánto contexto previo tenés y, si hay uno vigente
+      // para esta franja, de lo que Claude eligió con tu perfil de lectura.
+      const { ranked, curated } = this.plugin.rankForReading(byTopic);
       this.priorityReasons = new Map(
         ranked.map((r) => [r.article.file.path, r.reason]),
       );
       sorted = ranked.map((r) => r.article);
+      this.curatedLabel = curated ? this.plugin.currentCuratedRanking()?.generatedAt : undefined;
+      // Nunca bloquea: pide el orden en segundo plano y redibuja al llegar.
+      if (!curated) void this.plugin.ensureCuratedRanking();
     } else {
       this.priorityReasons.clear();
+      this.curatedLabel = undefined;
       sorted = sortArticles(byTopic, this.sortBy);
     }
     const groups = groupArticles(sorted, this.groupBy);
@@ -268,6 +270,16 @@ export class QueueView extends ItemView {
     }
 
     list.empty();
+
+    if (this.curatedLabel) {
+      const at = new Date(this.curatedLabel);
+      const hhmm = `${String(at.getHours()).padStart(2, "0")}:${String(at.getMinutes()).padStart(2, "0")}`;
+      list.createDiv({
+        cls: "readqueue-view__curated",
+        text: `✦ Orden de Claude · ${hhmm}`,
+        attr: { title: "Según tu perfil de lectura, el día y la hora. Comando «Ordenar la cola con Claude (ahora)» para rehacerlo." },
+      });
+    }
 
     if (visibleGroups.length === 0) {
       const filtering = this.searchQuery.trim() !== "" || this.activeTopicFilter;

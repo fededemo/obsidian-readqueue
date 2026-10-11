@@ -1,6 +1,7 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 
 import type ReadQueuePlugin from "./main";
+import type { CuratedRanking } from "./curate";
 import type { ScrollStore } from "./scroll-memory";
 import { DEFAULT_PUBLISHER_TOPIC_MAP, DEFAULT_TOPIC_LIST } from "./topics";
 
@@ -38,6 +39,13 @@ export interface ReadQueueSettings {
   advanceOnRead: boolean;
   /** Not a user setting: per-note scroll positions (MX14), LRU-capped. */
   scrollPositions: ScrollStore;
+  /** Claude ordena la cola con el perfil de lectura (orden «Prioridad»). */
+  useClaudeRanking: boolean;
+  curateModel: string;
+  /** Nota editable donde Claude escribe lo que aprendió de cómo leés. */
+  profileNotePath: string;
+  /** Not a user setting: último orden de Claude, válido para una franja. */
+  curatedRanking: CuratedRanking | null;
 }
 
 export const DEFAULT_SETTINGS: ReadQueueSettings = {
@@ -72,6 +80,10 @@ export const DEFAULT_SETTINGS: ReadQueueSettings = {
   showMarkReadAtEnd: true,
   advanceOnRead: true,
   scrollPositions: {},
+  useClaudeRanking: true,
+  curateModel: "claude-sonnet-5-5",
+  profileNotePath: "Perfil de lectura.md",
+  curatedRanking: null,
 };
 
 export class ReadQueueSettingsTab extends PluginSettingTab {
@@ -534,6 +546,49 @@ export class ReadQueueSettingsTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         }),
     );
+
+    const curateSetting = new Setting(containerEl)
+      .setName("Ordenar la cola con Claude")
+      .setDesc(
+        "En el orden «Prioridad», Claude elige qué te conviene leer según tu perfil de lectura, el día y la hora. Una llamada por franja (mañana/tarde/noche). Sin API key o si falla, queda el orden por contexto de siempre.",
+      );
+    curateSetting.descEl.createEl("div", {
+      cls: "readqueue-settings__warn",
+      text: "Envía a la API de Anthropic títulos, temas y tldr de ~40 artículos de la cola, más el resumen de lo que leíste, posponés y likeás.",
+    });
+    curateSetting.addToggle((toggle) =>
+      toggle.setValue(this.plugin.settings.useClaudeRanking).onChange(async (value) => {
+        this.plugin.settings.useClaudeRanking = value;
+        await this.plugin.saveSettings();
+      }),
+    );
+
+    new Setting(containerEl)
+      .setName("Modelo del curador")
+      .setDesc("ID del modelo para el perfil y el orden de la cola.")
+      .addText((text) =>
+        text
+          .setPlaceholder("claude-sonnet-5-5")
+          .setValue(this.plugin.settings.curateModel)
+          .onChange(async (value) => {
+            this.plugin.settings.curateModel = value.trim() || "claude-sonnet-5-5";
+            this.plugin.settings.curatedRanking = null;
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("Nota del perfil de lectura")
+      .setDesc("Dónde Claude escribe lo que aprendió de cómo leés. Editala: la sección «Correcciones» manda.")
+      .addText((text) =>
+        text
+          .setPlaceholder("Perfil de lectura.md")
+          .setValue(this.plugin.settings.profileNotePath)
+          .onChange(async (value) => {
+            this.plugin.settings.profileNotePath = value.trim() || "Perfil de lectura.md";
+            await this.plugin.saveSettings();
+          }),
+      );
 
     containerEl.createEl("h3", { text: "Vista" });
 

@@ -127,10 +127,25 @@ export async function unsnoozeArticle(app: App, file: TFile): Promise<void> {
   });
 }
 
+/** Cuántas posposiciones recordar por nota: alcanza para ver el patrón. */
+export const POSTPONE_HISTORY_CAP = 10;
+
+/**
+ * `savedAt` lo manda al fondo en el orden por fecha (sin cambios). `postponedAt`
+ * es el historial: sin él, "esto lo pateé tres martes a la noche" se pierde.
+ */
+export function applyPostpone(fm: Record<string, unknown>, now: string): void {
+  fm["savedAt"] = now;
+  const prev = Array.isArray(fm["postponedAt"])
+    ? (fm["postponedAt"] as unknown[]).filter((x): x is string => typeof x === "string")
+    : [];
+  fm["postponedAt"] = [...prev, now].slice(-POSTPONE_HISTORY_CAP);
+}
+
 export async function postponeArticle(app: App, file: TFile): Promise<void> {
   const now = new Date().toISOString();
   await app.fileManager.processFrontMatter(file, (fm) => {
-    (fm as Record<string, unknown>)["savedAt"] = now;
+    applyPostpone(fm as Record<string, unknown>, now);
   });
 }
 

@@ -45,6 +45,7 @@ function mkArticle(overrides: Partial<QueueArticle> = {}): QueueArticle {
     tags: [],
     snoozedUntil: undefined,
     readAt: undefined,
+    postponedAt: [],
     ...overrides,
   };
 }
@@ -719,5 +720,14 @@ describe("isStubArticle", () => {
 
   it("tamaño desconocido no cuenta como stub: no borramos por no saber", () => {
     expect(isStubArticle(stub({ size: 0 }))).toBe(false);
+  });
+});
+
+describe("articleFromFile — postponedAt", () => {
+  it("parsea el historial de posposiciones y descarta fechas inválidas", () => {
+    const file = { basename: "n", path: "Inbox/Web/n.md" } as unknown as import("obsidian").TFile;
+    const a = articleFromFile(file, { postponedAt: ["2026-10-01T00:00:00Z", "basura"] });
+    expect(a.postponedAt.map((d) => d.toISOString())).toEqual(["2026-10-01T00:00:00.000Z"]);
+    expect(articleFromFile(file, {}).postponedAt).toEqual([]);
   });
 });

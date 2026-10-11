@@ -20,6 +20,8 @@ export interface ReadFrontmatter {
   tags?: string[] | string;
   snoozedUntil?: string;
   readAt?: string;
+  /** Cada vez que se mandó para atrás (ISO). Lo lee reading-signals. */
+  postponedAt?: string[];
 }
 
 export interface QueueArticle {
@@ -39,6 +41,7 @@ export interface QueueArticle {
   tags: string[];
   snoozedUntil: Date | undefined;
   readAt: Date | undefined;
+  postponedAt: Date[];
 }
 
 const isString = (x: unknown): x is string => typeof x === "string";
@@ -97,6 +100,9 @@ export function articleFromFile(
     tags: normalizeTags(fm.tags),
     snoozedUntil: parseDate(fm.snoozedUntil),
     readAt: parseDate(fm.readAt),
+    postponedAt: (Array.isArray(fm.postponedAt) ? fm.postponedAt : [])
+      .map(parseDate)
+      .filter((d): d is Date => d !== undefined),
   };
 }
 
