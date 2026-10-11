@@ -182,6 +182,14 @@ qué leer después. Todo markdown + frontmatter; la inteligencia son llamadas a 
 
 ---
 
+## Curador — Claude ordena la cola y aprende (EN CURSO, 2026-10-11)
+
+- ✅ **A1 — Señales** (`src/reading-signals.ts`): afinidad por concepto (terminadas, likes de X, posposiciones, abandonos; decaimiento 60 días), hábitos por franja, `postponedAt` en el frontmatter. Sin log aparte.
+- ✅ **A2 — Perfil de lectura** (`Perfil de lectura.md`): lo escribe Claude cada 7 días; «Correcciones» es de Fede y no se pisa.
+- ✅ **A3 — Ranking por franja** (`src/curate.ts`): `claude-sonnet-5-5` ordena los ~40 primeros del orden por contexto; caché por franja, en segundo plano, fallback determinista.
+- ⏳ **Verificación real**: correr «Ordenar la cola con Claude (ahora)» con la key y confirmar el banner «✦ Orden de Claude».
+- ⏳ **B — Artículos nuevos de internet** en línea con el perfil (`web_search`), a una nota con links que se pasan a la cola por `add-url`.
+
 ## Última actualización
 
 2026-07-28 — **MX27 shipped en código**: reconcile de leídos de Kindle contra las fichas de `Books/` (módulo puro `kindle-books-reconcile.ts`, matcher título+autor conservador, startup sweep + comando). 484 tests verdes (+28), TS estricto pasa, build de producción OK. En `[Unreleased]`.

@@ -1463,8 +1463,10 @@ export default class ReadQueuePlugin extends Plugin {
    * Orden «Prioridad» completo: determinista (contexto previo) y, encima, el de
    * Claude si hay uno vigente. Lo usan la cola y el repaso diario.
    */
-  rankForReading(unread: readonly QueueArticle[]): { ranked: RankedArticle[]; curated: boolean } {
-    const read = this.loadReadArticles();
+  rankForReading(
+    unread: readonly QueueArticle[],
+    read: readonly QueueArticle[] = this.loadReadArticles(),
+  ): { ranked: RankedArticle[]; curated: boolean } {
     const base = rankQueue(unread, { read, conceptIndex: this.conceptIndex });
     const { items, curated } = applyCuratedRanking(
       base.map((r) => ({ ...r, path: r.article.file.path })),
@@ -1488,8 +1490,11 @@ export default class ReadQueuePlugin extends Plugin {
       );
   }
 
-  /** Lo leído vive en la cola (status read) y, con archivar activado, en readFolder. */
-  private loadReadArticles(): QueueArticle[] {
+  /**
+   * Lo leído vive en la cola (status read) y, con archivar activado, en readFolder.
+   * Recorre la vault: cargarlo una vez por render, no por tecla.
+   */
+  loadReadArticles(): QueueArticle[] {
     const inQueue = this.loadQueueArticles().filter((a) => a.status === "read");
     const archived = this.loadArticlesIn(this.settings.readFolder).filter(
       (a) => a.status === "read" || a.readAt !== undefined,
@@ -1575,6 +1580,9 @@ export default class ReadQueuePlugin extends Plugin {
    */
   ensureCuratedRanking(opts: { force?: boolean } = {}): Promise<void> {
     if (this.curateInFlight) return this.curateInFlight;
+    // Antes del layout el metadataCache puede no estar resuelto: Claude ordenaría
+    // títulos sin temas ni historial, y ese orden quedaría toda la franja.
+    if (!this.layoutReady) return Promise.resolve();
     if (!this.settings.useClaudeRanking || !this.settings.anthropicApiKey?.trim()) {
       if (opts.force) new Notice("ReadQueue: activá «Ordenar la cola con Claude» y cargá la API key.");
       return Promise.resolve();
@@ -1598,6 +1606,12 @@ export default class ReadQueuePlugin extends Plugin {
     ).filter((a) => !isStubArticle(a));
     const base = rankQueue(unread, { read: this.loadReadArticles(), conceptIndex: this.conceptIndex });
     const pool = base.slice(0, 40);
+    // Cola sin frontmatter resuelto todavía (o vacía): es "todavía no", no un
+    // fallo — no marcar la franja, el próximo render vuelve a intentar.
+    if (!pool.some(({ article: a }) => a.topic || a.tldr || a.shelfLife)) {
+      if (loud) new Notice("ReadQueue: la cola todavía no tiene temas cargados; probá en un momento.");
+      return;
+    }
     const candidates: RankCandidate[] = pool.map(({ article: a, reason }) => {
       const since = a.published ? new Date(a.published) : a.savedAt;
       return {

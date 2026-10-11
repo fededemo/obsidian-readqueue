@@ -68,6 +68,8 @@ export class QueueView extends ItemView {
   private priorityReasons = new Map<string, string>();
   /** generatedAt del orden de Claude aplicado, para el aviso arriba de la lista. */
   private curatedLabel: string | undefined;
+  /** Lo leído (cola + archivo), cargado una vez por render: renderList corre por tecla. */
+  private readArticles: QueueArticle[] = [];
   todayPicks = new Set<string>();
 
   constructor(leaf: WorkspaceLeaf, plugin: ReadQueuePlugin) {
@@ -123,6 +125,7 @@ export class QueueView extends ItemView {
     root.addClass("readqueue-view");
 
     this.allArticles = this.plugin.loadQueueArticles();
+    this.readArticles = this.plugin.loadReadArticles();
     await this.plugin.refreshConceptIndex();
     const stats = computeStats(this.allArticles);
     const statsBar = root.createDiv({ cls: "readqueue-view__stats" });
@@ -244,7 +247,7 @@ export class QueueView extends ItemView {
     if (this.sortBy === "priority") {
       // El orden sale de cuánto contexto previo tenés y, si hay uno vigente
       // para esta franja, de lo que Claude eligió con tu perfil de lectura.
-      const { ranked, curated } = this.plugin.rankForReading(byTopic);
+      const { ranked, curated } = this.plugin.rankForReading(byTopic, this.readArticles);
       this.priorityReasons = new Map(
         ranked.map((r) => [r.article.file.path, r.reason]),
       );

@@ -112,11 +112,9 @@ function makeView(articles: QueueArticle[]): {
     refreshConceptIndex: async (): Promise<void> => undefined,
     // Sin orden de Claude: el determinista de siempre, y el pedido en segundo
     // plano es un no-op.
-    rankForReading: (unread: QueueArticle[]) => ({
-      ranked: rankQueue(unread, {
-        read: articles.filter((a) => a.status === "read"),
-        conceptIndex: emptyConceptIndex(),
-      }),
+    loadReadArticles: () => articles.filter((a) => a.status === "read"),
+    rankForReading: (unread: QueueArticle[], read: QueueArticle[]) => ({
+      ranked: rankQueue(unread, { read, conceptIndex: emptyConceptIndex() }),
       curated: false,
     }),
     currentCuratedRanking: () => undefined,
