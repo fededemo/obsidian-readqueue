@@ -550,7 +550,7 @@ export class ReadQueueSettingsTab extends PluginSettingTab {
     const curateSetting = new Setting(containerEl)
       .setName("Ordenar la cola con Claude")
       .setDesc(
-        "En el orden «Prioridad», Claude elige qué te conviene leer según tu perfil de lectura, el día y la hora. Una llamada por franja (mañana/tarde/noche). Sin API key o si falla, queda el orden por contexto de siempre.",
+        "En el orden «Vale la pena», Claude elige qué te conviene leer según tu perfil de lectura, el día y la hora. Una llamada por franja (mañana/tarde/noche). Sin API key o si falla, queda el orden por contexto de siempre.",
       );
     curateSetting.descEl.createEl("div", {
       cls: "readqueue-settings__warn",

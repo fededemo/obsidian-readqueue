@@ -8,7 +8,7 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 
-- **Claude ordena la cola y aprende cómo leés.** En el orden «Prioridad»,
+- **Claude ordena la cola y aprende cómo leés.** En el orden «Vale la pena»,
   Claude (`claude-sonnet-5-5` por defecto, setting «Modelo del curador»)
   elige qué te conviene leer ahora entre los ~40 primeros del orden por
   contexto, con tu perfil de lectura, el día y la franja (mañana/tarde/noche).
