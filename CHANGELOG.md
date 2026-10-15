@@ -44,6 +44,12 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Fixed
 
+- **Artículos de Ghost que llegaban sin cuerpo** (p. ej. felixrieseberg.com):
+  Defuddle borra todo `[data-date]` para sacar badges de fecha, y ese tema le
+  pone el atributo al contenedor del artículo. Ahora un elemento con párrafos
+  adentro conserva su contenido; si igual sale casi vacío (< 40 palabras), una
+  segunda pasada sin la limpieza por selector exacto.
+
 - **El cuerpo de los X Articles** (B-747). Un bookmark a `x.com/i/article/…`
   entraba a la cola como el tweet anuncio más un link: *grok 4.6 is live! a
   write up…* y `targetUrl`, sin el artículo. B-740 los había reclasificado como

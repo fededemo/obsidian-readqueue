@@ -149,6 +149,23 @@ describe("parseHtmlToArticle (with happy-dom)", () => {
     expect(parsed.contentHtml.toLowerCase()).toContain("foundation");
   });
 
+  it("un [data-date] en el contenedor del artículo no se lleva el cuerpo (Ghost)", () => {
+    const para = "<p>Model capabilities don't grow uniformly, and some people manage to pilot the astounding ones while many others are still struggling to get their new wings to work at all.</p>";
+    const html = `<!DOCTYPE html><html><head><title>How to be more ambitious</title></head><body>
+      <article class="post"><header><h1>How to be more ambitious</h1><span data-date="2026-10-13">BADGE-FECHA</span></header>
+      <div class="content gh-content" data-date="2026-10-13">${para.repeat(4)}</div></article></body></html>`;
+    const parsed = parseHtmlToArticle(html, "https://felixrieseberg.com/how-to-be-more-ambitious/");
+    expect(parsed.contentHtml).toContain("astounding ones");
+    // El badge de fecha de verdad (sin párrafos) se sigue limpiando.
+    expect(parsed.contentHtml).not.toContain("BADGE-FECHA");
+  });
+
+  it("una página normal no pierde la limpieza de ruido", () => {
+    const html = readFileSync(join(__dirname, "fixtures/blog-article.html"), "utf-8");
+    const parsed = parseHtmlToArticle(html, "https://example.com/post");
+    expect(parsed.contentHtml).not.toContain("<nav");
+  });
+
   it("falls back to hostname when title is empty", () => {
     const html = "<!DOCTYPE html><html><body><article><p>hello</p></article></body></html>";
     const parsed = parseHtmlToArticle(html, "https://no-title.example/x");

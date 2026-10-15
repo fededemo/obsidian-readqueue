@@ -229,13 +229,35 @@ function parseTwitterDate(raw: string): string | undefined {
   return Number.isNaN(d.getTime()) ? undefined : d.toISOString();
 }
 
+/** Por debajo de esto el cuerpo extraído se considera vacío y se reintenta. */
+const THIN_BODY_WORDS = 40;
+
+/**
+ * Defuddle borra todo `[data-date]` (lo usa para sacar badges de fecha), y hay
+ * temas — Ghost en felixrieseberg.com — que le ponen ese atributo al
+ * contenedor del artículo entero: quedaba el título y nada de cuerpo. Un
+ * elemento con párrafos adentro no es un badge, así que se le saca el atributo.
+ */
+function unshieldContentContainers(doc: Document): Document {
+  for (const el of Array.from(doc.querySelectorAll("[data-date]"))) {
+    if (el.querySelector("p")) el.removeAttribute("data-date");
+  }
+  return doc;
+}
+
 export function parseHtmlToArticle(
   html: string,
   url: string,
   parseDom: (html: string) => Document = defaultParseDom,
 ): ParsedArticle {
-  const doc = parseDom(html);
-  const result = new Defuddle(doc, { url }).parse();
+  let result = new Defuddle(unshieldContentContainers(parseDom(html)), { url }).parse();
+  // Respaldo: si igual salió casi vacío, segunda pasada sin la limpieza por
+  // selector exacto — más ruido, pero el texto llega. Defuddle muta el
+  // documento, así que se vuelve a parsear el HTML.
+  if ((result.wordCount ?? 0) < THIN_BODY_WORDS) {
+    const retry = new Defuddle(parseDom(html), { url, removeExactSelectors: false }).parse();
+    if ((retry.wordCount ?? 0) > (result.wordCount ?? 0)) result = retry;
+  }
   return {
     title: result.title && result.title.trim() ? cleanTitle(result.title) : hostnameFromUrl(url),
     url,
