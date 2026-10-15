@@ -30,6 +30,18 @@ The format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - **Posponer deja historial**: `postponedAt` (últimas 10) en el frontmatter,
   además de mover `savedAt` como antes.
 
+### Changed
+
+- **La cola en el iPhone y en la compu.** Búsqueda y recargar en una fila; los
+  tres selects en otra, parejos (las etiquetas de agrupar se acortaron:
+  «Tópico», «Fuente», «Fecha», «Sin grupos»). En la card, el motivo de Claude
+  va en su propio renglón; la fila de meta baja de línea en vez de salirse
+  (el tópico quedaba cortado) y la fecha es corta («10 oct»). En el teléfono:
+  botones de 40px parejos en tres columnas y sin el contorno de
+  «seleccionada». En escritorio: acciones como texto apagado que se enciende
+  con el mouse, y la lista no pasa de 760px en un panel ancho. «unread» → «sin
+  leer».
+
 ### Security
 
 - **Las 10 vulnerabilidades de `npm audit`, a cero.** Del lado del toolchain

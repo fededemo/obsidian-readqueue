@@ -31,10 +31,12 @@ import type ReadQueuePlugin from "./main";
 export const QUEUE_VIEW_TYPE = "readqueue-view";
 
 const GROUP_OPTIONS: ReadonlyArray<readonly [GroupKey, string]> = [
-  ["topic", "Por tópico"],
-  ["source", "Por fuente"],
-  ["date", "Por fecha"],
-  ["none", "Sin agrupar"],
+  // Cortas: en el panel del iPhone el select mide ~100px. El aria-label
+  // "Agrupar por" ya dice qué es.
+  ["topic", "Tópico"],
+  ["source", "Fuente"],
+  ["date", "Fecha"],
+  ["none", "Sin grupos"],
 ];
 
 const SOURCE_OPTIONS: ReadonlyArray<readonly [SourceCategory, string]> = [
@@ -129,7 +131,7 @@ export class QueueView extends ItemView {
     await this.plugin.refreshConceptIndex();
     const stats = computeStats(this.allArticles);
     const statsBar = root.createDiv({ cls: "readqueue-view__stats" });
-    const statsBits: string[] = [`${stats.unread} unread`];
+    const statsBits: string[] = [`${stats.unread} sin leer`];
     if (stats.snoozed > 0) statsBits.push(`${stats.snoozed} 💤`);
     if (stats.readThisWeek > 0) {
       statsBits.push(`${stats.readThisWeek} leídos esta semana`);
@@ -138,6 +140,41 @@ export class QueueView extends ItemView {
       statsBits.push(`top mes: ${stats.topTopicThisMonth}`);
     }
     statsBar.setText(statsBits.join(" · "));
+
+    // La búsqueda y la recarga van en su propia fila, arriba de los selects:
+    // en el panel del iPhone los tres selects más el botón no entraban en una
+    // línea y se partían en dos.
+    const searchRow = root.createDiv({ cls: "readqueue-view__search-row" });
+    const searchEl = searchRow.createEl("input", {
+      cls: "readqueue-view__search",
+      attr: {
+        type: "search",
+        placeholder: "Filtrar título / topic / fuente…",
+        "aria-label": "Filtrar la cola",
+      },
+    });
+    // Icono y no texto: en el panel lateral angosto no entra "Recargar".
+    const refresh = searchRow.createEl("button", {
+      cls: "readqueue-view__icon-btn",
+      attr: { "aria-label": "Recargar", title: "Recargar" },
+    });
+    setIcon(refresh, "rotate-cw");
+    refresh.onclick = () => {
+      // Las ★ de "lectura de hoy" son una selección puntual: si siguen puestas
+      // después de recargar, la cola parece congelada aunque el orden cambie.
+      this.todayPicks = new Set();
+      void this.render();
+    };
+
+    searchEl.value = this.searchQuery;
+    // Re-render only the list on each keystroke — never the whole view.
+    // Rebuilding the toolbar would destroy this <input>, dropping focus and
+    // resetting scroll on every letter (unusable on mobile, the original bug).
+    searchEl.oninput = () => {
+      this.searchQuery = searchEl.value;
+      this.renderList();
+    };
+    this.searchInputEl = searchEl;
 
     const toolbar = root.createDiv({ cls: "readqueue-view__toolbar" });
 
@@ -180,37 +217,6 @@ export class QueueView extends ItemView {
       this.renderList();
     };
 
-    // Icono y no texto: en el panel lateral angosto los cuatro controles no
-    // entraban y "Recargar" quedaba cortado.
-    const refresh = toolbar.createEl("button", {
-      cls: "readqueue-view__icon-btn",
-      attr: { "aria-label": "Recargar", title: "Recargar" },
-    });
-    setIcon(refresh, "rotate-cw");
-    refresh.onclick = () => {
-      // Las ★ de "lectura de hoy" son una selección puntual: si siguen puestas
-      // después de recargar, la cola parece congelada aunque el orden cambie.
-      this.todayPicks = new Set();
-      void this.render();
-    };
-
-    const searchEl = root.createEl("input", {
-      cls: "readqueue-view__search",
-      attr: {
-        type: "search",
-        placeholder: "Filtrar título / topic / fuente…",
-        "aria-label": "Filtrar la cola",
-      },
-    });
-    searchEl.value = this.searchQuery;
-    // Re-render only the list on each keystroke — never the whole view.
-    // Rebuilding the toolbar would destroy this <input>, dropping focus and
-    // resetting scroll on every letter (unusable on mobile, the original bug).
-    searchEl.oninput = () => {
-      this.searchQuery = searchEl.value;
-      this.renderList();
-    };
-    this.searchInputEl = searchEl;
 
     if (this.activeTopicFilter) {
       const pill = root.createDiv({ cls: "readqueue-view__filter-pill" });
@@ -368,6 +374,16 @@ export class QueueView extends ItemView {
       });
     }
 
+    // El motivo de Claude es una frase: en su propio renglón se lee; metido en
+    // la fila de meta quedaba en una columna de dos palabras de ancho.
+    const reason = this.priorityReasons.get(article.file.path);
+    if (reason) {
+      card.createEl("div", {
+        cls: "readqueue-view__why",
+        text: `✦ ${reason}`,
+      });
+    }
+
     const meta = card.createDiv({ cls: "readqueue-view__card-meta" });
     if (isStubArticle(article)) {
       meta.createEl("span", {
@@ -386,11 +402,6 @@ export class QueueView extends ItemView {
         attr: { title: "Contenido perecedero: si tiene más de 3 meses, probablemente ya no aplique" },
       });
     }
-    const sourceText = computeSourceText(article);
-    if (sourceText) meta.createEl("span", { text: sourceText });
-    if (article.savedAt) {
-      meta.createEl("span", { text: article.savedAt.toLocaleDateString() });
-    }
     if (article.topic) {
       const slug = topicSlug(article.topic);
       const badge = meta.createEl("span", {
@@ -404,11 +415,14 @@ export class QueueView extends ItemView {
         void this.render();
       };
     }
-    const reason = this.priorityReasons.get(article.file.path);
-    if (reason) {
+    const sourceText = computeSourceText(article);
+    if (sourceText) {
+      meta.createEl("span", { cls: "readqueue-view__source", text: sourceText });
+    }
+    if (article.savedAt) {
       meta.createEl("span", {
-        cls: "readqueue-view__why",
-        text: reason,
+        text: shortDate(article.savedAt),
+        attr: { title: `Guardado el ${article.savedAt.toLocaleDateString()}` },
       });
     }
     const size = article.file.stat?.size ?? 0;
@@ -550,6 +564,13 @@ export class QueueView extends ItemView {
     const leaf = this.leaf as unknown as { updateHeader?: () => void };
     leaf.updateHeader?.();
   }
+}
+
+/** "10 oct"; con año si no es el actual. Entra en la fila de meta del celular. */
+function shortDate(d: Date, now: Date = new Date()): string {
+  const opts: Intl.DateTimeFormatOptions = { day: "numeric", month: "short" };
+  if (d.getFullYear() !== now.getFullYear()) opts.year = "2-digit";
+  return d.toLocaleDateString(undefined, opts);
 }
 
 function computeSourceText(article: QueueArticle): string | undefined {
